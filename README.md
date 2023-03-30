@@ -1,0 +1,1 @@
+Implementing Neural Networks in Rust from scratch (using linear algebra libraries still).
