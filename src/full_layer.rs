@@ -7,6 +7,12 @@ pub struct FullLayer<const I: usize, const J: usize> {
     activation: ActivationLayer<J>,
 }
 
+impl<const I: usize, const J: usize> FullLayer<I, J> {
+    pub fn new(dense: DenseLayer<I, J>, activation: ActivationLayer<J>) -> Self {
+        Self { dense, activation }
+    }
+}
+
 impl<const I: usize, const J: usize> Layer<I, J> for FullLayer<I, J> {
     fn forward(&mut self, input: nalgebra::SVector<f64, I>) -> SVector<f64, J> {
         let output = self.dense.forward(input);
