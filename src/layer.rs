@@ -1,4 +1,4 @@
-use nalgebra::{SVector};
+use nalgebra::SVector;
 
 pub trait Layer<const I: usize, const J: usize> {
     // returns: j outputs
@@ -6,5 +6,6 @@ pub trait Layer<const I: usize, const J: usize> {
 
     // output_gradient: ∂E/∂Y
     // returns: ∂E/∂X
-    fn backward(&mut self, output_gradient: SVector<f64, J>, learning_rate: f64) -> SVector<f64, I>;
+    fn backward(&mut self, output_gradient: SVector<f64, J>, learning_rate: f64)
+        -> SVector<f64, I>;
 }

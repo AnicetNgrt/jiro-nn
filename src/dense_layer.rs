@@ -1,6 +1,6 @@
 use nalgebra::{SMatrix, SVector};
 
-use crate::{layer::Layer};
+use crate::layer::Layer;
 
 // Translated from python https://www.youtube.com/watch?v=pauPCy_s0Ok
 pub struct DenseLayer<const I: usize, const J: usize> {
@@ -9,13 +9,13 @@ pub struct DenseLayer<const I: usize, const J: usize> {
     // j x i connection weights
     weights: SMatrix<f64, J, I>,
     // j output biases
-    biases: SVector<f64, J>
+    biases: SVector<f64, J>,
 }
 
 impl<const I: usize, const J: usize> DenseLayer<I, J> {
     pub fn new() -> Self {
-        Self { 
-            weights: SMatrix::new_random(), 
+        Self {
+            weights: SMatrix::new_random(),
             biases: SVector::new_random(),
             input: None,
         }
@@ -29,11 +29,15 @@ impl<const I: usize, const J: usize> Layer<I, J> for DenseLayer<I, J> {
         self.weights * input + self.biases
     }
 
-    fn backward(&mut self, output_gradient: SVector<f64, J>, learning_rate: f64) -> SVector<f64, I> {
+    fn backward(
+        &mut self,
+        output_gradient: SVector<f64, J>,
+        learning_rate: f64,
+    ) -> SVector<f64, I> {
         let input = self.input.unwrap();
-        
+
         // ∂E/∂W = ∂E/∂Y . ∂Y/∂W
-        // But ∂yj/∂wji != 0 and ∂yj/∂wki == 0, k != j 
+        // But ∂yj/∂wji != 0 and ∂yj/∂wki == 0, k != j
         // => ∂E/∂wji = ∂E/∂yj . ∂yj/∂wji
         // And ∂yj/∂wji = xi
         // => ∂E/∂wji = ∂E/∂yj . xi
@@ -42,11 +46,11 @@ impl<const I: usize, const J: usize> Layer<I, J> for DenseLayer<I, J> {
         let weights_gradient = output_gradient * input.transpose();
 
         // ∂E/∂B = ∂E/∂Y . ∂Y/∂B
-        // But ∂yj/∂bj != 0 and ∂yj/∂bk == 0, k != j 
+        // But ∂yj/∂bj != 0 and ∂yj/∂bk == 0, k != j
         // => ∂E/∂bj = ∂E/∂yj
         // => ∂E/∂B = ∂E/∂Y
         let biases_gradient = output_gradient;
-        
+
         // ∂E/∂X = ∂E/∂Y . ∂Y/∂X
         // With ∂E/∂xi = ∂E/∂y1 ∂y1/∂xi + ∂E/∂y2 ∂y2/∂xi + ... + ∂E/∂yj ∂yj/∂xi
         // But yj = ... + xi*wji + ...  so  ∂yj/∂xi = wji
