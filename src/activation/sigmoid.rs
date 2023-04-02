@@ -1,4 +1,4 @@
-use crate::{activation_layer::ActivationLayer};
+use super::ActivationLayer;
 
 fn sigmoid(x: f64) -> f64 {
     1. / (1. + libm::exp(-x))

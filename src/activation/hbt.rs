@@ -1,4 +1,4 @@
-use crate::{activation_layer::ActivationLayer};
+use super::ActivationLayer;
 
 fn hbt(x: f64) -> f64 {
     let exp = libm::exp(x);

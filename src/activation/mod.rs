@@ -2,6 +2,11 @@ use nalgebra::SVector;
 
 use crate::layer::Layer;
 
+pub mod hbt;
+pub mod sigmoid;
+pub mod relu;
+pub mod tanh;
+
 pub type ActivationFn<const I: usize> = fn(&SVector<f64, I>) -> SVector<f64, I>;
 
 pub struct ActivationLayer<const I: usize> {
@@ -35,5 +40,23 @@ impl<const I: usize> Layer<I, I> for ActivationLayer<I> {
         // ∂E/∂X = ∂E/∂Y ⊙ f'(X)
         let fprime_x = (self.derivative)(&self.input.unwrap());
         output_gradient.component_mul(&fprime_x)
+    }
+}
+
+pub enum Activation {
+    Tanh,
+    Sigmoid,
+    ReLU,
+    HyperbolicTangent
+}
+
+impl Activation {
+    pub fn to_layer<const I: usize>(&self) -> ActivationLayer<I> {
+        match self {
+            Self::Tanh => tanh::new(),
+            Self::Sigmoid => sigmoid::new(),
+            Self::ReLU => relu::new(),
+            Self::HyperbolicTangent => hbt::new()
+        }
     }
 }

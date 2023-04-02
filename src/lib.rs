@@ -1,41 +1,15 @@
-use activation_layer::ActivationLayer;
-use dense_layer::DenseLayer;
-use full_layer::FullLayer;
+use activation::Activation;
+use layer::dense_layer::DenseLayer;
+use layer::full_layer::FullLayer;
 use network::Network;
-use skip_layer::SkipLayer;
-use with_hidden::WithHidden;
+use layer::skip_layer::SkipLayer;
+use layer::hidden_layer::HiddenLayer;
 
-pub mod activation_layer;
-pub mod with_hidden;
-pub mod dense_layer;
-pub mod full_layer;
+pub mod activation;
 pub mod layer;
 pub mod mean_squared_error;
 pub mod network;
-pub mod tanh_activation;
-pub mod sigmoid_activation;
-pub mod hyperbolic_tangent_activation;
-pub mod relu_activation;
-pub mod skip_layer;
 pub mod loss;
-
-pub enum Activation {
-    Tanh,
-    Sigmoid,
-    ReLU,
-    HyperbolicTangent
-}
-
-impl Activation {
-    pub fn to_layer<const I: usize>(&self) -> ActivationLayer<I> {
-        match self {
-            Self::Tanh => tanh_activation::new(),
-            Self::Sigmoid => sigmoid_activation::new(),
-            Self::ReLU => relu_activation::new(),
-            Self::HyperbolicTangent => hyperbolic_tangent_activation::new()
-        }
-    }
-}
 
 // Neural network with I inputs and J outputs and no hidden layers
 pub fn nn_h0<const I: usize, const J: usize>(activation: Activation) -> Network<I, J> {
@@ -56,7 +30,7 @@ pub fn nn_h1<const I: usize, const H: usize, const J: usize>(activations: Vec<Ac
         DenseLayer::new(),
         activations[1 % activations.len()].to_layer()
     );
-    let global = WithHidden::new(
+    let global = HiddenLayer::new(
         layer0,
         layer1,
         layer2
@@ -79,7 +53,7 @@ pub fn nn_h2<const I: usize, const H0: usize, const H1: usize, const J: usize>(a
         DenseLayer::new(),
         activations[2 % activations.len()].to_layer()
     );
-    let global = WithHidden::new(
+    let global = HiddenLayer::new(
         layer0,
         layer1,
         layer2

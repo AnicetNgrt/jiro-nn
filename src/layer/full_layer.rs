@@ -1,6 +1,6 @@
 use nalgebra::SVector;
 
-use crate::{activation_layer::ActivationLayer, dense_layer::DenseLayer, layer::Layer};
+use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
 pub struct FullLayer<const I: usize, const J: usize> {
     dense: DenseLayer<I, J>,

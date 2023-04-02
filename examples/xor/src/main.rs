@@ -4,7 +4,7 @@ use nalgebra::{SMatrix, Vector2, Vector1};
 use nn::{
     nn_h1,
     network::Network,
-    Activation, mean_squared_error::MeanSquaredError
+    activation::Activation, mean_squared_error::MeanSquaredError
 };
 
 fn train_and_test(network: &mut Network<2, 1>, epochs: usize, learning_rate: f64) -> f64 {

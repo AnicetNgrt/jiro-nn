@@ -2,7 +2,7 @@ use nalgebra::SVector;
 
 use crate::layer::Layer;
 
-pub struct WithHidden<
+pub struct HiddenLayer<
     const IN: usize,
     const H_IN: usize,
     const H_OUT: usize,
@@ -24,7 +24,7 @@ impl<
         ToHidden: Layer<IN, H_IN>,
         Hidden: Layer<H_IN, H_OUT>,
         ToOutput: Layer<H_OUT, OUT>,
-    > WithHidden<IN, H_IN, H_OUT, OUT, ToHidden, Hidden, ToOutput>
+    > HiddenLayer<IN, H_IN, H_OUT, OUT, ToHidden, Hidden, ToOutput>
 {
     pub fn new(to_hidden: ToHidden, hidden: Hidden, to_output: ToOutput) -> Self {
         Self {
@@ -43,7 +43,7 @@ impl<
         ToHidden: Layer<IN, H_IN>,
         Hidden: Layer<H_IN, H_OUT>,
         ToOutput: Layer<H_OUT, OUT>,
-    > Layer<IN, OUT> for WithHidden<IN, H_IN, H_OUT, OUT, ToHidden, Hidden, ToOutput>
+    > Layer<IN, OUT> for HiddenLayer<IN, H_IN, H_OUT, OUT, ToHidden, Hidden, ToOutput>
 {
     fn forward(&mut self, input: nalgebra::SVector<f64, IN>) -> SVector<f64, OUT> {
         let hidden_in = self.to_hidden.forward(input);

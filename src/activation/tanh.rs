@@ -1,4 +1,4 @@
-use crate::{activation_layer::ActivationLayer};
+use super::ActivationLayer;
 
 pub fn new<const I: usize>() -> ActivationLayer<I> {
     ActivationLayer::new(nalgebra_glm::tanh, |m| {

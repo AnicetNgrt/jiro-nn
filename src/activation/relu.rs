@@ -1,4 +1,4 @@
-use crate::{activation_layer::ActivationLayer};
+use super::ActivationLayer;
 
 fn relu(x: f64) -> f64 {
     x.max(0.)
