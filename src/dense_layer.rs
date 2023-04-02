@@ -14,9 +14,12 @@ pub struct DenseLayer<const I: usize, const J: usize> {
 
 impl<const I: usize, const J: usize> DenseLayer<I, J> {
     pub fn new() -> Self {
+        let weights = SMatrix::<f64, J, I>::new_random();
+        let biases = SVector::<f64, J>::new_random();
+
         Self {
-            weights: SMatrix::new_random(),
-            biases: SVector::new_random(),
+            weights: weights.add_scalar(-0.5) * 2.,
+            biases: biases.add_scalar(-0.5) * 2.,
             input: None,
         }
     }
@@ -60,8 +63,8 @@ impl<const I: usize, const J: usize> Layer<I, J> for DenseLayer<I, J> {
         let input_gradient = self.weights.transpose() * output_gradient;
 
         // Gradient descent -> Following the negative gradient & converging to the minimum
-        self.weights = self.weights - learning_rate * weights_gradient;
-        self.biases = self.biases - learning_rate * biases_gradient;
+        self.weights = self.weights - (learning_rate * weights_gradient);
+        self.biases = self.biases - (learning_rate * biases_gradient);
 
         input_gradient
     }

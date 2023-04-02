@@ -1,8 +1,6 @@
 use activation_layer::ActivationLayer;
 use dense_layer::DenseLayer;
 use full_layer::FullLayer;
-use layer::Layer;
-use loss::Loss;
 use network::Network;
 use skip_layer::SkipLayer;
 use with_hidden::WithHidden;

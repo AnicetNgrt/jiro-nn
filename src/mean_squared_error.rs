@@ -6,7 +6,7 @@ pub struct MeanSquaredError;
 
 impl<const J: usize> Loss<J> for MeanSquaredError {
     fn loss(y_true: SVector<f64, J>, y_pred: SVector<f64, J>) -> f64 {
-        nalgebra_glm::exp2(&(y_true - y_pred)).mean()
+        (y_true - y_pred).map(|y| y*y).sum() / J as f64
     }
 
     fn loss_prime(

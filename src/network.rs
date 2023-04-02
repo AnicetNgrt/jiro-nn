@@ -23,11 +23,13 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
             for i in 0..S {
                 let input = x_train.column(i).into();
                 let pred = self.layer.forward(input);
-
+                
                 let y_true = y_train.column(i).into();
-                error += E::loss(y_true, pred);
+                let e = E::loss(y_true, pred);
+                error += e;
 
                 let error_gradient = E::loss_prime(y_true, pred);
+                // println!("{:?}", error_gradient);
                 self.layer.backward(error_gradient, learning_rate);
             }
             error /= S as f64;
