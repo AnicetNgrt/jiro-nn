@@ -1,13 +1,14 @@
+use std::thread;
+
 use nalgebra::{SMatrix, Vector2, Vector1};
 use nn::{
     nn_h1,
+    network::Network,
     Activation, mean_squared_error::MeanSquaredError
 };
 
-fn main() {
-    let mut network = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
-
-    network.fit::<4, MeanSquaredError>(
+fn train_and_test(network: &mut Network<2, 1>, epochs: usize, learning_rate: f64) -> f64 {
+    let errors = network.fit::<4, MeanSquaredError>(
         SMatrix::from_columns(&[
             Vector2::new(0., 0.),
             Vector2::new(0., 1.),
@@ -20,16 +21,44 @@ fn main() {
             Vector1::new(1.),
             Vector1::new(0.)
         ]), 
-        10000, 
-        0.1
+        epochs, 
+        learning_rate
     );
 
-    let inputs = &[
-        Vector2::new(0., 0.),
-        Vector2::new(0., 1.),
-        Vector2::new(1., 0.),
-        Vector2::new(1., 1.)
-    ];
+    *errors.last().unwrap()
+}
 
-    inputs.iter().for_each(|test| println!("{} => {}", test, network.predict(*test)));
+fn score(mut network: &mut Network<2, 1>, epochs: usize, learning_rate: f64, trials: usize) -> f64 {
+    (0..trials)
+        .map(|_| train_and_test(&mut network, epochs, learning_rate))
+        .sum::<f64>() / trials as f64
+}
+
+fn main() {
+    let mut handles = vec![];
+    let trials = 10;
+    handles.push(thread::spawn(move || {
+        let mut network = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
+        let score = score(&mut network, 5000, 0.1, trials);
+        println!("[TANH]\n avg final error: {}", score);
+    }));
+    handles.push(thread::spawn(move || {
+        let mut network = nn_h1::<2, 3, 1>(vec![Activation::Sigmoid]);
+        let score = score(&mut network, 5000, 0.1, trials);
+        println!("[SIGMOID]\n avg final error: {}", score);
+    }));
+    handles.push(thread::spawn(move || {
+        let mut network = nn_h1::<2, 3, 1>(vec![Activation::HyperbolicTangent]);
+        let score = score(&mut network, 5000, 0.1, trials);
+        println!("[HBT]\n avg final error: {}", score);
+    }));
+    handles.push(thread::spawn(move || {
+        let mut network = nn_h1::<2, 3, 1>(vec![Activation::ReLU]);
+        let score = score(&mut network, 5000, 0.1, trials);
+        println!("[RELU]\n avg final error: {}", score);
+    }));
+
+    for h in handles.into_iter() {
+        h.join().unwrap();
+    }
 }

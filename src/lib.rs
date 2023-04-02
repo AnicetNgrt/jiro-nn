@@ -13,17 +13,26 @@ pub mod layer;
 pub mod mean_squared_error;
 pub mod network;
 pub mod tanh_activation;
+pub mod sigmoid_activation;
+pub mod hyperbolic_tangent_activation;
+pub mod relu_activation;
 pub mod skip_layer;
 pub mod loss;
 
 pub enum Activation {
-    Tanh
+    Tanh,
+    Sigmoid,
+    ReLU,
+    HyperbolicTangent
 }
 
 impl Activation {
     pub fn to_layer<const I: usize>(&self) -> ActivationLayer<I> {
         match self {
-            Activation::Tanh => tanh_activation::new(),
+            Self::Tanh => tanh_activation::new(),
+            Self::Sigmoid => sigmoid_activation::new(),
+            Self::ReLU => relu_activation::new(),
+            Self::HyperbolicTangent => hyperbolic_tangent_activation::new()
         }
     }
 }

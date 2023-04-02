@@ -17,8 +17,9 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
         self.layer.forward(input)
     }
 
-    pub fn fit<const S: usize, E: Loss<OUT>>(&mut self, x_train: SMatrix<f64, IN, S>, y_train: SMatrix<f64, OUT, S>, epochs: usize,  learning_rate: f64) {
-        for e in 0..epochs {
+    pub fn fit<const S: usize, E: Loss<OUT>>(&mut self, x_train: SMatrix<f64, IN, S>, y_train: SMatrix<f64, OUT, S>, epochs: usize,  learning_rate: f64) -> Vec<f64> {
+        let mut errors = Vec::new();
+        for _e in 0..epochs {
             let mut error = 0.;
             for i in 0..S {
                 let input = x_train.column(i).into();
@@ -29,11 +30,12 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
                 error += e;
 
                 let error_gradient = E::loss_prime(y_true, pred);
-                // println!("{:?}", error_gradient);
                 self.layer.backward(error_gradient, learning_rate);
             }
             error /= S as f64;
-            println!("epoch {}/{} error={}", e+1, epochs, error);
+            errors.push(error);
+            // println!("epoch {}/{} error={}", e+1, epochs, error);
         }
+        errors
     }
 }
