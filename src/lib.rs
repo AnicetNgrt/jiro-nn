@@ -7,7 +7,6 @@ use layer::hidden_layer::HiddenLayer;
 
 pub mod activation;
 pub mod layer;
-pub mod mean_squared_error;
 pub mod network;
 pub mod loss;
 
