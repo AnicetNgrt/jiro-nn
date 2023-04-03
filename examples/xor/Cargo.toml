@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 nalgebra = "*"
 nn = { path = "../../" }
+plotters = "0.3.4"
