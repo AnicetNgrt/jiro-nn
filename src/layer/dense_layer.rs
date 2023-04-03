@@ -62,7 +62,7 @@ impl<const I: usize, const J: usize> Layer<I, J> for DenseLayer<I, J> {
         // => ∂E/∂X = W^t . ∂E/∂Y
         let input_gradient = self.weights.transpose() * output_gradient;
 
-        // Gradient descent -> Following the negative gradient & converging to the minimum
+        // (Stochastic) Gradient descent -> Following the negative gradient (computed on discrete xs) & converging to the minimum
         self.weights = self.weights - (learning_rate * weights_gradient);
         self.biases = self.biases - (learning_rate * biases_gradient);
 

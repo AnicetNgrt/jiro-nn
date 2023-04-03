@@ -9,6 +9,7 @@ pub mod activation;
 pub mod layer;
 pub mod loss;
 pub mod network;
+pub mod optimizer;
 
 // Neural network with I inputs and J outputs and no hidden layers
 pub fn nn_h0<const I: usize, const J: usize>(activation: Activation) -> Network<I, J> {

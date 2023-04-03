@@ -50,15 +50,16 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
         error
     }
 
-    pub fn train_iter<const S: usize, I>(
+    pub fn train_iter<const S: usize, I, J>(
         &mut self,
         x_train: I,
-        y_train: I,
+        y_train: J,
         learning_rate: f64,
         loss: &Loss<OUT>,
     ) -> f64
     where
         I: IntoIterator<Item = f64>,
+        J: IntoIterator<Item = f64>
     {
         self.train::<S>(
             SMatrix::from_iterator(x_train.into_iter()),

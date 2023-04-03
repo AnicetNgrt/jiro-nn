@@ -1,7 +1,13 @@
 use std::thread;
 
-use nn::{nn_h1, activation::Activation};
-use xor::score;
+use nn::{nn_h1, activation::Activation, network::Network};
+use xor::train_and_test;
+
+pub fn score(mut network: &mut Network<2, 1>, epochs: usize, learning_rate: f64, trials: usize) -> f64 {
+    (0..trials)
+        .map(|_| train_and_test(&mut network, epochs, learning_rate, |_, lr| lr).0)
+        .sum::<f64>() / trials as f64
+}
 
 fn main() {
     let mut handles = vec![];
