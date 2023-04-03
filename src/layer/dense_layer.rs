@@ -2,7 +2,6 @@ use nalgebra::{SMatrix, SVector};
 
 use crate::layer::Layer;
 
-// Translated from python https://www.youtube.com/watch?v=pauPCy_s0Ok
 pub struct DenseLayer<const I: usize, const J: usize> {
     // i inputs, j outputs, i x j connections
     input: Option<SVector<f64, I>>,
