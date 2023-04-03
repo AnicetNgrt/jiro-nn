@@ -27,52 +27,42 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
             .collect()
     }
 
-    // pub fn predict_all(&mut self, inputs: I<J<f64>>)
-
-    pub fn fit<const S: usize>(
+    pub fn train<const S: usize>(
         &mut self,
         x_train: SMatrix<f64, IN, S>,
         y_train: SMatrix<f64, OUT, S>,
-        epochs: usize,
         learning_rate: f64,
-        loss: Loss<OUT>,
-    ) -> Vec<f64> {
-        let mut errors = Vec::new();
-        for _e in 0..epochs {
-            let mut error = 0.;
-            for i in 0..S {
-                let input = x_train.column(i).into();
-                let pred = self.layer.forward(input);
+        loss: &Loss<OUT>,
+    ) -> f64 {
+        let mut error = 0.;
+        for i in 0..S {
+            let input = x_train.column(i).into();
+            let pred = self.layer.forward(input);
 
-                let y_true = y_train.column(i).into();
-                let e = loss.loss(y_true, pred);
-                error += e;
+            let y_true = y_train.column(i).into();
+            let e = loss.loss(y_true, pred);
+            error += e;
 
-                let error_gradient = loss.loss_prime(y_true, pred);
-                self.layer.backward(error_gradient, learning_rate);
-            }
-            error /= S as f64;
-            errors.push(error);
-            // println!("epoch {}/{} error={}", e+1, epochs, error);
+            let error_gradient = loss.loss_prime(y_true, pred);
+            self.layer.backward(error_gradient, learning_rate);
         }
-        errors
+        error /= S as f64;
+        error
     }
 
-    pub fn fit_iter<const S: usize, I>(
+    pub fn train_iter<const S: usize, I>(
         &mut self,
         x_train: I,
         y_train: I,
-        epochs: usize,
         learning_rate: f64,
-        loss: Loss<OUT>,
-    ) -> Vec<f64>
+        loss: &Loss<OUT>,
+    ) -> f64
     where
         I: IntoIterator<Item = f64>,
     {
-        self.fit::<S>(
+        self.train::<S>(
             SMatrix::from_iterator(x_train.into_iter()),
             SMatrix::from_iterator(y_train.into_iter()),
-            epochs,
             learning_rate,
             loss,
         )

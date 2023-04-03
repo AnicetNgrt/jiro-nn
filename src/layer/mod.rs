@@ -1,9 +1,16 @@
 use nalgebra::SVector;
 
+use crate::activation::Activation;
+
 pub mod dense_layer;
 pub mod full_layer;
 pub mod hidden_layer;
 pub mod skip_layer;
+
+pub enum Layers {
+    Dense,
+    Activation(Activation)
+}
 
 pub trait Layer<const I: usize, const J: usize> {
     // returns: j outputs

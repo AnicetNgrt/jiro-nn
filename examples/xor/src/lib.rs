@@ -2,7 +2,7 @@ use nn::{
     network::Network, loss::mse
 };
 
-pub fn train_and_test(network: &mut Network<2, 1>, epochs: usize, learning_rate: f64) -> f64 {
+pub fn train_and_test(network: &mut Network<2, 1>, epochs: usize, learning_rate: f64) -> (f64, Vec<f64>) {
     let errors = network.fit_iter::<4, _>(
         vec![
             0., 0.,
@@ -16,11 +16,11 @@ pub fn train_and_test(network: &mut Network<2, 1>, epochs: usize, learning_rate:
         mse::new()
     );
 
-    *errors.last().unwrap()
+    (*errors.last().unwrap(), errors)
 }
 
 pub fn score(mut network: &mut Network<2, 1>, epochs: usize, learning_rate: f64, trials: usize) -> f64 {
     (0..trials)
-        .map(|_| train_and_test(&mut network, epochs, learning_rate))
+        .map(|_| train_and_test(&mut network, epochs, learning_rate).0)
         .sum::<f64>() / trials as f64
 }
