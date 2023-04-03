@@ -5,12 +5,13 @@ fn relu(x: f64) -> f64 {
 }
 
 fn relu_prime(x: f64) -> f64 {
-    if x > 0. { 1. } else { 0. }
+    if x > 0. {
+        1.
+    } else {
+        0.
+    }
 }
 
 pub fn new<const I: usize>() -> ActivationLayer<I> {
-    ActivationLayer::new(
-        |m| m.map(relu), 
-        |m| m.map(relu_prime)
-    )
+    ActivationLayer::new(|m| m.map(relu), |m| m.map(relu_prime))
 }

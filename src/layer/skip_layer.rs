@@ -9,8 +9,11 @@ impl<const I: usize> Layer<I, I> for SkipLayer<I> {
         input
     }
 
-    fn backward(&mut self, output_gradient: nalgebra::SVector<f64, I>, _learning_rate: f64)
-        -> SVector<f64, I> {
+    fn backward(
+        &mut self,
+        output_gradient: nalgebra::SVector<f64, I>,
+        _learning_rate: f64,
+    ) -> SVector<f64, I> {
         output_gradient
     }
 }

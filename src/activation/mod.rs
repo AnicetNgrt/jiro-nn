@@ -3,8 +3,8 @@ use nalgebra::SVector;
 use crate::layer::Layer;
 
 pub mod hbt;
-pub mod sigmoid;
 pub mod relu;
+pub mod sigmoid;
 pub mod tanh;
 
 pub type ActivationFn<const I: usize> = fn(&SVector<f64, I>) -> SVector<f64, I>;
@@ -47,7 +47,7 @@ pub enum Activation {
     Tanh,
     Sigmoid,
     ReLU,
-    HyperbolicTangent
+    HyperbolicTangent,
 }
 
 impl Activation {
@@ -56,7 +56,7 @@ impl Activation {
             Self::Tanh => tanh::new(),
             Self::Sigmoid => sigmoid::new(),
             Self::ReLU => relu::new(),
-            Self::HyperbolicTangent => hbt::new()
+            Self::HyperbolicTangent => hbt::new(),
         }
     }
 }
