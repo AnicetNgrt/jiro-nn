@@ -15,7 +15,7 @@ fn y() -> Vec<f64> { vec![ 0., 1., 1., 0. ] }
 
 pub fn test_set_accuracy(network: &mut Network<2, 1>) -> f64 {
     x().into_iter().zip(y().into_iter()).map(|(input, output)| {
-        let pred = network.predict_iter(input);
+        let pred = network.predict(input);
         1. - (pred[0] - output).abs()
     }).sum::<f64>() / y().len() as f64
 }
@@ -27,9 +27,9 @@ where
     let mut errors = Vec::new();
     for e in 0..epochs {
         let learning_rate = lr_optimizer(e, learning_rate);
-        let error = network.train_iter::<4, _, _>(
-            x().into_iter().flatten(), 
-            y(), 
+        let error = network.train::<4>(
+            x(), 
+            y().chunks(1).map(|v| v.to_vec()).collect(), 
             learning_rate,
             &mse::new()
         );

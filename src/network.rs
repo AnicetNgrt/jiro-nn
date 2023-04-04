@@ -13,21 +13,26 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
         Self { layer }
     }
 
-    pub fn predict(&mut self, input: SVector<f64, IN>) -> SVector<f64, OUT> {
+    fn _predict(&mut self, input: SVector<f64, IN>) -> SVector<f64, OUT> {
         self.layer.forward(input)
     }
-
-    pub fn predict_iter<I>(&mut self, input: I) -> Vec<f64>
-    where
-        I: IntoIterator<Item = f64>,
+    
+    pub fn predict(&mut self, input: Vec<f64>) -> Vec<f64>
     {
-        self.predict(SVector::from_iterator(input))
+        self._predict(SVector::from_iterator(input))
             .iter()
             .map(|x| *x)
             .collect()
     }
 
-    pub fn train<const S: usize>(
+    pub fn predict_many(&mut self, inputs: Vec<Vec<f64>>) -> Vec<Vec<f64>> 
+    {
+        inputs.into_iter()
+            .map(|v| self.predict(v))
+            .collect()
+    } 
+
+    fn _train<const S: usize>(
         &mut self,
         x_train: SMatrix<f64, IN, S>,
         y_train: SMatrix<f64, OUT, S>,
@@ -50,20 +55,17 @@ impl<const IN: usize, const OUT: usize> Network<IN, OUT> {
         error
     }
 
-    pub fn train_iter<const S: usize, I, J>(
+    pub fn train<const S: usize>(
         &mut self,
-        x_train: I,
-        y_train: J,
+        x_train: Vec<Vec<f64>>,
+        y_train: Vec<Vec<f64>>,
         learning_rate: f64,
         loss: &Loss<OUT>,
     ) -> f64
-    where
-        I: IntoIterator<Item = f64>,
-        J: IntoIterator<Item = f64>
     {
-        self.train::<S>(
-            SMatrix::from_iterator(x_train.into_iter()),
-            SMatrix::from_iterator(y_train.into_iter()),
+        self._train::<S>(
+            SMatrix::from_iterator(x_train.into_iter().flatten()),
+            SMatrix::from_iterator(y_train.into_iter().flatten()),
             learning_rate,
             loss,
         )

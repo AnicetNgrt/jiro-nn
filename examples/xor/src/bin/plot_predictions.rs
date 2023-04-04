@@ -34,7 +34,7 @@ fn main() {
         for z in zs.clone() {
             predictions.insert(
                 format!("{}-{}", x, z), 
-                network.predict_iter(vec![x, z])[0]
+                network.predict(vec![x, z])[0]
             );
         }
     }

@@ -37,7 +37,7 @@ impl<const I: usize, const J: usize> Layer<I, J> for DenseLayer<I, J> {
         learning_rate: f64,
     ) -> SVector<f64, I> {
         let input = self.input.unwrap();
-        // [f(g(x))]' = f'(g(x)) × g'(x) 
+        // [f(g(x))]' = f'(g(x)) × g'(x)
 
         // ∂E/∂W = ∂E/∂Y . ∂Y/∂W
         // But ∂yj/∂wji != 0 and ∂yj/∂wki == 0, k != j

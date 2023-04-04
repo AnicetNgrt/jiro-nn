@@ -10,12 +10,14 @@ pub mod layer;
 pub mod loss;
 pub mod network;
 pub mod optimizer;
+pub mod data_utils;
+pub mod stats_utils;
 
 // Neural network with I inputs and J outputs and no hidden layers
 pub fn nn_h0<const I: usize, const J: usize>(activation: Activation) -> Network<I, J> {
     Network::new(Box::new(FullLayer::<I, J>::new(
         DenseLayer::new(),
-        activation.to_layer()
+        activation.to_layer(),
     )))
 }
 
@@ -25,12 +27,12 @@ pub fn nn_h1<const I: usize, const H: usize, const J: usize>(
 ) -> Network<I, J> {
     let layer0 = FullLayer::<I, H>::new(
         DenseLayer::new(),
-        activations[0 % activations.len()].to_layer()
+        activations[0 % activations.len()].to_layer(),
     );
     let layer1 = SkipLayer::<H>;
     let layer2 = FullLayer::<H, J>::new(
         DenseLayer::new(),
-        activations[1 % activations.len()].to_layer()
+        activations[1 % activations.len()].to_layer(),
     );
     let global = HiddenLayer::new(layer0, layer1, layer2);
 
@@ -43,15 +45,15 @@ pub fn nn_h2<const I: usize, const H0: usize, const H1: usize, const J: usize>(
 ) -> Network<I, J> {
     let layer0 = FullLayer::<I, H0>::new(
         DenseLayer::new(),
-        activations[0 % activations.len()].to_layer()
+        activations[0 % activations.len()].to_layer(),
     );
     let layer1 = FullLayer::<H0, H1>::new(
         DenseLayer::new(),
-        activations[1 % activations.len()].to_layer()
+        activations[1 % activations.len()].to_layer(),
     );
     let layer2 = FullLayer::<H1, J>::new(
         DenseLayer::new(),
-        activations[2 % activations.len()].to_layer()
+        activations[2 % activations.len()].to_layer(),
     );
     let global = HiddenLayer::new(layer0, layer1, layer2);
 

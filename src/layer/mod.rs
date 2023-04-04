@@ -9,7 +9,7 @@ pub mod skip_layer;
 
 pub enum Layers {
     Dense,
-    Activation(Activation)
+    Activation(Activation),
 }
 
 pub trait Layer<const I: usize, const J: usize> {

@@ -1,18 +1,22 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
-use nalgebra::{SVector};
+use nalgebra::SVector;
 
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
 pub struct FullLayer<const I: usize, const J: usize> {
     dense: DenseLayer<I, J>,
     activation: ActivationLayer<J>,
-    dropout_rate: Rc<RefCell<Option<f64>>>
+    dropout_rate: Rc<RefCell<Option<f64>>>,
 }
 
 impl<const I: usize, const J: usize> FullLayer<I, J> {
     pub fn new(dense: DenseLayer<I, J>, activation: ActivationLayer<J>) -> Self {
-        Self { dense, activation, dropout_rate: Rc::new(RefCell::new(None)) }
+        Self {
+            dense,
+            activation,
+            dropout_rate: Rc::new(RefCell::new(None)),
+        }
     }
 
     pub fn access_dropout_rate(&self) -> Rc<RefCell<Option<f64>>> {
