@@ -1,5 +1,5 @@
 use nn::{
-    activation::Activation, data_utils::DataTable, loss::mse, network::Network, nn_h2,
+    activation::Activation, datatable::DataTable, loss::mse, network::Network, nn_h2,
     benchmarking::Benchmark,
 };
 

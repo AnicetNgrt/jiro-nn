@@ -10,7 +10,7 @@ pub mod layer;
 pub mod loss;
 pub mod network;
 pub mod optimizer;
-pub mod data_utils;
+pub mod datatable;
 pub mod benchmarking;
 pub mod stats_utils;
 

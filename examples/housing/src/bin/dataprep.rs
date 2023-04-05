@@ -1,4 +1,4 @@
-use nn::data_utils::DataTable;
+use nn::datatable::DataTable;
 
 const TRAINING_POINTS: usize = 17290;
 const TESTING_POINTS: usize = 4322;

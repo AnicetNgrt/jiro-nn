@@ -1,6 +1,6 @@
 use polars::prelude::*;
 
-use crate::{data_utils::DataTable, loss::mse, network::Network, stats_utils::*};
+use crate::{datatable::DataTable, loss::mse, network::Network, stats_utils::*};
 
 #[derive(Debug, Clone)]
 pub struct Metric {

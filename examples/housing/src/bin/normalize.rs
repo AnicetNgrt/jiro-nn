@@ -1,4 +1,4 @@
-use nn::data_utils::DataTable;
+use nn::datatable::DataTable;
 
 fn main() {
     DataTable::from_file("dataset/kc_house_data.csv")

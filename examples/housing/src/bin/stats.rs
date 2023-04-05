@@ -1,4 +1,4 @@
-use nn::data_utils::DataTable;
+use nn::datatable::DataTable;
 use polars::prelude::*;
 
 fn main() {
