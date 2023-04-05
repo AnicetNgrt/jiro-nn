@@ -11,6 +11,7 @@ pub mod loss;
 pub mod network;
 pub mod optimizer;
 pub mod data_utils;
+pub mod benchmarking;
 pub mod stats_utils;
 
 // Neural network with I inputs and J outputs and no hidden layers

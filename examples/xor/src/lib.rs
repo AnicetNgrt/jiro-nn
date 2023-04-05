@@ -27,9 +27,9 @@ where
     let mut errors = Vec::new();
     for e in 0..epochs {
         let learning_rate = lr_optimizer(e, learning_rate);
-        let error = network.train::<4>(
-            x(), 
-            y().chunks(1).map(|v| v.to_vec()).collect(), 
+        let error = network.train(
+            &x(), 
+            &y().chunks(1).map(|v| v.to_vec()).collect(), 
             learning_rate,
             &mse::new()
         );
