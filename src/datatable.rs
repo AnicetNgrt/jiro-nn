@@ -25,9 +25,10 @@ impl DataTable {
         Self(self.0.vstack(&lines.df()).unwrap())
     }
 
-    pub fn with_column_f64(&mut self, name: &str, values: &[f64]) -> Self {
+    pub fn with_column_f64(&self, name: &str, values: &[f64]) -> Self {
         Self(
             self.0
+                .clone()
                 .with_column(Series::new(name, values))
                 .unwrap()
                 .clone(),
@@ -41,12 +42,12 @@ impl DataTable {
         Self(CsvReader::from_path(path).unwrap().finish().unwrap())
     }
 
-    pub fn to_file<P>(&mut self, path: P)
+    pub fn to_file<P>(&self, path: P)
     where
         P: AsRef<Path>,
     {
         let mut file = std::fs::File::create(path).unwrap();
-        CsvWriter::new(&mut file).finish(&mut self.0).unwrap();
+        CsvWriter::new(&mut file).finish(&mut self.0.clone()).unwrap();
     }
 
     pub fn sample(&mut self, n: Option<usize>, shuffle: bool) -> Self {

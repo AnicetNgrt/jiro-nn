@@ -7,7 +7,7 @@ const OUT_FILE_NAME: &'static str = "./visuals/learning_rate_decay.png";
 fn avg_error_at_epoch(epochs: usize, decay: f64, trials: usize) -> Vec<f64> {
     let mut total_errors = Vec::<f64>::from_iter((0..epochs).map(|_| 0.));
     for _ in 0..trials {
-        let mut network = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
+        let (mut network, _) = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
         let errors = train_and_test(&mut network, epochs, 0.1, move |e, lr| lr / (1. + decay * (e as f64))).1;
         for (i, e) in errors.into_iter().enumerate() {
             total_errors[i] += e;

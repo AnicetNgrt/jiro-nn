@@ -7,7 +7,7 @@ use nn::{
 };
 
 pub fn new_network() -> Network<FEATURES, OUT> {
-    nn_h2::<FEATURES, 20, 10, OUT>(vec![Activation::Tanh])
+    nn_h2::<FEATURES, 20, 10, OUT>(vec![Activation::Tanh]).0
 }
 
 pub fn main() {
@@ -18,8 +18,6 @@ pub fn main() {
 
     let (test_x, test_y) = df2.random_in_out_batch(&["price"], None);
     let test_y = denorm(&test_y);
-
-    // do this 10 times in parallel and average the aggregates
 
     let mut network = new_network();
 

@@ -1,6 +1,6 @@
 use activation::Activation;
 use layer::dense_layer::DenseLayer;
-use layer::full_layer::FullLayer;
+use layer::full_layer::{FullLayer, FullLayerConfig};
 use layer::hidden_layer::HiddenLayer;
 use layer::skip_layer::SkipLayer;
 use network::Network;
@@ -15,17 +15,20 @@ pub mod benchmarking;
 pub mod stats_utils;
 
 // Neural network with I inputs and J outputs and no hidden layers
-pub fn nn_h0<const I: usize, const J: usize>(activation: Activation) -> Network<I, J> {
-    Network::new(Box::new(FullLayer::<I, J>::new(
+pub fn nn_h0<const I: usize, const J: usize>(activation: Activation) -> (Network<I, J>, FullLayerConfig) {
+    let layer = FullLayer::<I, J>::new(
         DenseLayer::new(),
         activation.to_layer(),
-    )))
+    );
+    let config = layer.get_config();
+    
+    (Network::new(Box::new(layer)), config)
 }
 
 // Neural network with I inputs and J outputs and 1 hidden layer of size H
 pub fn nn_h1<const I: usize, const H: usize, const J: usize>(
     activations: Vec<Activation>,
-) -> Network<I, J> {
+) -> (Network<I, J>, (FullLayerConfig, FullLayerConfig)) {
     let layer0 = FullLayer::<I, H>::new(
         DenseLayer::new(),
         activations[0 % activations.len()].to_layer(),
@@ -35,28 +38,31 @@ pub fn nn_h1<const I: usize, const H: usize, const J: usize>(
         DenseLayer::new(),
         activations[1 % activations.len()].to_layer(),
     );
+    let configs = (layer0.get_config(), layer2.get_config());
     let global = HiddenLayer::new(layer0, layer1, layer2);
 
-    Network::new(Box::new(global))
+    (Network::new(Box::new(global)), configs)
 }
 
 // Neural network with I inputs and J outputs and 2 hidden layers of sizes H0 & H1
 pub fn nn_h2<const I: usize, const H0: usize, const H1: usize, const J: usize>(
     activations: Vec<Activation>,
-) -> Network<I, J> {
+) -> (Network<I, J>, (FullLayerConfig, FullLayerConfig, FullLayerConfig)) {
     let layer0 = FullLayer::<I, H0>::new(
         DenseLayer::new(),
         activations[0 % activations.len()].to_layer(),
     );
     let layer1 = FullLayer::<H0, H1>::new(
         DenseLayer::new(),
-        activations[1 % activations.len()].to_layer(),
+        activations[0 % activations.len()].to_layer(),
     );
     let layer2 = FullLayer::<H1, J>::new(
         DenseLayer::new(),
-        activations[2 % activations.len()].to_layer(),
+        activations[0 % activations.len()].to_layer(),
     );
+    let configs = (layer0.get_config(), layer1.get_config(), layer2.get_config());
+
     let global = HiddenLayer::new(layer0, layer1, layer2);
 
-    Network::new(Box::new(global))
+    (Network::new(Box::new(global)), configs)
 }

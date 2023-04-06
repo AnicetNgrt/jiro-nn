@@ -2,7 +2,7 @@ use nn::datatable::DataTable;
 use polars::prelude::*;
 
 fn main() {
-    let mut stats = DataTable::from_dataframe(
+    let stats = DataTable::from_dataframe(
         DataTable::from_file("dataset/kc_house_data.csv")
             .map_f64_column("price", |x| x.log(10.))
             .df()

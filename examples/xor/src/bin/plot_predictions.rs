@@ -7,7 +7,7 @@ use xor::{train_and_test, test_set_accuracy};
 const OUT_FILE_NAME: &'static str = "./visuals/xor-example-predictions.png";
 
 fn main() {
-    let mut network = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
+    let (mut network, _) = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
 
     let decay = 0.001;
     let error = train_and_test(&mut network, 10000, 0.1, move |e, lr| lr / (1. + decay * (e as f64))).0;
