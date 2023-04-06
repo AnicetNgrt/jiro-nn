@@ -10,3 +10,4 @@ nalgebra-glm = "0.18.0"
 nalgebra = { version = "0.32.2", features = ["rand"] }
 libm = "0.2.6"
 polars = { version = "0.28.0", features = ["lazy"] }
+plotters = "0.3.4"

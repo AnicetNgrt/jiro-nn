@@ -12,22 +12,18 @@ fn avg_error_at_epoch(epochs: usize, dropout_rate: f64, trials: usize) -> Vec<f6
             DenseLayer::new(),
             Activation::Tanh.to_layer(),
         );
-        let dr_in = in_to_h1.access_dropout_rate();
+        let in_to_h1_config = in_to_h1.get_config();
         let h1_to_out = FullLayer::<3, 1>::new(
             DenseLayer::new(),
             Activation::Tanh.to_layer(),
         );
-        let dr_h1 = h1_to_out.access_dropout_rate();
+        let h1_to_out_config = h1_to_out.get_config();
         let mut network = Network::new(
             Box::new(HiddenLayer::new(in_to_h1, SkipLayer::<3>, h1_to_out))
         );
     
-        {
-            let mut dr_in = dr_in.borrow_mut();
-            *dr_in = Some(dropout_rate * 0.1); 
-            let mut dr_h1 = dr_h1.borrow_mut();
-            *dr_h1 = Some(dropout_rate); 
-        }
+        in_to_h1_config.set_dropout_rate(dropout_rate * 0.1);
+        h1_to_out_config.set_dropout_rate(dropout_rate);
 
         let errors = train_and_test(&mut network, epochs, 0.1, move |_, lr| lr).1;
         for (i, e) in errors.into_iter().enumerate() {

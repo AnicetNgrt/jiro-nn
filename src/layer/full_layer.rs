@@ -4,6 +4,31 @@ use nalgebra::SVector;
 
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
+pub struct FullLayerConfig {
+    dropout_rate: Rc<RefCell<Option<f64>>>
+}
+
+impl FullLayerConfig {
+    pub fn new() -> Self {
+        Self {
+            dropout_rate: Rc::new(RefCell::new(None))
+        }
+    }
+
+    pub fn set_dropout_rate(&self, rate: f64) {
+        *self.dropout_rate.borrow_mut() = Some(rate);
+    }
+
+    pub fn remove_dropout_rate(&self) {
+        *self.dropout_rate.borrow_mut() = None;
+    }
+
+    pub fn update_dropout_rate(&self, f: impl Fn(f64) -> f64) {
+        let rate = self.dropout_rate.borrow().unwrap();
+        self.set_dropout_rate(f(rate));
+    }
+}
+
 pub struct FullLayer<const I: usize, const J: usize> {
     dense: DenseLayer<I, J>,
     activation: ActivationLayer<J>,
@@ -19,8 +44,10 @@ impl<const I: usize, const J: usize> FullLayer<I, J> {
         }
     }
 
-    pub fn access_dropout_rate(&self) -> Rc<RefCell<Option<f64>>> {
-        self.dropout_rate.clone()
+    pub fn get_config(&self) -> FullLayerConfig {
+        FullLayerConfig {
+            dropout_rate: self.dropout_rate.clone()
+        }
     }
 }
 

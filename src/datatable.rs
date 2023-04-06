@@ -6,11 +6,15 @@ use std::{
 use polars::prelude::*;
 
 #[derive(Clone)]
-pub struct DataTable(pub DataFrame);
+pub struct DataTable(DataFrame);
 
 impl DataTable {
     pub fn new_empty() -> Self {
         Self(DataFrame::new(Vec::<Series>::new()).unwrap())
+    }
+
+    pub fn from_dataframe(dataframe: DataFrame) -> Self {
+        Self(dataframe)
     }
 
     pub fn from_columns(columns: Vec<Series>) -> Self {
@@ -58,6 +62,15 @@ impl DataTable {
             DataTable(self.0.head(Some(n_head))),
             DataTable(self.0.tail(Some(n_tail))),
         )
+    }
+
+    pub fn map_f64_column(&mut self, column: &str, f: impl Fn(f64) -> f64) -> Self {
+        let series = self.0.column(column).unwrap().f64().unwrap()
+            .into_iter()
+            .map(|p| p.map(|p| f(p)))
+            .collect::<Series>();
+
+        Self(self.0.replace("price", series).unwrap().clone())
     }
 
     fn series_as_vecf64(series: &Series) -> Vec<f64> {

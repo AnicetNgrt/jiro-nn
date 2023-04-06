@@ -1098,6 +1098,7 @@ dependencies = [
  "libm",
  "nalgebra",
  "nalgebra-glm",
+ "plotters",
  "polars",
 ]
 

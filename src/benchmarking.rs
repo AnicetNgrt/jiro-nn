@@ -4,6 +4,7 @@ use crate::{datatable::DataTable, loss::mse, network::Network, stats_utils::*};
 
 #[derive(Debug, Clone)]
 pub struct Metric {
+    pub prop_dist: Vec<f64>,
     pub dist: Vec<f64>,
     pub acc: Vec<f64>,
     pub mse: f64,
@@ -16,8 +17,15 @@ impl Metric {
             .zip(y_pred.iter())
             .map(|(y, z)| (y - z).abs())
             .collect();
+        let prop_dist: Vec<_> = y_true
+            .iter()
+            .zip(dist.iter())
+            .map(|(t, d)| d / t)
+            .collect();
+
         let acc = dist.iter().map(|d| 1. - d.abs()).collect();
         Self {
+            prop_dist,
             dist,
             acc,
             mse: mse::mse(y_true, y_pred),
@@ -46,13 +54,20 @@ impl Metric {
                 &[*dist],
             ))
         }
-        series.push(Series::new(&format!("{} mse", prefix), &[self.mse]));
+        for (i, dist) in self.prop_dist.iter().enumerate() {
+            series.push(Series::new(
+                &format!("{}{} pred prop dist", prefix, preds_names[i]),
+                &[*dist],
+            ))
+        }
+        series.push(Series::new(&format!("{}mse", prefix), &[self.mse]));
 
         series
     }
 }
 
 pub struct Benchmark {
+    prop_dists: Vec<Vec<f64>>,
     diffs: Vec<Vec<f64>>,
     accs: Vec<Vec<f64>>,
     mses: Vec<f64>,
@@ -75,11 +90,13 @@ impl Benchmark {
     }
 
     pub fn from_stats(stats: Vec<Metric>) -> Self {
+        let prop_dists: Vec<_> = stats.iter().map(|s| s.prop_dist.clone()).collect();
         let diffs: Vec<_> = stats.iter().map(|s| s.dist.clone()).collect();
         let accs: Vec<_> = stats.iter().map(|s| s.acc.clone()).collect();
         let mses: Vec<_> = stats.iter().map(|s| s.mse.clone()).collect();
 
         Self {
+            prop_dists,
             diffs,
             accs,
             mses,
@@ -94,6 +111,7 @@ impl Benchmark {
 
     pub fn compute_min(&mut self) -> &mut Self {
         self.pred_stats_aggregation.min = Some(Metric {
+            prop_dist: min_vecf64(&self.prop_dists),
             dist: min_vecf64(&self.diffs),
             acc: min_vecf64(&self.accs),
             mse: *self.mses.iter().min_by(|a, b| a.total_cmp(b)).unwrap(),
@@ -103,6 +121,7 @@ impl Benchmark {
 
     pub fn compute_max(&mut self) -> &mut Self {
         self.pred_stats_aggregation.max = Some(Metric {
+            prop_dist: max_vecf64(&self.prop_dists),
             dist: max_vecf64(&self.diffs),
             acc: max_vecf64(&self.accs),
             mse: *self.mses.iter().max_by(|a, b| a.total_cmp(b)).unwrap(),
@@ -112,6 +131,7 @@ impl Benchmark {
 
     pub fn compute_avg(&mut self) -> &mut Self {
         self.pred_stats_aggregation.avg = Some(Metric {
+            prop_dist: avg_vecf64(&self.prop_dists),
             dist: avg_vecf64(&self.diffs),
             acc: avg_vecf64(&self.accs),
             mse: self.mses.iter().sum::<f64>() / self.mses.len() as f64,
@@ -121,6 +141,7 @@ impl Benchmark {
 
     pub fn compute_var(&mut self) -> &mut Self {
         self.pred_stats_aggregation.var = Some(Metric {
+            prop_dist: var_vecf64(&self.prop_dists),
             dist: var_vecf64(&self.diffs),
             acc: var_vecf64(&self.accs),
             mse: var_f64(&self.mses),

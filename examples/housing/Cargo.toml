@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 nn = { path = "../../" }
 polars = { version = "0.28.0", features = ["lazy"] }
+plotly = { version = "0.8.3", features = ["kaleido"] }
+rand = "0.8.5"
