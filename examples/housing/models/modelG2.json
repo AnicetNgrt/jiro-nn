@@ -1,13 +1,12 @@
 {
-    "name": "B2",
+    "name": "G2",
     "learning_rate": 0.1,
     "epochs": 30,
     "decay_rate": 1.0,
     "growing_batch_size": {
-        "start": 0.1,
+        "start": 0.75,
         "end": 1.0
     },
-    "dropout": [0.0, 0.1, 0.1],
-    "activation": "tanh",
-    "layers": [30, 10]
+    "activation": "hbt",
+    "layers": [10, 16]
 }

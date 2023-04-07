@@ -1,8 +1,8 @@
 {
-    "name": "A",
+    "name": "C2",
     "learning_rate": 0.1,
     "epochs": 30,
     "decay_rate": 1.0,
-    "activation": "tanh",
-    "layers": [30, 10]
+    "activation": "hbt",
+    "layers": [10]
 }

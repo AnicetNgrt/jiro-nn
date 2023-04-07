@@ -15,6 +15,13 @@ fn main() {
 
     let title = "Comparative average proportional price prediction distance over epochs";
 
+    // get dtick from args env var DTICK if present
+    let dtick = if let Ok(dtick) = env::var("DTICK") {
+        dtick.parse::<f64>().unwrap()
+    } else {
+        0.1
+    };
+
     plot.set_layout(
         Layout::new()
             .title(Title::new(title))
@@ -22,7 +29,7 @@ fn main() {
             .y_axis(
                 Axis::new()
                     .title("dist(prediction, reality) / reality".into())
-                    .dtick(0.1),
+                    .dtick(dtick),
             ),
     );
 

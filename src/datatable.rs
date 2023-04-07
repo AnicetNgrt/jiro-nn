@@ -35,6 +35,10 @@ impl DataTable {
         )
     }
 
+    pub fn sort_by_column(&self, column: &str) -> Self {
+        Self(self.0.sort(&[column], false).unwrap())
+    }
+
     pub fn from_file<P>(path: P) -> Self
     where
         P: Into<PathBuf>,

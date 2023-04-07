@@ -1,0 +1,7 @@
+{
+    "name": "Rand",
+    "learning_rate": 0,
+    "epochs": 1,
+    "activation": "tanh",
+    "layers": [30, 10]
+}

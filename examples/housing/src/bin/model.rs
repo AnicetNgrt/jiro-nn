@@ -82,6 +82,9 @@ pub fn main() {
     let (test_x, test_y) = test_table.random_in_out_batch(&["price"], None);
     let test_y = denorm(&test_y);
 
+    // do the following thing 10 times in parallel
+
+
     let mut network = new_network(config.layers, activation);
 
     let mut stats_table = DataTable::new_empty();

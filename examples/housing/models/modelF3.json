@@ -1,0 +1,8 @@
+{
+    "name": "F3",
+    "learning_rate": 0.1,
+    "epochs": 30,
+    "decay_rate": 0.0,
+    "activation": "hbt",
+    "layers": [10, 16]
+}

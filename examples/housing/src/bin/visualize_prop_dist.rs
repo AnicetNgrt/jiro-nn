@@ -28,7 +28,13 @@ fn main() {
             ),
     );
 
-    let min_prop_dist_trace = Scatter::new((0..min_prop_dist.len()).collect(), min_prop_dist)
+    let start = if let Ok(start) = env::var("START_EPOCH") {
+        start.parse::<usize>().unwrap()
+    } else {
+        0
+    };
+
+    let min_prop_dist_trace = Scatter::new((start..min_prop_dist.len()).collect(), min_prop_dist)
         .mode(Mode::Lines)
         .name("mininimum")
         .line(plotly::common::Line::new().color("purple"));
@@ -38,22 +44,24 @@ fn main() {
     //     .name("maximum")
     //     .line(plotly::common::Line::new().color("pink"));
 
-    let avg_prop_dist_trace = Scatter::new((0..avg_prop_dist.len()).collect(), avg_prop_dist.clone())
+    let end = avg_prop_dist.len();
+
+    let avg_prop_dist_trace = Scatter::new((start..end).collect(), avg_prop_dist.clone().into_iter().skip(start).collect())
         .mode(Mode::Lines)
         .name("average")
         .line(plotly::common::Line::new().color("blue"));
 
-    let std_prop_dist_trace = Scatter::new((0..avg_prop_dist.len()).collect(), var_prop_dist.iter().map(|var| var.sqrt()).collect::<Vec<f64>>())
+    let std_prop_dist_trace = Scatter::new((start..end).collect(), var_prop_dist.iter().skip(start).map(|var| var.sqrt()).collect::<Vec<f64>>())
         .mode(Mode::Lines)
         .name("standard deviation")
         .line(plotly::common::Line::new().color("pink").dash(DashType::Dot));
 
-    let low_prop_dist_trace = Scatter::new((0..var_prop_dist.len()).collect(), avg_prop_dist.iter().zip(var_prop_dist.iter()).map(|(avg, var)| avg - var.sqrt()).collect::<Vec<f64>>())
+    let low_prop_dist_trace = Scatter::new((start..end).collect(), avg_prop_dist.clone().into_iter().skip(start).zip(var_prop_dist.iter().skip(start)).map(|(avg, var)| avg - var.sqrt()).collect::<Vec<f64>>())
         .mode(Mode::Lines)
         .name("average - standard deviation")
         .line(plotly::common::Line::new().color("red").dash(DashType::Dot));
 
-    let high_prop_dist_trace = Scatter::new((0..var_prop_dist.len()).collect(), avg_prop_dist.iter().zip(var_prop_dist.iter()).map(|(avg, var)| avg + var.sqrt()).collect::<Vec<f64>>())
+    let high_prop_dist_trace = Scatter::new((start..end).collect(), avg_prop_dist.into_iter().skip(start).zip(var_prop_dist.iter().skip(start)).map(|(avg, var)| avg + var.sqrt()).collect::<Vec<f64>>())
         .mode(Mode::Lines)
         .name("average + standard deviation")
         .line(plotly::common::Line::new().color("green").dash(DashType::Dot));

@@ -1,0 +1,12 @@
+{
+    "name": "GS2",
+    "learning_rate": 0.5,
+    "epochs": 300,
+    "decay_rate": 0.1,
+    "growing_batch_size": {
+        "start": 0.1,
+        "end": 1.0
+    },
+    "activation": "hbt",
+    "layers": [10, 16]
+}
