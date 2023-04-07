@@ -1,4 +1,4 @@
-use nalgebra::SVector;
+use nalgebra::DVector;
 
 use crate::layer::Layer;
 
@@ -7,17 +7,17 @@ pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
 
-pub type ActivationFn<const I: usize> = fn(&SVector<f64, I>) -> SVector<f64, I>;
+pub type ActivationFn = fn(&DVector<f64>) -> DVector<f64>;
 
-pub struct ActivationLayer<const I: usize> {
+pub struct ActivationLayer {
     // i inputs = i outputs (it's just a map)
-    input: Option<SVector<f64, I>>,
-    activation: ActivationFn<I>,
-    derivative: ActivationFn<I>,
+    input: Option<DVector<f64>>,
+    activation: ActivationFn,
+    derivative: ActivationFn,
 }
 
-impl<const I: usize> ActivationLayer<I> {
-    pub fn new(activation: ActivationFn<I>, derivative: ActivationFn<I>) -> Self {
+impl ActivationLayer {
+    pub fn new(activation: ActivationFn, derivative: ActivationFn) -> Self {
         Self {
             input: None,
             activation,
@@ -26,23 +26,25 @@ impl<const I: usize> ActivationLayer<I> {
     }
 }
 
-impl<const I: usize> Layer<I, I> for ActivationLayer<I> {
-    fn forward(&mut self, input: SVector<f64, I>) -> SVector<f64, I> {
-        self.input = Some(input);
+impl Layer for ActivationLayer {
+    fn forward(&mut self, input: DVector<f64>) -> DVector<f64> {
+        self.input = Some(input.clone());
         (self.activation)(&input)
     }
 
     fn backward(
         &mut self,
-        output_gradient: SVector<f64, I>,
+        output_gradient: DVector<f64>,
         _learning_rate: f64,
-    ) -> SVector<f64, I> {
+    ) -> DVector<f64> {
         // ∂E/∂X = ∂E/∂Y ⊙ f'(X)
-        let fprime_x = (self.derivative)(&self.input.unwrap());
+        let input = self.input.clone().unwrap();
+        let fprime_x = (self.derivative)(&input);
         output_gradient.component_mul(&fprime_x)
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Activation {
     Tanh,
     Sigmoid,
@@ -51,7 +53,7 @@ pub enum Activation {
 }
 
 impl Activation {
-    pub fn to_layer<const I: usize>(&self) -> ActivationLayer<I> {
+    pub fn to_layer(&self) -> ActivationLayer {
         match self {
             Self::Tanh => tanh::new(),
             Self::Sigmoid => sigmoid::new(),

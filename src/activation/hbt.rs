@@ -10,6 +10,6 @@ fn hbt_prime(x: f64) -> f64 {
     1. - libm::pow(hbt(x), 2.)
 }
 
-pub fn new<const I: usize>() -> ActivationLayer<I> {
+pub fn new() -> ActivationLayer {
     ActivationLayer::new(|m| m.map(hbt), |m| m.map(hbt_prime))
 }

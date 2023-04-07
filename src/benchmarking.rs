@@ -75,8 +75,8 @@ pub struct Benchmark {
 }
 
 impl Benchmark {
-    pub fn from_test_data<const IN: usize, const OUT: usize>(
-        network: &mut Network<IN, OUT>,
+    pub fn from_test_data(
+        network: &mut Network,
         x_test: &Vec<Vec<f64>>,
         y_trues: &Vec<Vec<f64>>
     ) -> Self {

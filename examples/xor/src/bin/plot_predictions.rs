@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use nn::{activation::Activation, nn_h1};
+use nn::{activation::Activation, nn};
 use plotters::prelude::*;
 use xor::{train_and_test, test_set_accuracy};
 
 const OUT_FILE_NAME: &'static str = "./visuals/xor-example-predictions.png";
 
 fn main() {
-    let (mut network, _) = nn_h1::<2, 3, 1>(vec![Activation::Tanh]);
+    let mut network = nn(vec![Activation::Tanh], vec![2, 3, 1]);
 
     let decay = 0.001;
     let error = train_and_test(&mut network, 10000, 0.1, move |e, lr| lr / (1. + decay * (e as f64))).0;

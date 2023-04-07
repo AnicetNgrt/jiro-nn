@@ -141,28 +141,22 @@ impl DataTable {
                 .into_iter(),
         );
 
-        let min_max = self.0.get_columns().into_iter().map(|serie| {
-            let name = serie.name();
-            if !except_columns.contains(name) {
-                if let Ok(serie) = serie.cast(&DataType::Float64) {
-                    return (name, serie.min::<f64>(), serie.max::<f64>());
-                }
-            }
-            (name, None, None)
-        });
-
         let columns = self
             .0
             .get_columns()
             .into_iter()
-            .zip(min_max)
-            .map(|(serie, opt_extremas)| match opt_extremas {
-                (name, Some(min), Some(max)) => {
-                    let mut serie: Series = (serie - min) / (max - min);
+            .map(|serie| {
+                let name = serie.name();
+                if !except_columns.contains(name) {
+                    let array = serie.cast(&DataType::Float64).unwrap().f64().unwrap().clone();
+                    let min = array.min().unwrap_or(f64::MAX);
+                    let max = array.max().unwrap_or(f64::MIN);
+                    let mut serie: Series = array.apply(|v| (v - min) / (max - min)).into_series();
                     serie.rename(name);
                     serie.clone()
+                } else {
+                    serie.clone()
                 }
-                _ => serie.clone(),
             })
             .collect();
 

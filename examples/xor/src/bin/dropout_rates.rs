@@ -1,4 +1,4 @@
-use nn::{activation::Activation, layer::{full_layer::FullLayer, dense_layer::DenseLayer, hidden_layer::HiddenLayer, skip_layer::SkipLayer}, network::Network};
+use nn::{nn, activation::Activation};
 use plotters::prelude::*;
 use xor::{train_and_test};
 
@@ -7,23 +7,8 @@ const OUT_FILE_NAME: &'static str = "./visuals/dropout_rate.png";
 fn avg_error_at_epoch(epochs: usize, dropout_rate: f64, trials: usize) -> Vec<f64> {
     let mut total_errors = Vec::<f64>::from_iter((0..epochs).map(|_| 0.));
     for _ in 0..trials {
-        
-        let in_to_h1 = FullLayer::<2, 3>::new(
-            DenseLayer::new(),
-            Activation::Tanh.to_layer(),
-        );
-        let in_to_h1_config = in_to_h1.get_config();
-        let h1_to_out = FullLayer::<3, 1>::new(
-            DenseLayer::new(),
-            Activation::Tanh.to_layer(),
-        );
-        let h1_to_out_config = h1_to_out.get_config();
-        let mut network = Network::new(
-            Box::new(HiddenLayer::new(in_to_h1, SkipLayer::<3>, h1_to_out))
-        );
-    
-        in_to_h1_config.set_dropout_rate(dropout_rate * 0.1);
-        h1_to_out_config.set_dropout_rate(dropout_rate);
+        let mut network = nn(vec![Activation::Tanh], vec![2, 3, 1]);
+        network.set_dropout_rates(vec![dropout_rate * 0.1, dropout_rate].as_ref());
 
         let errors = train_and_test(&mut network, epochs, 0.1, move |_, lr| lr).1;
         for (i, e) in errors.into_iter().enumerate() {

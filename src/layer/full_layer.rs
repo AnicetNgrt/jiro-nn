@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use nalgebra::SVector;
+use nalgebra::{DVector};
 
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
@@ -29,14 +29,14 @@ impl FullLayerConfig {
     }
 }
 
-pub struct FullLayer<const I: usize, const J: usize> {
-    dense: DenseLayer<I, J>,
-    activation: ActivationLayer<J>,
+pub struct FullLayer {
+    dense: DenseLayer,
+    activation: ActivationLayer,
     dropout_rate: Rc<RefCell<Option<f64>>>,
 }
 
-impl<const I: usize, const J: usize> FullLayer<I, J> {
-    pub fn new(dense: DenseLayer<I, J>, activation: ActivationLayer<J>) -> Self {
+impl FullLayer {
+    pub fn new(dense: DenseLayer, activation: ActivationLayer) -> Self {
         Self {
             dense,
             activation,
@@ -51,10 +51,10 @@ impl<const I: usize, const J: usize> FullLayer<I, J> {
     }
 }
 
-impl<const I: usize, const J: usize> Layer<I, J> for FullLayer<I, J> {
-    fn forward(&mut self, input: nalgebra::SVector<f64, I>) -> SVector<f64, J> {
+impl Layer for FullLayer {
+    fn forward(&mut self, input: DVector<f64>) -> DVector<f64> {
         let input = if let Some(rate) = *self.dropout_rate.borrow() {
-            SVector::<f64, I>::new_random()
+            DVector::<f64>::new_random(input.nrows())
                 .map(|r| if r <= rate { 0. } else { 1. })
                 .component_mul(&input)
         } else {
@@ -67,9 +67,9 @@ impl<const I: usize, const J: usize> Layer<I, J> for FullLayer<I, J> {
 
     fn backward(
         &mut self,
-        output_gradient: nalgebra::SVector<f64, J>,
+        output_gradient: DVector<f64>,
         learning_rate: f64,
-    ) -> SVector<f64, I> {
+    ) -> DVector<f64> {
         let activation_input_gradient = self.activation.backward(output_gradient, learning_rate);
         self.dense
             .backward(activation_input_gradient, learning_rate)

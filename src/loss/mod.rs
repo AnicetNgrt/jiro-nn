@@ -1,27 +1,27 @@
-use nalgebra::SVector;
+use nalgebra::DVector;
 
 pub mod mse;
 
-pub type LossFn<const J: usize> = fn(SVector<f64, J>, SVector<f64, J>) -> f64;
-pub type LossPrimeFn<const J: usize> = fn(SVector<f64, J>, SVector<f64, J>) -> SVector<f64, J>;
+pub type LossFn = fn(&DVector<f64>, &DVector<f64>) -> f64;
+pub type LossPrimeFn = fn(&DVector<f64>, &DVector<f64>) -> DVector<f64>;
 
-pub struct Loss<const J: usize> {
-    loss: LossFn<J>,
-    derivative: LossPrimeFn<J>,
+pub struct Loss {
+    loss: LossFn,
+    derivative: LossPrimeFn,
 }
 
-impl<const J: usize> Loss<J> {
-    pub fn new(loss: LossFn<J>, derivative: LossPrimeFn<J>) -> Self {
+impl Loss {
+    pub fn new(loss: LossFn, derivative: LossPrimeFn) -> Self {
         Self { loss, derivative }
     }
 }
 
-impl<const J: usize> Loss<J> {
-    pub fn loss(&self, y_true: SVector<f64, J>, y_pred: SVector<f64, J>) -> f64 {
+impl Loss {
+    pub fn loss(&self, y_true: &DVector<f64>, y_pred: &DVector<f64>) -> f64 {
         (self.loss)(y_true, y_pred)
     }
 
-    pub fn loss_prime(&self, y_true: SVector<f64, J>, y_pred: SVector<f64, J>) -> SVector<f64, J> {
+    pub fn loss_prime(&self, y_true: &DVector<f64>, y_pred: &DVector<f64>) -> DVector<f64> {
         (self.derivative)(y_true, y_pred)
     }
 }

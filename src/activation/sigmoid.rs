@@ -9,6 +9,6 @@ fn sigmoid_prime(x: f64) -> f64 {
     sigofx * (1. - sigofx)
 }
 
-pub fn new<const I: usize>() -> ActivationLayer<I> {
+pub fn new() -> ActivationLayer {
     ActivationLayer::new(|m| m.map(sigmoid), |m| m.map(sigmoid_prime))
 }
