@@ -1,17 +1,21 @@
+use std::cmp::Ordering;
 use std::{cell::RefCell, rc::Rc};
 
-use nalgebra::{DVector};
+use rand::rngs::SmallRng;
+use rand::{Rng, SeedableRng};
+
+use nalgebra::{DMatrix};
 
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
 pub struct FullLayerConfig {
-    dropout_rate: Rc<RefCell<Option<f64>>>
+    dropout_rate: Rc<RefCell<Option<f64>>>,
 }
 
 impl FullLayerConfig {
     pub fn new() -> Self {
         Self {
-            dropout_rate: Rc::new(RefCell::new(None))
+            dropout_rate: Rc::new(RefCell::new(None)),
         }
     }
 
@@ -33,6 +37,7 @@ pub struct FullLayer {
     dense: DenseLayer,
     activation: ActivationLayer,
     dropout_rate: Rc<RefCell<Option<f64>>>,
+    mask: Option<DMatrix<f64>>,
 }
 
 impl FullLayer {
@@ -41,36 +46,63 @@ impl FullLayer {
             dense,
             activation,
             dropout_rate: Rc::new(RefCell::new(None)),
+            mask: None
         }
     }
 
     pub fn get_config(&self) -> FullLayerConfig {
         FullLayerConfig {
-            dropout_rate: self.dropout_rate.clone()
+            dropout_rate: self.dropout_rate.clone(),
+        }
+    }
+
+    fn generate_dropout_mask(
+        &mut self,
+        output_shape: (usize, usize),
+    ) -> Option<(DMatrix<f64>, f64)> {
+        if let Some(dropout_rate) = *self.dropout_rate.borrow() {
+            let mut rng = SmallRng::from_entropy();
+            let dropout_mask = DMatrix::from_fn(output_shape.0, output_shape.1, |_, _| {
+                if rng
+                    .gen_range(0.0f64..1.0f64)
+                    .total_cmp(&self.dropout_rate.borrow().unwrap())
+                    == Ordering::Greater
+                {
+                    0.0
+                } else {
+                    1.0
+                }
+            });
+            Some((dropout_mask, dropout_rate))
+        } else {
+            None
         }
     }
 }
 
 impl Layer for FullLayer {
-    fn forward(&mut self, input: DVector<f64>) -> DVector<f64> {
-        let input = if let Some(rate) = *self.dropout_rate.borrow() {
-            DVector::<f64>::new_random(input.nrows())
-                .map(|r| if r <= rate { 0. } else { 1. })
-                .component_mul(&input)
-        } else {
-            input
-        };
-
+    fn forward(&mut self, input: DMatrix<f64>) -> DMatrix<f64> {
         let output = self.dense.forward(input);
+
+        if let Some((mask, dropout_rate)) = self.generate_dropout_mask(output.shape()) {
+            let res = self.activation
+                .forward(output.component_mul(&mask) * (1.0 / (1.0 - dropout_rate)));
+            self.mask = Some(mask);
+            return res;
+        }
+
         self.activation.forward(output)
     }
 
-    fn backward(
-        &mut self,
-        output_gradient: DVector<f64>,
-        learning_rate: f64,
-    ) -> DVector<f64> {
+    fn backward(&mut self, output_gradient: DMatrix<f64>, learning_rate: f64) -> DMatrix<f64> {
         let activation_input_gradient = self.activation.backward(output_gradient, learning_rate);
+        
+        let activation_input_gradient = if let Some(mask) = &self.mask {
+            activation_input_gradient.component_mul(&mask)
+        } else {
+            activation_input_gradient
+        };
+
         self.dense
             .backward(activation_input_gradient, learning_rate)
     }

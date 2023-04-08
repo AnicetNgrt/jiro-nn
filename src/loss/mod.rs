@@ -1,9 +1,9 @@
-use nalgebra::DVector;
+use nalgebra::{DMatrix};
 
 pub mod mse;
 
-pub type LossFn = fn(&DVector<f64>, &DVector<f64>) -> f64;
-pub type LossPrimeFn = fn(&DVector<f64>, &DVector<f64>) -> DVector<f64>;
+pub type LossFn = fn(&DMatrix<f64>, &DMatrix<f64>) -> f64;
+pub type LossPrimeFn = fn(&DMatrix<f64>, &DMatrix<f64>) -> DMatrix<f64>;
 
 pub struct Loss {
     loss: LossFn,
@@ -17,11 +17,11 @@ impl Loss {
 }
 
 impl Loss {
-    pub fn loss(&self, y_true: &DVector<f64>, y_pred: &DVector<f64>) -> f64 {
+    pub fn loss(&self, y_true: &DMatrix<f64>, y_pred: &DMatrix<f64>) -> f64 {
         (self.loss)(y_true, y_pred)
     }
 
-    pub fn loss_prime(&self, y_true: &DVector<f64>, y_pred: &DVector<f64>) -> DVector<f64> {
+    pub fn loss_prime(&self, y_true: &DMatrix<f64>, y_pred: &DMatrix<f64>) -> DMatrix<f64> {
         (self.derivative)(y_true, y_pred)
     }
 }

@@ -10,14 +10,6 @@ pub fn hyperbolic_tangent_prime(x: f64) -> f64 {
     1. - libm::pow(hyperbolic_tangent(x), 2.)
 }
 
-pub fn hyperbolic_tangent_vec(m: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
-    m.map(hyperbolic_tangent)
-}
-
-pub fn hyperbolic_tangent_prime_vec(m: &nalgebra::DVector<f64>) -> nalgebra::DVector<f64> {
-    m.map(hyperbolic_tangent_prime)
-}
-
 pub fn new() -> ActivationLayer {
-    ActivationLayer::new(hyperbolic_tangent_vec, hyperbolic_tangent_prime_vec)
+    ActivationLayer::new(|m| m.map(hyperbolic_tangent), |m| m.map(hyperbolic_tangent_prime))
 }

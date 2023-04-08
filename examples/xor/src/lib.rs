@@ -31,7 +31,8 @@ where
             &x(), 
             &y().chunks(1).map(|v| v.to_vec()).collect(), 
             learning_rate,
-            &mse::new()
+            &mse::new(),
+            1
         );
         errors.push(error);
     }

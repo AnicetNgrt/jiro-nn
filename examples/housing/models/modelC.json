@@ -1,8 +1,9 @@
 {
     "name": "C",
-    "learning_rate": 0.1,
+    "learning_rate": 0.05,
     "epochs": 30,
-    "decay_rate": 1.0,
-    "activation": "hbt",
-    "layers": [5]
+    "dropout": [0.1, 0.5, 0.5],
+    "batch_size": 132,
+    "activation": "sigm",
+    "layers": [30, 10]
 }

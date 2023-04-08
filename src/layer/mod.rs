@@ -1,4 +1,4 @@
-use nalgebra::{DVector};
+use nalgebra::{DMatrix};
 
 use crate::activation::Activation;
 
@@ -12,10 +12,10 @@ pub enum Layers {
 
 pub trait Layer {
     // returns: j outputs
-    fn forward(&mut self, input: DVector<f64>) -> DVector<f64>;
+    fn forward(&mut self, input: DMatrix<f64>) -> DMatrix<f64>;
 
     // output_gradient: ∂E/∂Y
     // returns: ∂E/∂X
-    fn backward(&mut self, output_gradient: DVector<f64>, learning_rate: f64)
-        -> DVector<f64>;
+    fn backward(&mut self, output_gradient: DMatrix<f64>, learning_rate: f64)
+        -> DMatrix<f64>;
 }

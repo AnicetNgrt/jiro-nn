@@ -1,13 +1,8 @@
 {
-    "name": "B",
-    "learning_rate": 0.1,
-    "epochs": 30,
-    "decay_rate": 1.0,
-    "growing_batch_size": {
-        "start": 0.1,
-        "end": 1.0
-    },
-    "dropout": [0.0, 0.0, 0.0],
+    "name": "A",
+    "learning_rate": 0.01,
+    "epochs": 100,
+    "batch_size": 100,
     "activation": "tanh",
-    "layers": [30, 10]
+    "layers": [36, 36, 36, 36, 36, 36, 36, 36]
 }

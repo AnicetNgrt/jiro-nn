@@ -28,7 +28,7 @@ impl Metric {
             prop_dist,
             dist,
             acc,
-            mse: mse::mse(y_true, y_pred),
+            mse: mse::mse_vecf64(&y_true, &y_pred),
         }
     }
 

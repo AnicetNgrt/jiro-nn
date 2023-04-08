@@ -69,6 +69,20 @@ impl DataTable {
         )
     }
 
+    pub fn map_str_column_to_f64_column(
+        &mut self,
+        column: &str,
+        new_column: &str,
+        f: impl Fn(&str) -> f64,
+    ) -> Self {
+        let series = self.0.column(column).unwrap().utf8().unwrap()
+            .into_iter()
+            .map(|p| p.map(|p| f(p)).unwrap_or_default())
+            .collect::<Vec<f64>>();
+
+        self.with_column_f64(new_column, &series)
+    }
+
     pub fn map_f64_column(&mut self, column: &str, f: impl Fn(f64) -> f64) -> Self {
         let series = self.0.column(column).unwrap().f64().unwrap()
             .into_iter()

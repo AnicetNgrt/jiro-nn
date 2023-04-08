@@ -1,10 +1,12 @@
 use plotly::color::{Rgb};
 use rand::{thread_rng, Rng};
 
-pub const FEATURES: usize = 12;
+pub const FEATURES: usize = 14;
 pub const OUT: usize = 1;
 pub const FEATURES_NAMES: &[&str; FEATURES + OUT] = &[
     "price",
+    "month",
+    "timestamp",
     "floors",
     "bedrooms",
     "lat",

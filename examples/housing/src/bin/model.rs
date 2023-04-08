@@ -26,12 +26,6 @@ pub fn smoothstep(x: f64, min: f64, max: f64) -> f64 {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct GrowingBatchSize {
-    start: f64,
-    end: f64,
-}
-
 #[derive(Serialize, Deserialize)]
 struct Config {
     name: String,
@@ -41,7 +35,7 @@ struct Config {
     dropout: Option<Vec<f64>>,
     layers: Vec<usize>,
     activation: String,
-    growing_batch_size: Option<GrowingBatchSize>,
+    batch_size: Option<usize>,
 }
 
 pub fn main() {
@@ -74,7 +68,7 @@ pub fn main() {
     println!("layers_size: {:?}", config.layers);
     println!("activation: {:?}", config.activation);
     println!("decay_rate: {:?}", config.decay_rate);
-    println!("growing_batch_size: {:?}", config.growing_batch_size);
+    println!("batch_size: {:?}", config.batch_size);
 
     let train_table = DataTable::from_file("dataset/train.csv");
     let test_table = DataTable::from_file("dataset/test.csv");
@@ -90,25 +84,18 @@ pub fn main() {
     let mut stats_table = DataTable::new_empty();
 
     for e in 0..config.epochs {
-        let batch_size = if let Some(ref growing_batch_size) = config.growing_batch_size {
-            let progress = smoothstep(e as f64, 0., (config.epochs-1) as f64);
-            progress * growing_batch_size.end + (1. - progress) * growing_batch_size.start
-        } else {
-            1.0
-        };
-        let batch_size = (batch_size * 17000.) as usize;
-        println!("epoch: {} batch_size: {}", e, batch_size);
         let (train_x, train_y) =
-            train_table.random_in_out_batch(&["price"], Some(batch_size));
+        train_table.random_in_out_batch(&["price"], None);
         let learning_rate = if let Some(ref decay_rate) = config.decay_rate {
             config.learning_rate / (1.0 + (decay_rate * e as f64))
         } else {
             config.learning_rate
         };
+        println!("epoch: {} lr: {}", e, learning_rate);
         if let Some(ref dropout) = config.dropout {
             network.set_dropout_rates(&dropout);
         }
-        network.train(&train_x, &train_y, learning_rate, &mse::new());
+        network.train(&train_x, &train_y, learning_rate, &mse::new(), config.batch_size.unwrap_or(1));
         network.remove_dropout_rates();
 
         let preds = network.predict_many(&test_x);
