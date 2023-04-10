@@ -13,3 +13,6 @@ polars = { version = "0.28.0", features = ["lazy"] }
 plotters = "0.3.4"
 rand = "0.8.5"
 serde = { version = "1.0.159", features = ["derive"] }
+serde-aux = "4.2.0"
+serde_json = "1.0.95"
+sha2 = "0.10.6"

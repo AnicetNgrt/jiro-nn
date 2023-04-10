@@ -1,6 +1,8 @@
 {
-    "name": "A",
-    "epochs": 10,
+    "name": "model1",
+    "epochs": 100,
+    "dropout": [0.2, 0.4, 0.5],
+    "layers": [64, 32, 16],
     "activation": {
         "type": "Tanh"
     },
@@ -13,5 +15,23 @@
             }
         }
     },
-    "layers": [36]
+    "batch_size": 64,
+    "folds": 5,
+    "dataset": {
+        "name": "kc_house_data",
+        "features": [
+            {
+                "name": "lat",
+                "extract_normalized": {
+                    "name": "lat_norm"
+                }
+            },
+            {
+                "name": "long",
+                "extract_normalized": {
+                    "name": "long"
+                }
+            }
+        ]
+    }
 }
