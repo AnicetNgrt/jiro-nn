@@ -1,7 +1,17 @@
 {
     "name": "A",
-    "learning_rate": 0.01,
-    "epochs": 100,
-    "activation": "tanh",
-    "layers": [36, 36, 36, 36, 36, 36, 36, 36]
+    "epochs": 10,
+    "activation": {
+        "type": "Tanh"
+    },
+    "optimizer": {
+        "type": "SGD",
+        "params": {
+            "learning_rate": {
+                "type": "Constant",
+                "params": 0.1
+            }
+        }
+    },
+    "layers": [36]
 }

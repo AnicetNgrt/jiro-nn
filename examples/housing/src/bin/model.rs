@@ -1,4 +1,5 @@
 use housing::{denorm, denorm_single, FEATURES, OUT};
+use nn::optimizer::{Optimizers};
 use nn::{
     activation::Activation, benchmarking::Benchmark, datatable::DataTable, loss::mse,
     network::Network, nn,
@@ -7,13 +8,13 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 
-pub fn new_network(hidden_sizes: Vec<usize>, activation: Activation) -> Network {
+pub fn new_network(hidden_sizes: Vec<usize>, activation: Activation, optimizer: Optimizers) -> Network {
     let mut sizes = vec![FEATURES];
     for s in hidden_sizes {
         sizes.push(s);
     }
     sizes.push(OUT);
-    nn(vec![activation], sizes)
+    nn(sizes, vec![activation], vec![optimizer])
 }
 
 pub fn smoothstep(x: f64, min: f64, max: f64) -> f64 {
@@ -29,12 +30,11 @@ pub fn smoothstep(x: f64, min: f64, max: f64) -> f64 {
 #[derive(Serialize, Deserialize)]
 struct Config {
     name: String,
-    learning_rate: f64,
     epochs: usize,
-    decay_rate: Option<f64>,
     dropout: Option<Vec<f64>>,
     layers: Vec<usize>,
-    activation: String,
+    activation: Activation,
+    optimizer: Optimizers,
     batch_size: Option<usize>,
 }
 
@@ -52,60 +52,42 @@ pub fn main() {
     // Parse the JSON string into a Config struct
     let config: Config = serde_json::from_str(&contents).expect("Failed to parse JSON");
 
-    let activation: Activation = match config.activation.as_str() {
-        "tanh" => Activation::Tanh,
-        "relu" => Activation::ReLU,
-        "sigm" => Activation::Sigmoid,
-        "hbt" => Activation::HyperbolicTangent,
-        _ => panic!("Unknown activation function"),
-    };
-
     // print all hyperparameters
     println!("name: {}", config.name);
-    println!("learning_rate: {}", config.learning_rate);
     println!("epochs: {}", config.epochs);
-    println!("dropout_rates: {:?}", config.dropout);
-    println!("layers_size: {:?}", config.layers);
-    println!("activation: {:?}", config.activation);
-    println!("decay_rate: {:?}", config.decay_rate);
-    println!("batch_size: {:?}", config.batch_size);
+    println!("dropout_rates: {:#?}", config.dropout);
+    println!("layers_size: {:#?}", config.layers);
+    println!("activation: {:#?}", config.activation);
+    println!("batch_size: {:#?}", config.batch_size);
+    println!("optimizer: {:#?}", config.optimizer);
 
     let train_table = DataTable::from_file("dataset/train.csv");
     let test_table = DataTable::from_file("dataset/test.csv");
 
     let (test_x, test_y) = test_table.random_in_out_batch(&["price"], None);
-    let test_y = denorm(&test_y);
+    let denorm_test_y = denorm(&test_y);
 
-    // do the following thing 10 times in parallel
-
-
-    let mut network = new_network(config.layers, activation);
+    let mut network = new_network(config.layers, config.activation, config.optimizer);
 
     let mut stats_table = DataTable::new_empty();
 
     for e in 0..config.epochs {
         let (train_x, train_y) =
         train_table.random_in_out_batch(&["price"], None);
-        let learning_rate = if let Some(ref decay_rate) = config.decay_rate {
-            config.learning_rate / (1.0 + (decay_rate * e as f64))
-        } else {
-            config.learning_rate
-        };
-        println!("epoch: {} lr: {}", e, learning_rate);
         if let Some(ref dropout) = config.dropout {
             network.set_dropout_rates(&dropout);
         }
-        network.train(&train_x, &train_y, learning_rate, &mse::new(), config.batch_size.unwrap_or(1));
+        let error = network.train(e, &train_x, &train_y, &mse::new(), config.batch_size.unwrap_or(1));
         network.remove_dropout_rates();
 
         let preds = network.predict_many(&test_x);
-        let preds = &denorm(&preds);
+        let denorm_preds = &denorm(&preds);
 
         if e == config.epochs - 1 {
             let test_table = test_table
                 .with_column_f64(
                     "predicted price",
-                    &preds.iter().map(|x| x[0]).collect::<Vec<f64>>(),
+                    &denorm_preds.iter().map(|x| x[0]).collect::<Vec<f64>>(),
                 )
                 .map_f64_column("price", denorm_single);
             test_table.to_file(format!("models_preds/{}.csv", config.name));
@@ -115,14 +97,19 @@ pub fn main() {
             .compute_all_metrics_aggregates()
             .get_result();
 
+        let denorm_aggregates = Benchmark::from_preds(&denorm_preds, &denorm_test_y)
+            .compute_all_metrics_aggregates()
+            .get_result();
+
         stats_table = stats_table.apppend(
-            aggregates
+            denorm_aggregates
                 .to_datatable(&["price"])
                 .with_column_f64("epoch", &[e as f64]),
         );
 
-        let prop = aggregates.avg.unwrap().prop_dist[0];
-        println!("[epoch {}] avg prop dist: {:.6}", e, prop,);
+        let prop = denorm_aggregates.avg.unwrap().prop_dist[0];
+        let mse = aggregates.avg.unwrap().mse;
+        println!("[epoch {}] training avg mse: {:.6} test avg mse: {:.6} denorm test avg prop dist: {:.6}", e, error, mse, prop);
     }
 
     stats_table.to_file(format!("models_stats/{}.csv", config.name));

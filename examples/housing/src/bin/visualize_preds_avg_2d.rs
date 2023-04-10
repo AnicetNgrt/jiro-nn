@@ -31,7 +31,7 @@ fn main() {
         Err(_) => false,
     };
 
-    let title = format!("Model {} predicted price & true price over feature {}", model_name, feature_name);
+    let title = format!("Model {} average predicted price & true price according to {}", model_name, feature_name);
 
     plot.set_layout(
         Layout::new()

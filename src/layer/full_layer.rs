@@ -94,8 +94,8 @@ impl Layer for FullLayer {
         self.activation.forward(output)
     }
 
-    fn backward(&mut self, output_gradient: DMatrix<f64>, learning_rate: f64) -> DMatrix<f64> {
-        let activation_input_gradient = self.activation.backward(output_gradient, learning_rate);
+    fn backward(&mut self, epoch: usize, output_gradient: DMatrix<f64>) -> DMatrix<f64> {
+        let activation_input_gradient = self.activation.backward(epoch, output_gradient);
         
         let activation_input_gradient = if let Some(mask) = &self.mask {
             activation_input_gradient.component_mul(&mask)
@@ -104,6 +104,6 @@ impl Layer for FullLayer {
         };
 
         self.dense
-            .backward(activation_input_gradient, learning_rate)
+            .backward(epoch, activation_input_gradient)
     }
 }

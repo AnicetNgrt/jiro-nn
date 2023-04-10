@@ -12,3 +12,4 @@ libm = "0.2.6"
 polars = { version = "0.28.0", features = ["lazy"] }
 plotters = "0.3.4"
 rand = "0.8.5"
+serde = { version = "1.0.159", features = ["derive"] }

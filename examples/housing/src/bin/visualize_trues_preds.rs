@@ -9,7 +9,7 @@ fn main() {
 
     let mut plot = Plot::new();
 
-    let title = format!("Comparative predicted price over true_price");
+    let title = format!("Comparative predicted price according to true_price");
 
     plot.set_layout(
         Layout::new()

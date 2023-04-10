@@ -1,0 +1,9 @@
+{
+    "name": "F",
+    "learning_rate": 0.001,
+    "epochs": 3,
+    "dropout": [0.1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+    "batch_size": 132,
+    "activation": "relu",
+    "layers": [36, 36, 36, 36, 36, 36, 36]
+}

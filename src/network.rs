@@ -35,9 +35,9 @@ impl Network {
 
     fn _train(
         &mut self,
+        epoch: usize,
         x_train: Vec<DVector<f64>>,
         y_train: Vec<DVector<f64>>,
-        learning_rate: f64,
         loss: &Loss,
         batch_size: usize,
     ) -> f64 {
@@ -55,7 +55,7 @@ impl Network {
             error += e;
 
             let error_gradient = loss.loss_prime(&y_true_batch_matrix, &pred);
-            self.layers.backward(error_gradient, learning_rate);
+            self.layers.backward(epoch, error_gradient);
             i += 1;
         }
         error /= i as f64;
@@ -64,13 +64,14 @@ impl Network {
 
     pub fn train(
         &mut self,
+        epoch: usize,
         x_train: &Vec<Vec<f64>>,
         y_train: &Vec<Vec<f64>>,
-        learning_rate: f64,
         loss: &Loss,
         batch_size: usize,
     ) -> f64 {
         self._train(
+            epoch,
             x_train
                 .into_iter()
                 .map(|col| DVector::<f64>::from_iterator(self.i, col.clone().into_iter()))
@@ -79,7 +80,6 @@ impl Network {
                 .into_iter()
                 .map(|col| DVector::<f64>::from_iterator(self.j, col.clone().into_iter()))
                 .collect(),
-            learning_rate,
             loss,
             batch_size
         )
@@ -107,10 +107,10 @@ impl<L: Layer> Layer for Vec<L> {
         output
     }
 
-    fn backward(&mut self, error_gradient: DMatrix<f64>, learning_rate: f64) -> DMatrix<f64> {
+    fn backward(&mut self, epoch: usize, error_gradient: DMatrix<f64>) -> DMatrix<f64> {
         let mut error_gradient = error_gradient;
         for layer in self.iter_mut().rev() {
-            error_gradient = layer.backward(error_gradient, learning_rate);
+            error_gradient = layer.backward(epoch, error_gradient);
         }
         error_gradient
     }

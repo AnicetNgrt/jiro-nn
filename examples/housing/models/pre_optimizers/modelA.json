@@ -1,0 +1,7 @@
+{
+    "name": "A",
+    "learning_rate": 0.01,
+    "epochs": 100,
+    "activation": "tanh",
+    "layers": [36, 36, 36, 36, 36, 36, 36, 36]
+}

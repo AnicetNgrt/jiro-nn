@@ -1,0 +1,19 @@
+{
+    "name": "F",
+    "epochs": 100,
+    "activation": {
+        "type": "ReLU"
+    },
+    "optimizer": {
+        "type": "Momentum",
+        "params": {
+            "learning_rate": {
+                "type": "Constant",
+                "params": 0.00001
+            },
+            "momentum": 0.9
+        }
+    },
+    "batch_size": 128,
+    "layers": [14, 14, 14, 14, 14, 14, 14, 14]
+}

@@ -1101,6 +1101,7 @@ dependencies = [
  "plotters",
  "polars",
  "rand",
+ "serde",
 ]
 
 [[package]]

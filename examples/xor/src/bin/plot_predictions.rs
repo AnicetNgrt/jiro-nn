@@ -1,16 +1,15 @@
 use std::collections::HashMap;
 
-use nn::{activation::Activation, nn};
+use nn::{activation::Activation, nn, optimizer::{Optimizers, sgd::SGD}};
 use plotters::prelude::*;
 use xor::{train_and_test, test_set_accuracy};
 
 const OUT_FILE_NAME: &'static str = "./visuals/xor-example-predictions.png";
 
 fn main() {
-    let mut network = nn(vec![Activation::Tanh], vec![2, 3, 1]);
+    let mut network = nn(vec![2, 3, 1], vec![Activation::Tanh], vec![Optimizers::SGD(SGD::with_const_lr(0.1))]);
 
-    let decay = 0.001;
-    let error = train_and_test(&mut network, 10000, 0.1, move |e, lr| lr / (1. + decay * (e as f64))).0;
+    let error = train_and_test(&mut network, 10000).0;
     println!("[TANH]\n final error: {}", error);
     println!("[TANH]\n testset accuracy: {}", test_set_accuracy(&mut network));
 

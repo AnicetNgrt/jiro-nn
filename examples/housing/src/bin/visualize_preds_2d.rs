@@ -1,6 +1,5 @@
 use std::env;
 
-use housing::colors;
 use nn::datatable::DataTable;
 use plotly::{Plot, Scatter, ImageFormat, common::{Mode, Title, Marker}, layout::{Axis}, Layout};
 
@@ -11,7 +10,7 @@ fn main() {
 
     let mut plot = Plot::new();
 
-    let title = format!("Model {} predicted price & true price over feature {}", model_name, feature_name);
+    let title = format!("Model {} predicted price & true price according to {}", model_name, feature_name);
 
     plot.set_layout(
         Layout::new()

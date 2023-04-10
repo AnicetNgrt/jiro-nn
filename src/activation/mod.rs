@@ -1,4 +1,5 @@
 use nalgebra::DMatrix;
+use serde::{Serialize, Deserialize};
 
 use crate::layer::Layer;
 
@@ -34,8 +35,8 @@ impl Layer for ActivationLayer {
 
     fn backward(
         &mut self,
-        output_gradient: DMatrix<f64>,
-        _learning_rate: f64,
+        _epoch: usize,
+        output_gradient: DMatrix<f64>
     ) -> DMatrix<f64> {
         // ∂E/∂X = ∂E/∂Y ⊙ f'(X)
         let input = self.input.clone().unwrap();
@@ -45,7 +46,8 @@ impl Layer for ActivationLayer {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(tag = "type", content = "params")]
 pub enum Activation {
     Tanh,
     Sigmoid,

@@ -16,6 +16,6 @@ pub trait Layer {
 
     // output_gradient: ∂E/∂Y
     // returns: ∂E/∂X
-    fn backward(&mut self, output_gradient: DMatrix<f64>, learning_rate: f64)
+    fn backward(&mut self, epoch: usize, output_gradient: DMatrix<f64>)
         -> DMatrix<f64>;
 }

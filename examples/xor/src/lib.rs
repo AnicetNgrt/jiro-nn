@@ -20,17 +20,14 @@ pub fn test_set_accuracy(network: &mut Network) -> f64 {
     }).sum::<f64>() / y().len() as f64
 }
 
-pub fn train_and_test<O>(network: &mut Network, epochs: usize, learning_rate: f64, mut lr_optimizer: O) -> (f64, Vec<f64>)
-where 
-    O: FnMut(usize, f64) -> f64
+pub fn train_and_test(network: &mut Network, epochs: usize) -> (f64, Vec<f64>)
 {
     let mut errors = Vec::new();
     for e in 0..epochs {
-        let learning_rate = lr_optimizer(e, learning_rate);
         let error = network.train(
+            e,
             &x(), 
             &y().chunks(1).map(|v| v.to_vec()).collect(), 
-            learning_rate,
             &mse::new(),
             1
         );

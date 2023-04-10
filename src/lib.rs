@@ -2,20 +2,23 @@ use activation::Activation;
 use layer::dense_layer::DenseLayer;
 use layer::full_layer::{FullLayer};
 use network::Network;
+use optimizer::Optimizers;
 
 pub mod activation;
 pub mod layer;
 pub mod loss;
 pub mod network;
-pub mod optimizer;
 pub mod datatable;
 pub mod benchmarking;
+pub mod optimizer;
+pub mod learning_rate;
 pub mod stats_utils;
 
 // Neural network with I inputs and J outputs and 2 hidden layers of sizes H0 & H1
 pub fn nn(
+    sizes: Vec<usize>,
     activations: Vec<Activation>,
-    sizes: Vec<usize>
+    optimizers: Vec<Optimizers>
 ) -> Network {
     let mut layers = vec![];
 
@@ -23,7 +26,7 @@ pub fn nn(
         let in_size = sizes[i];
         let out_size = sizes[i+1];
         let layer = FullLayer::new(
-            DenseLayer::new(in_size, out_size),
+            DenseLayer::new(in_size, out_size, optimizers[i % optimizers.len()].clone()),
             activations[i % activations.len()].to_layer(),
         );
         layers.push(layer);

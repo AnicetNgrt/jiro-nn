@@ -1,0 +1,19 @@
+{
+    "name": "D",
+    "epochs": 500,
+    "activation": {
+        "type": "Tanh"
+    },
+    "optimizer": {
+        "type": "Momentum",
+        "params": {
+            "learning_rate": {
+                "type": "Constant",
+                "params": 0.0001
+            },
+            "momentum": 0.9
+        }
+    },
+    "batch_size": 128,
+    "layers": [36, 36, 36, 36, 36, 36, 36, 36]
+}
