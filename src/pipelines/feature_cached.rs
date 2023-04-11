@@ -1,3 +1,5 @@
+use std::hash::{Hash, Hasher};
+
 use crate::{dataset::{Feature, Dataset}, datatable::DataTable};
 
 use super::DataTransformation;
@@ -18,8 +20,14 @@ impl FeatureExtractorCached {
         }
     }
 
+    fn get_hashed_id(id: &String) -> String {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        id.hash(&mut hasher);
+        hasher.finish().to_string()
+    }
+
     fn get_cached_feature_file_name(&self, id: &String, working_dir: &str, feature: &Feature) -> String {
-        let file_name = format!("{}/cached/{}_{}.csv", working_dir, id, feature.name);
+        let file_name = format!("{}/cached/{}_{}.csv", working_dir, Self::get_hashed_id(id), feature.name);
         file_name
     }
     
@@ -52,21 +60,26 @@ impl DataTransformation for FeatureExtractorCached {
                         dataset_table.append_table_as_column(&cached_data)
                     };
                 } else {
+                    let old_column = dataset_table.get_column_as_table(&feature.name);
                     dataset_table = (self.extract_feature)(&dataset_table, &extracted_feature, feature);
-                    println!("{:#?}", dataset_table);
+                    dataset_table = if extracted_feature.name != feature.name {
+                        dataset_table.append_table_as_column(&old_column)
+                    } else {
+                        dataset_table
+                    };
                     dataset_table
                         .get_column_as_table(&extracted_feature.name)
                         .to_file(self.get_cached_feature_file_name(&id, working_dir, &extracted_feature));
                 }
         
                 new_spec = if extracted_feature.name == feature.name {
-                    spec.with_replaced_feature(&feature.name, extracted_feature)  
+                    new_spec.with_replaced_feature(&feature.name, extracted_feature)  
                 } else {
-                    spec.with_added_feature(extracted_feature) 
+                    new_spec.with_added_feature(extracted_feature)
                 };
             }
         }
-    
+        
         (new_spec, dataset_table)
     }
 

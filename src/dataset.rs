@@ -1,17 +1,29 @@
 use serde::{Serialize, Deserialize};
-use sha2::{Digest, Sha256};
+use serde_aux::field_attributes::bool_true;
 
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
 pub struct Feature {
     pub name: String,
-    pub date_format: Option<String>,
-    pub extract_timestamp: Option<Box<Feature>>,
-    pub extract_month: Option<Box<Feature>>,
-    pub extract_log10: Option<Box<Feature>>,
-    pub extract_normalized: Option<Box<Feature>>,
-    pub extract_squared: Option<Box<Feature>>,
     #[serde(default)]
     pub out: bool,
+    pub date_format: Option<String>,
+    #[serde(default)]
+    pub to_timestamp: bool,
+    #[serde(default)]
+    pub extract_month: bool,
+    #[serde(default)]
+    pub log10: bool,
+    #[serde(default)]
+    pub normalized: bool,
+    #[serde(default)]
+    pub squared: bool,
+    pub with_extracted_timestamp: Option<Box<Feature>>,
+    pub with_extracted_month: Option<Box<Feature>>,
+    pub with_log10: Option<Box<Feature>>,
+    pub with_normalized: Option<Box<Feature>>,
+    pub with_squared: Option<Box<Feature>>,
+    #[serde(default="bool_true")]
+    pub used_in_model: bool
 }
 
 #[derive(Serialize, Debug, Deserialize, Hash, Clone)]
@@ -21,13 +33,6 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn hashed_repr(&self) -> String {
-        let json = serde_json::to_string(&self).unwrap();
-        let hash = Sha256::digest(json.as_bytes());
-        let hash_string = format!("{:x}", hash);
-        hash_string
-    }
-
     pub fn with_added_feature(&self, feature: Feature) -> Self {
         let mut features = self.features.clone();
         features.push(feature);
@@ -45,5 +50,13 @@ impl Dataset {
             name: self.name.clone(),
             features
         }
+    }
+
+    pub fn feature_names(&self) -> Vec<&str> {
+        let mut names = Vec::new();
+        for feature in &self.features {
+            names.push(feature.name.as_str());
+        }
+        names
     }
 }

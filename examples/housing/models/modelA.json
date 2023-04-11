@@ -31,6 +31,19 @@
                 "extract_normalized": {
                     "name": "long"
                 }
+            },
+            {
+                "name": "date",
+                "date_format": "%Y%m%dT%H%M%S",
+                "with_extracted_timestamp": {
+                    "name": "timestamp",
+                    "normalized": true
+                },
+                "with_extracted_month": {
+                    "name": "month",
+                    "log10": true
+                },
+                "used_in_model": false
             }
         ]
     }

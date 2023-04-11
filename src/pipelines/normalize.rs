@@ -15,10 +15,13 @@ impl DataTransformation for Normalize {
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
-        let mut feature_cached = FeatureExtractorCached::new(
-            Box::new(move |feature: &Feature| match &feature.extract_normalized {
-                Some(feature) => Some(*feature.clone()),
-                _ => None,
+        let mut extractor = FeatureExtractorCached::new(
+            Box::new(move |feature: &Feature| match &feature.with_normalized {
+                Some(new_feature) => Some(*new_feature.clone()),
+                _ => match &feature.normalized {
+                    true => Some(feature.clone()),
+                    _ => None,
+                },
             }),
             Box::new(|data: &DataTable, extracted: &Feature, feature: &Feature| {
                 data
@@ -27,10 +30,10 @@ impl DataTransformation for Normalize {
             }),
         );
 
-        feature_cached.transform(id, working_dir, spec, data)
+        extractor.transform(id, working_dir, spec, data)
     }
 
     fn get_name(&self) -> String {
-        "normalized".to_string()
+        "norm".to_string()
     }
 }

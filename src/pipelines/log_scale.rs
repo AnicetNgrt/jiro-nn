@@ -6,11 +6,14 @@ pub struct LogScale10;
 
 impl DataTransformation for LogScale10 {
     fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable) {
-        let mut feature_cached = FeatureExtractorCached::new(
+        let mut extractor = FeatureExtractorCached::new(
             Box::new(move |feature: &Feature| {
-                match &feature.extract_log10 {
-                    Some(feature) => Some(*feature.clone()),
-                    _ => None,
+                match &feature.with_log10 {
+                    Some(new_feature) => Some(*new_feature.clone()),
+                    _ => match &feature.log10 {
+                        true => Some(feature.clone()),
+                        _ => None,
+                    },
                 }
             }),
             Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
@@ -19,10 +22,10 @@ impl DataTransformation for LogScale10 {
             }),
         );
         
-        feature_cached.transform(id, working_dir, spec, data)
+        extractor.transform(id, working_dir, spec, data)
     }
 
     fn get_name(&self) -> String {
-        "log10_scaled".to_string()
+        "log10".to_string()
     }
 }

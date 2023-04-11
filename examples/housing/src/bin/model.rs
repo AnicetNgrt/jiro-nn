@@ -2,9 +2,10 @@ use housing::{FEATURES, OUT};
 use nn::model_spec::ModelSpec;
 use nn::optimizer::{Optimizers};
 use nn::pipelines::Pipeline;
+use nn::pipelines::extract_months::ExtractMonths;
+use nn::pipelines::extract_timestamps::ExtractTimestamps;
 use nn::pipelines::log_scale::LogScale10;
 use nn::pipelines::normalize::Normalize;
-use nn::pipelines::to_timestamp::ToTimestamps;
 use nn::{
     activation::Activation,
     network::Network, nn,
@@ -38,9 +39,10 @@ pub fn main() {
 
     let mut pipeline = Pipeline::new();
     let (dataset_spec, data) = pipeline
-        .add(Box::new(ToTimestamps))
-        .add(Box::new(LogScale10))
-        .add(Box::new(Normalize))
+        .add(ExtractMonths)
+        .add(ExtractTimestamps)
+        .add(LogScale10)
+        .add(Normalize)
         .run("dataset", &model.dataset);
 
     println!("dataset: {:#?}", dataset_spec);

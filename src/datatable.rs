@@ -98,7 +98,11 @@ impl DataTable {
         CsvWriter::new(&mut file).finish(&mut self.0.clone()).unwrap();
     }
 
-    pub fn sample(&mut self, n: Option<usize>, shuffle: bool) -> Self {
+    pub fn shuffle(&self) -> Self {
+        self.sample(None, true)
+    }
+
+    pub fn sample(&self, n: Option<usize>, shuffle: bool) -> Self {
         let columns = self
             .0
             .sample_n(n.unwrap_or(self.0.shape().0), false, shuffle, None)
