@@ -20,6 +20,10 @@ impl DataTable {
         Self(DataFrame::new(columns).unwrap())
     }
 
+    pub fn has_column(&self, name: &str) -> bool {
+        self.0.column(name).is_ok()
+    }
+
     pub fn apppend(&self, lines: DataTable) -> Self {
         Self(self.0.vstack(&lines.df()).unwrap())
     }
@@ -138,7 +142,7 @@ impl DataTable {
             .map(|p| p.map(|p| f(p)))
             .collect::<Series>();
 
-        Self(edited.0.replace("price", series).unwrap().clone())
+        Self(edited.0.replace(column, series).unwrap().clone())
     }
 
     fn series_as_vecf64(series: &Series) -> Vec<f64> {
