@@ -1,17 +1,21 @@
 use housing::{FEATURES, OUT};
+use nn::benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation};
+use nn::datatable::DataTable;
 use nn::model_spec::ModelSpec;
-use nn::optimizer::{Optimizers};
-use nn::pipelines::Pipeline;
+use nn::optimizer::Optimizers;
+use nn::pipelines::attach_ids::AttachIds;
 use nn::pipelines::extract_months::ExtractMonths;
 use nn::pipelines::extract_timestamps::ExtractTimestamps;
 use nn::pipelines::log_scale::LogScale10;
 use nn::pipelines::normalize::Normalize;
-use nn::{
-    activation::Activation,
-    network::Network, nn,
-};
+use nn::pipelines::Pipeline;
+use nn::{activation::Activation, network::Network, nn};
 
-pub fn new_network(hidden_sizes: Vec<usize>, activation: Activation, optimizer: Optimizers) -> Network {
+pub fn new_network(
+    hidden_sizes: Vec<usize>,
+    activation: Activation,
+    optimizer: Optimizers,
+) -> Network {
     let mut sizes = vec![FEATURES];
     for s in hidden_sizes {
         sizes.push(s);
@@ -37,77 +41,88 @@ pub fn main() {
     let model = ModelSpec::from_json_file(format!("models/{}.json", config_name).as_str());
     println!("model: {:#?}", model);
 
+    let normalizer = Normalize::new_shared();
+
     let mut pipeline = Pipeline::new();
-    let (dataset_spec, data) = pipeline
+    let (updated_dataset_spec, data) = pipeline
+        .add(AttachIds::new("id"))
         .add(ExtractMonths)
         .add(ExtractTimestamps)
         .add(LogScale10)
-        .add(Normalize)
+        .add_shared(normalizer.clone())
         .run("dataset", &model.dataset);
 
-    println!("dataset: {:#?}", dataset_spec);
+    println!("dataset: {:#?}", updated_dataset_spec);
     println!("data: {:#?}", data);
 
-    // let (train_table, test_table) = data
-    //     .sample(Some(TRAINING_POINTS + TESTING_POINTS), true)
-    //     .select_columns(FEATURES_NAMES)
-    //     .split(TRAINING_POINTS, TESTING_POINTS);
+    let model = model.with_new_dataset(updated_dataset_spec);
 
-    // let serialized_config = serde_json::to_string(&config).unwrap();
-    // train_table.with_column_str("model", &[&serialized_config]).to_file("dataset/train.csv");
-    // test_table.with_column_str("model", &[&serialized_config]).to_file("dataset/test.csv");
+    let mut tests_with_pred = DataTable::new_empty();
 
+    let mut model_eval = ModelEvaluation::new_empty();
+    for i in 0..model.folds {
+        let mut network = model.to_network();
+        println!("j: {} i: {}", network.j, network.i);
 
-    // let train_table = DataTable::from_file("dataset/train.csv");
-    // let test_table = DataTable::from_file("dataset/test.csv");
+        let (train, validation) = data.split_k_folds(model.folds, i);
 
-    // let (test_x, test_y) = test_table.random_in_out_batch(&["price"], None);
-    // let denorm_test_y = denorm(&test_y);
+        let (test_x_table, test_y_table) = validation.in_out(&model.dataset.out_features_names());
 
-    // let mut network = new_network(config.layers, config.activation, config.optimizer);
+        let (test_x_ids, test_x) = test_x_table.to_tensors_with_ids("id");
 
-    // let mut stats_table = DataTable::new_empty();
+        let test_y = test_y_table.to_tensors();
 
-    // for e in 0..config.epochs {
-    //     let (train_x, train_y) =
-    //     train_table.random_in_out_batch(&["price"], None);
-    //     if let Some(ref dropout) = config.dropout {
-    //         network.set_dropout_rates(&dropout);
-    //     }
-    //     let error = network.train(e, &train_x, &train_y, &mse::new(), config.batch_size.unwrap_or(1));
-    //     network.remove_dropout_rates();
+        let mut fold_eval = FoldEvaluation::new_empty();
+        for e in 0..model.epochs {
+            let (train_x_table, train_y_table) = train.in_out(&model.dataset.out_features_names());
 
-    //     let preds = network.predict_many(&test_x);
-    //     let denorm_preds = &denorm(&preds);
+            let train_x = train_x_table.drop_column("id").to_tensors();
+            let train_y = train_y_table.to_tensors();
 
-    //     if e == config.epochs - 1 {
-    //         let test_table = test_table
-    //             .with_column_f64(
-    //                 "predicted price",
-    //                 &denorm_preds.iter().map(|x| x[0]).collect::<Vec<f64>>(),
-    //             )
-    //             .map_f64_column("price", denorm_single);
-    //         test_table.to_file(format!("models_preds/{}.csv", config.name));
-    //     }
+            let train_loss = network.train(
+                e,
+                &train_x,
+                &train_y,
+                &model.loss.to_loss(),
+                model.batch_size.unwrap_or(train_x.len()),
+            );
 
-    //     let aggregates = Benchmark::from_preds(&preds, &test_y)
-    //         .compute_all_metrics_aggregates()
-    //         .get_result();
+            let (preds, loss_avg, loss_std) =
+                network.predict_evaluate_many(&test_x, &test_y, &model.loss.to_loss());
 
-    //     let denorm_aggregates = Benchmark::from_preds(&denorm_preds, &denorm_test_y)
-    //         .compute_all_metrics_aggregates()
-    //         .get_result();
+            println!(
+                "Fold {:3} Epoch {:4} Train avg loss: {:.6} Pred avg loss: {:.6}",
+                i, e, train_loss, loss_avg
+            );
 
-    //     stats_table = stats_table.apppend(
-    //         denorm_aggregates
-    //             .to_datatable(&["price"])
-    //             .with_column_f64("epoch", &[e as f64]),
-    //     );
+            let eval = EpochEvaluation::new(train_loss, loss_avg, loss_std);
 
-    //     let prop = denorm_aggregates.avg.unwrap().prop_dist[0];
-    //     let mse = aggregates.avg.unwrap().mse;
-    //     println!("[epoch {}] training avg mse: {:.6} test avg mse: {:.6} denorm test avg prop dist: {:.6}", e, error, mse, prop);
-    // }
+            if e == model.epochs - 1 {
+                let preds_table =
+                    DataTable::from_tensors(&model.dataset.pred_out_features_names(), &preds);
+                tests_with_pred = tests_with_pred.apppend(
+                    validation
+                        .append_table_as_columns(&preds_table)
+                );
+                println!("{:#?}", preds_table);
 
-    // stats_table.to_file(format!("models_stats/{}.csv", config.name));
+                fold_eval.add_final_epoch(eval, test_x_ids.clone(), test_y.clone(), preds)
+            } else {
+                fold_eval.add_epoch(eval)
+            };
+        }
+        model_eval.add_fold(fold_eval);
+    }
+
+    let out_features_names = &model.dataset.out_features_names();
+    let pred_out_features_names = &model.dataset.pred_out_features_names();
+    for (name_out, name_pred) in out_features_names.iter().zip(pred_out_features_names.iter()) {
+        normalizer.borrow_mut().same_normalization(name_pred, name_out); 
+    }
+
+    let tests_with_pred = normalizer.borrow().denormalize_data(&tests_with_pred);
+
+    println!("{:#?}", tests_with_pred);
+
+    model_eval.to_json_file(format!("models_stats/{}.json", config_name).as_str());
 }

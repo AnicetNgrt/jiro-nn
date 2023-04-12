@@ -12,10 +12,11 @@ pub mod datatable;
 pub mod benchmarking;
 pub mod optimizer;
 pub mod learning_rate;
-pub mod stats_utils;
+pub mod vec_utils;
 pub mod dataset;
 pub mod pipelines;
 pub mod model_spec;
+pub mod charts_utils;
 
 // Neural network with I inputs and J outputs and 2 hidden layers of sizes H0 & H1
 pub fn nn(

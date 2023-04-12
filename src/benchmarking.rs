@@ -1,190 +1,172 @@
-use polars::prelude::*;
+use std::{fs::File, io::Write};
 
-use crate::{datatable::DataTable, loss::mse, network::Network, stats_utils::*};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
-pub struct Metric {
-    pub prop_dist: Vec<f64>,
-    pub dist: Vec<f64>,
-    pub acc: Vec<f64>,
-    pub mse: f64,
+use crate::{charts_utils::Chart};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ModelEvaluation {
+    pub folds: Vec<FoldEvaluation>
 }
 
-impl Metric {
-    pub fn new(y_pred: Vec<f64>, y_true: Vec<f64>) -> Self {
-        let dist: Vec<_> = y_true
-            .iter()
-            .zip(y_pred.iter())
-            .map(|(y, z)| (y - z).abs())
-            .collect();
-        let prop_dist: Vec<_> = y_true
-            .iter()
-            .zip(dist.iter())
-            .map(|(t, d)| d / t)
-            .collect();
+#[derive(Clone, Serialize, Deserialize)]
+pub struct FoldEvaluation {
+    pub epochs: Vec<EpochEvaluation>,
+    pub final_test_x_ids: Vec<usize>,
+    pub final_test_y: Vec<Vec<f64>>,
+    pub final_test_y_pred: Vec<Vec<f64>>,
+}
 
-        let acc = dist.iter().map(|d| 1. - d.abs()).collect();
+#[derive(Clone, Serialize, Deserialize)]
+pub struct EpochEvaluation {
+    pub train_loss: f64,
+    pub test_loss_avg: f64,
+    pub test_loss_std: f64,
+}
+
+impl ModelEvaluation {
+    pub fn new_empty() -> Self {
         Self {
-            prop_dist,
-            dist,
-            acc,
-            mse: mse::mse_vecf64(&y_true, &y_pred),
+            folds: vec![],
         }
     }
 
-    pub fn many_new(y_preds: &Vec<Vec<f64>>, y_trues: &Vec<Vec<f64>>) -> Vec<Self> {
-        y_preds
-            .iter()
-            .zip(y_trues.iter())
-            .map(|(y_pred, y_true)| Self::new(y_pred.to_vec(), y_true.to_vec()))
-            .collect()
+    pub fn add_fold(&mut self, fold: FoldEvaluation) {
+        self.folds.push(fold);
     }
 
-    pub fn to_series(&self, prefix: &str, preds_names: &[&str]) -> Vec<Series> {
-        let mut series: Vec<Series> = vec![];
-        for (i, acc) in self.acc.iter().enumerate() {
-            series.push(Series::new(
-                &format!("{}{} pred acc", prefix, preds_names[i]),
-                &[*acc],
-            ))
+    pub fn get_epochs_avg_loss_avg(&self) -> Vec<f64> {
+        let mut avg = vec![0.0; self.folds[0].epochs.len()];
+        for fold in &self.folds {
+            for (i, epoch) in fold.epochs.iter().enumerate() {
+                avg[i] += epoch.train_loss;
+            }
         }
-        for (i, dist) in self.dist.iter().enumerate() {
-            series.push(Series::new(
-                &format!("{}{} pred dist", prefix, preds_names[i]),
-                &[*dist],
-            ))
+        for i in 0..avg.len() {
+            avg[i] /= self.folds.len() as f64;
         }
-        for (i, dist) in self.prop_dist.iter().enumerate() {
-            series.push(Series::new(
-                &format!("{}{} pred prop dist", prefix, preds_names[i]),
-                &[*dist],
-            ))
-        }
-        series.push(Series::new(&format!("{}mse", prefix), &[self.mse]));
+        avg
+    }
 
-        series
+    pub fn get_epochs_std_loss_avg(&self) -> Vec<f64> {
+        let avg = self.get_epochs_avg_loss_avg();
+        let mut std = vec![0.0; self.folds[0].epochs.len()];
+        for fold in &self.folds {
+            for (i, epoch) in fold.epochs.iter().enumerate() {
+                std[i] += (epoch.train_loss - avg[i]).powi(2);
+            }
+        }
+        for i in 0..std.len() {
+            std[i] = (std[i] / self.folds.len() as f64).sqrt();
+        }
+        std
+    }
+
+    pub fn get_folds_avg_final_loss_avg(&self) -> f64 {
+        let mut sum = 0.0;
+        for fold in &self.folds {
+            sum += fold.get_final_epoch().test_loss_avg;
+        }
+        sum / self.folds.len() as f64
+    }
+
+    pub fn get_folds_avg_final_loss_std(&self) -> f64 {
+        let mut sum = 0.0;
+        for fold in &self.folds {
+            sum += fold.get_final_epoch().test_loss_std;
+        }
+        sum / self.folds.len() as f64
+    }
+
+    pub fn get_folds_std_final_loss_avg(&self) -> f64 {
+        let avg = self.get_folds_avg_final_loss_avg();
+        let mut sum = 0.0;
+        for fold in &self.folds {
+            sum += (fold.get_final_epoch().test_loss_avg - avg).powi(2);
+        }
+        (sum / self.folds.len() as f64).sqrt()
+    }
+
+    pub fn get_folds_std_final_loss_std(&self) -> f64 {
+        let avg = self.get_folds_avg_final_loss_std();
+        let mut sum = 0.0;
+        for fold in &self.folds {
+            sum += (fold.get_final_epoch().test_loss_std - avg).powi(2);
+        }
+        (sum / self.folds.len() as f64).sqrt()
+    }
+
+    pub fn from_json_file(path: &str) -> Self {
+        let file = File::open(path).unwrap();
+        serde_json::from_reader(file).unwrap()
+    }
+
+    pub fn to_json_file(&self, path: &str) {
+        let mut file = File::create(path).unwrap();
+        let json_string = serde_json::to_string_pretty(self).unwrap();
+        file.write_all(json_string.as_bytes()).unwrap();
+    }
+
+    pub fn get_n_epochs(&self) -> usize {
+        self.folds[0].epochs.len()
+    }
+
+    pub fn get_n_folds(&self) -> usize {
+        self.folds.len()
+    }
+
+    //using the chart_utils module
+    pub fn plot_epochs_avg_loss(&self, path: &str) {
+        Chart::new("Loss over epochs", "loss")
+            .add_range_x_axis("epochs", 0., self.get_n_epochs() as f64, 1.)
+            .add_y_axis("avg over folds", self.get_epochs_avg_loss_avg())
+            .add_y_axis("std over folds", self.get_epochs_std_loss_avg())
+            .line_plot(path);
     }
 }
 
-pub struct Benchmark {
-    prop_dists: Vec<Vec<f64>>,
-    diffs: Vec<Vec<f64>>,
-    accs: Vec<Vec<f64>>,
-    mses: Vec<f64>,
-    pred_stats_aggregation: MetricsAggregates,
-}
-
-impl Benchmark {
-    pub fn from_test_data(
-        network: &mut Network,
-        x_test: &Vec<Vec<f64>>,
-        y_trues: &Vec<Vec<f64>>
-    ) -> Self {
-        let preds = network.predict_many(x_test);
-        Self::from_preds(&preds, y_trues)
-    }
-
-    pub fn from_preds(y_preds: &Vec<Vec<f64>>, y_trues: &Vec<Vec<f64>>) -> Self {
-        let stats = Metric::many_new(y_preds, y_trues);
-        Self::from_stats(stats)
-    }
-
-    pub fn from_stats(stats: Vec<Metric>) -> Self {
-        let prop_dists: Vec<_> = stats.iter().map(|s| s.prop_dist.clone()).collect();
-        let diffs: Vec<_> = stats.iter().map(|s| s.dist.clone()).collect();
-        let accs: Vec<_> = stats.iter().map(|s| s.acc.clone()).collect();
-        let mses: Vec<_> = stats.iter().map(|s| s.mse.clone()).collect();
-
+impl FoldEvaluation {
+    pub fn new_empty() -> Self {
         Self {
-            prop_dists,
-            diffs,
-            accs,
-            mses,
-            pred_stats_aggregation: MetricsAggregates {
-                min: None,
-                max: None,
-                avg: None,
-                var: None,
-            },
+            epochs: vec![],
+            final_test_x_ids: vec![],
+            final_test_y: vec![],
+            final_test_y_pred: vec![],
         }
     }
 
-    pub fn compute_min(&mut self) -> &mut Self {
-        self.pred_stats_aggregation.min = Some(Metric {
-            prop_dist: min_vecf64(&self.prop_dists),
-            dist: min_vecf64(&self.diffs),
-            acc: min_vecf64(&self.accs),
-            mse: *self.mses.iter().min_by(|a, b| a.total_cmp(b)).unwrap(),
-        });
-        self
+    pub fn add_epoch(&mut self, epoch: EpochEvaluation) {
+        self.epochs.push(epoch);
     }
 
-    pub fn compute_max(&mut self) -> &mut Self {
-        self.pred_stats_aggregation.max = Some(Metric {
-            prop_dist: max_vecf64(&self.prop_dists),
-            dist: max_vecf64(&self.diffs),
-            acc: max_vecf64(&self.accs),
-            mse: *self.mses.iter().max_by(|a, b| a.total_cmp(b)).unwrap(),
-        });
-        self
+    pub fn add_final_epoch(&mut self, epoch: EpochEvaluation, final_test_x_ids: Vec<usize>,
+        final_test_y: Vec<Vec<f64>>,
+        final_test_y_pred: Vec<Vec<f64>>) {
+        self.epochs.push(epoch);
+        self.final_test_x_ids = final_test_x_ids;
+        self.final_test_y = final_test_y;
+        self.final_test_y_pred = final_test_y_pred;
     }
 
-    pub fn compute_avg(&mut self) -> &mut Self {
-        self.pred_stats_aggregation.avg = Some(Metric {
-            prop_dist: avg_vecf64(&self.prop_dists),
-            dist: avg_vecf64(&self.diffs),
-            acc: avg_vecf64(&self.accs),
-            mse: self.mses.iter().sum::<f64>() / self.mses.len() as f64,
-        });
-        self
+    pub fn get_final_epoch(&self) -> EpochEvaluation {
+        self.epochs[self.epochs.len() - 1].clone()
     }
 
-    pub fn compute_var(&mut self) -> &mut Self {
-        self.pred_stats_aggregation.var = Some(Metric {
-            prop_dist: var_vecf64(&self.prop_dists),
-            dist: var_vecf64(&self.diffs),
-            acc: var_vecf64(&self.accs),
-            mse: var_f64(&self.mses),
-        });
-        self
+    pub fn get_final_test_loss_avg(&self) -> f64 {
+        self.get_final_epoch().test_loss_avg
     }
 
-    pub fn compute_all_metrics_aggregates(&mut self) -> &mut Self {
-        self.compute_min()
-            .compute_max()
-            .compute_avg()
-            .compute_var()
-    }
-
-    pub fn get_result(&self) -> MetricsAggregates {
-        self.pred_stats_aggregation.clone()
+    pub fn get_final_test_loss_std(&self) -> f64 {
+        self.get_final_epoch().test_loss_std
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct MetricsAggregates {
-    pub min: Option<Metric>,
-    pub max: Option<Metric>,
-    pub avg: Option<Metric>,
-    pub var: Option<Metric>,
-}
-
-impl MetricsAggregates {
-    pub fn to_datatable(&self, preds_names: &[&str]) -> DataTable {
-        let mut series: Vec<Series> = vec![];
-        if let Some(min_stats) = &self.min {
-            series.append(&mut min_stats.to_series("min ", preds_names))
+impl EpochEvaluation {
+    pub fn new(train_loss: f64, test_loss_avg: f64, test_loss_std: f64) -> Self {
+        Self {
+            train_loss,
+            test_loss_avg,
+            test_loss_std,
         }
-        if let Some(max_stats) = &self.max {
-            series.append(&mut max_stats.to_series("max ", preds_names))
-        }
-        if let Some(avg_stats) = &self.avg {
-            series.append(&mut avg_stats.to_series("avg ", preds_names))
-        }
-        if let Some(var_stats) = &self.var {
-            series.append(&mut var_stats.to_series("var ", preds_names))
-        }
-
-        DataTable::from_columns(series)
     }
 }

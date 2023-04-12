@@ -59,6 +59,6 @@ impl DataTransformation for ExtractMonths {
     }
 
     fn get_name(&self) -> String {
-        "to_timestamps".to_string()
+        "extract_months".to_string()
     }
 }

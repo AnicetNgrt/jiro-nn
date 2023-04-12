@@ -1,13 +1,16 @@
-use nalgebra::{DVector, DMatrix};
+use nalgebra::{DMatrix, DVector};
 
-use crate::{layer::{full_layer::FullLayer, Layer}, loss::Loss};
+use crate::{
+    layer::{full_layer::FullLayer, Layer},
+    loss::Loss,
+};
 
 pub struct Network {
     // May be one or more layers inside
     // A layer is a layer as long as it implements the Layer trait
     layers: Vec<FullLayer>,
-    i: usize,
-    j: usize
+    pub i: usize,
+    pub j: usize,
 }
 
 impl Network {
@@ -16,21 +19,50 @@ impl Network {
     }
 
     fn _predict(&mut self, input: DVector<f64>) -> DVector<f64> {
-        self.layers.forward(DMatrix::from_rows(&[input.transpose()])).row(0).transpose()
+        self.layers
+            .forward(DMatrix::from_rows(&[input.transpose()]))
+            .row(0)
+            .transpose()
     }
 
-    pub fn predict(&mut self, input: Vec<f64>) -> Vec<f64> {
-        self._predict(DVector::from_iterator(self.i, input))
+    pub fn predict_evaluate(
+        &mut self,
+        input: Vec<f64>,
+        y: Vec<f64>,
+        loss: &Loss,
+    ) -> (Vec<f64>, f64) {
+        let preds: Vec<_> = self
+            ._predict(DVector::from_iterator(self.i, input))
             .into_iter()
             .map(|x| *x)
-            .collect()
+            .collect();
+
+        let loss = loss.loss_vec(&vec![y], &vec![preds.clone()]);
+
+        (preds, loss)
     }
 
-    pub fn predict_many(&mut self, inputs: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
-        inputs
+    pub fn predict_evaluate_many(
+        &mut self,
+        inputs: &Vec<Vec<f64>>,
+        ys: &Vec<Vec<f64>>,
+        loss: &Loss,
+    ) -> (Vec<Vec<f64>>, f64, f64) {
+        let preds_losses: Vec<_> = inputs
             .into_iter()
-            .map(|v| self.predict(v.clone()))
-            .collect()
+            .zip(ys.into_iter())
+            .map(|(x, y)| self.predict_evaluate(x.clone(), y.clone(), loss))
+            .collect();
+
+        let preds = preds_losses.iter().map(|(p, _)| p.clone()).collect();
+        let losses: Vec<_> = preds_losses.iter().map(|(_, l)| *l).collect();
+        let avg_loss = losses.iter().sum::<f64>() / preds_losses.len() as f64;
+        let std_loss = losses
+            .iter()
+            .fold(0., |acc, x| acc + (x - avg_loss).powi(2))
+            / preds_losses.len() as f64;
+
+        (preds, avg_loss, std_loss)
     }
 
     fn _train(
@@ -45,11 +77,21 @@ impl Network {
         let mut i = 0;
         let transposed_x_train: Vec<_> = x_train.into_iter().map(|v| v.transpose()).collect();
         let transposed_y_train: Vec<_> = y_train.into_iter().map(|v| v.transpose()).collect();
-        let x_train_batches: Vec<_> = transposed_x_train.chunks(batch_size).map(|c| c.to_vec()).collect();
-        let y_train_batches: Vec<_> = transposed_y_train.chunks(batch_size).map(|c| c.to_vec()).collect();
+        let x_train_batches: Vec<_> = transposed_x_train
+            .chunks(batch_size)
+            .map(|c| c.to_vec())
+            .collect();
+        let y_train_batches: Vec<_> = transposed_y_train
+            .chunks(batch_size)
+            .map(|c| c.to_vec())
+            .collect();
 
-        for (input_batch, y_true_batch) in x_train_batches.into_iter().zip(y_train_batches.into_iter()) {
-            let pred = self.layers.forward(DMatrix::from_rows(input_batch.as_slice()));
+        for (input_batch, y_true_batch) in
+            x_train_batches.into_iter().zip(y_train_batches.into_iter())
+        {
+            let pred = self
+                .layers
+                .forward(DMatrix::from_rows(input_batch.as_slice()));
             let y_true_batch_matrix = DMatrix::from_rows(y_true_batch.as_slice());
             let e = loss.loss(&y_true_batch_matrix, &pred);
             error += e;
@@ -81,7 +123,7 @@ impl Network {
                 .map(|col| DVector::<f64>::from_iterator(self.j, col.clone().into_iter()))
                 .collect(),
             loss,
-            batch_size
+            batch_size,
         )
     }
 

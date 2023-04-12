@@ -1,3 +1,5 @@
+use std::{rc::Rc, cell::RefCell};
+
 use crate::{dataset::Dataset, datatable::DataTable};
 
 pub mod feature_cached;
@@ -5,9 +7,11 @@ pub mod normalize;
 pub mod log_scale;
 pub mod extract_timestamps;
 pub mod extract_months;
+pub mod attach_ids;
+pub mod snapshot;
 
 pub struct Pipeline {
-    transformations: Vec<Box<dyn DataTransformation>>,
+    transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
 }
 
 impl Pipeline {
@@ -17,13 +21,13 @@ impl Pipeline {
         }
     }
 
-    pub fn add_dyn(&mut self, transformation: Box<dyn DataTransformation>) -> &mut Pipeline {
+    pub fn add_shared(&mut self, transformation: Rc<RefCell<dyn DataTransformation>>) -> &mut Pipeline {
         self.transformations.push(transformation);
         self
     }
 
     pub fn add<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
-        self.transformations.push(Box::new(transformation));
+        self.transformations.push(Rc::new(RefCell::new(transformation)));
         self
     }
 
@@ -33,7 +37,9 @@ impl Pipeline {
         
         let mut id = spec.name.clone();
         let mut res = (spec.clone(), data.clone());
+        
         for transformation in &mut self.transformations {
+            let mut transformation = transformation.borrow_mut();
             id = format!("{}-{}", id, transformation.get_name());
             res = transformation.transform(&id, working_dir, &res.0, &res.1);
         }

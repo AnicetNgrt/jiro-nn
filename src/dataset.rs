@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use serde_aux::field_attributes::bool_true;
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone)]
 pub struct Feature {
     pub name: String,
     #[serde(default)]
@@ -23,10 +23,12 @@ pub struct Feature {
     pub with_normalized: Option<Box<Feature>>,
     pub with_squared: Option<Box<Feature>>,
     #[serde(default="bool_true")]
-    pub used_in_model: bool
+    pub used_in_model: bool,
+    #[serde(default)]
+    pub is_id: bool
 }
 
-#[derive(Serialize, Debug, Deserialize, Hash, Clone)]
+#[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Dataset {
     pub name: String,
     pub features: Vec<Feature>,
@@ -56,6 +58,36 @@ impl Dataset {
         let mut names = Vec::new();
         for feature in &self.features {
             names.push(feature.name.as_str());
+        }
+        names
+    }
+
+    pub fn in_features_names(&self) -> Vec<&str> {
+        let mut names = Vec::new();
+        for feature in &self.features {
+            if !feature.out && !feature.is_id && !feature.date_format.is_some() {
+                names.push(feature.name.as_str());
+            }
+        }
+        names
+    }
+
+    pub fn out_features_names(&self) -> Vec<&str> {
+        let mut names = Vec::new();
+        for feature in &self.features {
+            if feature.out {
+                names.push(feature.name.as_str());
+            }
+        }
+        names
+    }
+
+    pub fn pred_out_features_names(&self) -> Vec<String> {
+        let mut names = Vec::new();
+        for feature in &self.features {
+            if feature.out {
+                names.push(format!("pred_{}",feature.name));
+            }
         }
         names
     }
