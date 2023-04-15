@@ -12,9 +12,6 @@ pub struct ModelEvaluation {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FoldEvaluation {
     pub epochs: Vec<EpochEvaluation>,
-    pub final_test_x_ids: Vec<usize>,
-    pub final_test_y: Vec<Vec<f64>>,
-    pub final_test_y_pred: Vec<Vec<f64>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -129,23 +126,11 @@ impl FoldEvaluation {
     pub fn new_empty() -> Self {
         Self {
             epochs: vec![],
-            final_test_x_ids: vec![],
-            final_test_y: vec![],
-            final_test_y_pred: vec![],
         }
     }
 
     pub fn add_epoch(&mut self, epoch: EpochEvaluation) {
         self.epochs.push(epoch);
-    }
-
-    pub fn add_final_epoch(&mut self, epoch: EpochEvaluation, final_test_x_ids: Vec<usize>,
-        final_test_y: Vec<Vec<f64>>,
-        final_test_y_pred: Vec<Vec<f64>>) {
-        self.epochs.push(epoch);
-        self.final_test_x_ids = final_test_x_ids;
-        self.final_test_y = final_test_y;
-        self.final_test_y_pred = final_test_y_pred;
     }
 
     pub fn get_final_epoch(&self) -> EpochEvaluation {

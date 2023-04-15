@@ -30,6 +30,10 @@ impl DataTransformation for AttachIds {
         (spec, data)
     }
 
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        data.clone()
+    }
+
     fn get_name(&self) -> String {
         format!("attach_ids({})", self.0)
     }

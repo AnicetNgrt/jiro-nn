@@ -8,7 +8,6 @@ pub mod log_scale;
 pub mod extract_timestamps;
 pub mod extract_months;
 pub mod attach_ids;
-pub mod snapshot;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
@@ -61,9 +60,19 @@ impl Pipeline {
 
         (spec, data)
     }
+
+    pub fn revert_columnswise(&mut self, data: &DataTable) -> DataTable {
+        let mut res = data.clone();
+        for transformation in &mut self.transformations {
+            let mut transformation = transformation.borrow_mut();
+            res = transformation.reverse_columnswise(&res);
+        }
+        res
+    }
 }
 
 pub trait DataTransformation {
     fn get_name(&self) -> String;
     fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable);
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable;
 }

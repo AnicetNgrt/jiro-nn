@@ -58,6 +58,10 @@ impl DataTransformation for ExtractMonths {
         extractor.transform(id, working_dir, spec, data)
     }
 
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        data.clone()
+    }
+
     fn get_name(&self) -> String {
         "extract_months".to_string()
     }

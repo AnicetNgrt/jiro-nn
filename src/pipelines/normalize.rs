@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{collections::HashMap};
 
 use crate::{
     dataset::{Dataset, Feature},
@@ -18,10 +18,6 @@ impl Normalize {
         }
     }
 
-    pub fn new_shared() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Self::new()))
-    }
-
     pub fn same_normalization(&mut self, new_feature: &str, old_feature: &str) -> &mut Self {
         let min_max = self.features_min_max.get(old_feature).unwrap();
         self.features_min_max.insert(new_feature.to_string(), *min_max);
@@ -32,8 +28,10 @@ impl Normalize {
         let mut denormalized_data = data.clone();
 
         for (feature_name, min_max) in self.features_min_max.iter() {
-            denormalized_data = denormalized_data
-                .denormalize_column(feature_name, *min_max);
+            if denormalized_data.has_column(feature_name) {
+                denormalized_data = denormalized_data
+                    .denormalize_column(feature_name, *min_max);
+            }
         }
 
         denormalized_data
@@ -75,6 +73,10 @@ impl DataTransformation for Normalize {
         );
 
         extractor.transform(id, working_dir, spec, data)
+    }
+
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        self.denormalize_data(data)
     }
 
     fn get_name(&self) -> String {

@@ -1,5 +1,6 @@
 use std::{
-    path::{Path, PathBuf}, collections::HashMap,
+    collections::HashMap,
+    path::{Path, PathBuf},
 };
 
 use polars::prelude::*;
@@ -24,7 +25,7 @@ impl DataTable {
         self.0.column(name).is_ok()
     }
 
-    pub fn apppend(&self, lines: DataTable) -> Self {
+    pub fn apppend(&self, lines: &DataTable) -> Self {
         Self(self.0.vstack(&lines.df()).unwrap())
     }
 
@@ -43,10 +44,47 @@ impl DataTable {
         Self(self.0.hstack(&[column]).unwrap())
     }
 
+    pub fn add_column_from(&self, other: &Self, column: &str) -> DataTable {
+        let column = other.df().column(column).unwrap().clone();
+        self.append_column(column)
+    }
+
     pub fn append_table_as_columns(&self, table: &Self) -> Self {
         let df = table.df().clone();
         let columns = df.get_columns();
         Self(self.0.hstack(columns).unwrap())
+    }
+
+    pub fn inner_join(
+        &self,
+        table: &Self,
+        left_on: &str,
+        right_on: &str,
+        prefix: Option<&str>,
+    ) -> Self {
+        let columns = table.get_columns();
+        let (new_columns, right_on) = if let Some(prefix) = prefix {
+            let mut new_columns = Vec::new();
+            for mut column in columns {
+                let name = column.name();
+                if self.has_column(name) {
+                    let column = column.rename(&format!("{}_{}", prefix, name));
+                    new_columns.push(column.clone());
+                } else {
+                    new_columns.push(column);
+                }
+            }
+            (new_columns, format!("{}_{}", prefix, right_on))
+        } else {
+            (columns, right_on.to_string())
+        };
+
+        let table = DataFrame::new(new_columns).unwrap();
+
+        let df = self.0
+            .join(&table, [left_on], [right_on.as_str()], JoinType::Inner, None)
+            .unwrap();
+        Self(df)
     }
 
     pub fn with_autoincrement_id_column(&self, name: &str) -> Self {
@@ -131,7 +169,9 @@ impl DataTable {
         P: AsRef<Path>,
     {
         let mut file = std::fs::File::create(path).unwrap();
-        CsvWriter::new(&mut file).finish(&mut self.0.clone()).unwrap();
+        CsvWriter::new(&mut file)
+            .finish(&mut self.0.clone())
+            .unwrap();
     }
 
     pub fn shuffle(&self) -> Self {
@@ -159,7 +199,12 @@ impl DataTable {
         new_column: &str,
         f: impl Fn(&str) -> f64,
     ) -> Self {
-        let series = self.0.column(column).unwrap().utf8().unwrap()
+        let series = self
+            .0
+            .column(column)
+            .unwrap()
+            .utf8()
+            .unwrap()
             .into_iter()
             .map(|p| p.map(|p| f(p)).unwrap_or_default())
             .collect::<Vec<f64>>();
@@ -169,7 +214,12 @@ impl DataTable {
 
     pub fn map_f64_column(&self, column: &str, f: impl Fn(f64) -> f64) -> Self {
         let mut edited = self.clone();
-        let series = edited.0.column(column).unwrap().f64().unwrap()
+        let series = edited
+            .0
+            .column(column)
+            .unwrap()
+            .f64()
+            .unwrap()
             .into_iter()
             .map(|p| p.map(|p| f(p)))
             .collect::<Series>();
@@ -181,24 +231,17 @@ impl DataTable {
         let nrows = self.0.shape().0;
         let rows_per_fold = nrows / k;
         // extract the validation fold inside the dataset
-        let (train, validation) = self.split(
-            rows_per_fold * iter,
-            nrows - rows_per_fold * iter, 
-        );
+        let (train, validation) = self.split(rows_per_fold * iter, nrows - rows_per_fold * iter);
 
-        let (validation, additional_train) = validation.split(
-            rows_per_fold,
-            nrows - rows_per_fold * (iter + 1),
-        );
+        let (validation, additional_train) =
+            validation.split(rows_per_fold, nrows - rows_per_fold * (iter + 1));
 
-        let train = train.apppend(additional_train);
+        let train = train.apppend(&additional_train);
 
         (train, validation)
     }
 
-    pub fn as_f64_hashmap(
-        &self
-    ) -> HashMap<String, Vec<f64>> {
+    pub fn as_f64_hashmap(&self) -> HashMap<String, Vec<f64>> {
         let columns = self.0.get_column_names();
         let mut hashmap = HashMap::new();
         for column in columns {
@@ -222,8 +265,7 @@ impl DataTable {
         tensors
     }
 
-    pub fn from_tensors<S: AsRef<str>>(columns: &[S], tensors: &Vec<Vec<f64>>) -> Self 
-    {
+    pub fn from_tensors<S: AsRef<str>>(columns: &[S], tensors: &Vec<Vec<f64>>) -> Self {
         let mut data = Self::new_empty();
         for (i, column) in columns.iter().enumerate().rev() {
             let mut values = Vec::new();
@@ -295,7 +337,7 @@ impl DataTable {
         DataTable(self.0.select(columns).unwrap())
     }
 
-    pub fn in_out<S: AsRef<str>>(&self, out_columns: &[S]) -> (DataTable, DataTable) {
+    pub fn random_order_in_out<S: AsRef<str>>(&self, out_columns: &[S]) -> (DataTable, DataTable) {
         let df = self.clone().sample(None, true);
         let out_batch = df.select_columns(&out_columns);
         let in_batch = df.drop_columns(&out_columns);

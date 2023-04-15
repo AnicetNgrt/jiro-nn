@@ -59,6 +59,10 @@ impl DataTransformation for ExtractTimestamps {
         extractor.transform(id, working_dir, spec, data)
     }
 
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        data.clone()
+    }
+
     fn get_name(&self) -> String {
         "to_timestamps".to_string()
     }

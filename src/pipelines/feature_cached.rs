@@ -118,6 +118,10 @@ impl DataTransformation for FeatureExtractorCached {
         (new_spec, dataset_table)
     }
 
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        data.clone()
+    }
+
     fn get_name(&self) -> String {
         "".to_string()
     }

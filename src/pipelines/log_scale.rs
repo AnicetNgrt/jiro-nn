@@ -25,6 +25,10 @@ impl DataTransformation for LogScale10 {
         extractor.transform(id, working_dir, spec, data)
     }
 
+    fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
+        data.clone()
+    }
+
     fn get_name(&self) -> String {
         "log10".to_string()
     }
