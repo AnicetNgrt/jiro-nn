@@ -27,15 +27,15 @@ pub struct ModelSpec {
 }
 
 impl ModelSpec {
-    pub fn from_json_file(file_name: &str) -> ModelSpec {
-        let mut file = File::open(file_name).unwrap();
+    pub fn from_json_file<S: AsRef<str>>(file_name: S) -> ModelSpec {
+        let mut file = File::open(file_name.as_ref()).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
         Self::from_json_string(&contents)
     }
 
-    pub fn from_json_string(json: &str) -> ModelSpec {
-        let spec: ModelSpec = serde_json::from_str(json).unwrap();
+    pub fn from_json_string<S: AsRef<str>>(json: S) -> ModelSpec {
+        let spec: ModelSpec = serde_json::from_str(json.as_ref()).unwrap();
         spec
     }
 

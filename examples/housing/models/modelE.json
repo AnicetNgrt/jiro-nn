@@ -1,0 +1,40 @@
+{
+    "name": "model4",
+    "epochs": 200,
+    "layers": [3, 3, 3, 3, 3, 3],
+    "activation": {
+        "type": "Tanh"
+    },
+    "loss": {
+        "type": "MSE"
+    },
+    "optimizer": {
+        "type": "SGD",
+        "params": {
+            "learning_rate": {
+                "type": "Constant",
+                "params": 0.001
+            }
+        }
+    },
+    "batch_size": 128,
+    "folds": 5,
+    "dataset": {
+        "name": "kc_house_data",
+        "features": [
+            {
+                "name": "lat",
+                "normalized": true
+            },
+            {
+                "name": "long",
+                "normalized": true
+            },
+            {
+                "name": "price",
+                "normalized": true,
+                "out": true
+            }
+        ]
+    }
+}

@@ -2,17 +2,24 @@ use std::collections::HashMap;
 
 use plotters::{
     prelude::{
-        BitMapBackend, ChartBuilder, Circle, IntoDrawingArea, IntoLinspace, PathElement, Rectangle,
+        BitMapBackend, ChartBuilder, Circle, IntoDrawingArea, IntoLinspace, Rectangle,
     },
     series::{LineSeries, SurfaceSeries},
-    style::{Color, IntoFont, BLACK, WHITE, RGBColor},
+    style::{Color, IntoFont, RGBColor, BLACK, WHITE},
 };
 
-use crate::vec_utils::{max_vecf64, max_vecvecf64, min_vecf64, min_vecvecf64};
+use crate::vec_utils::{normalize_tensor, normalize_matrix};
+
+pub enum YAxis {
+    Discrete(Vec<f64>),
+    Continuous(Box<dyn Fn(f64) -> f64>),
+    Continuous2D(Box<dyn Fn(f64, f64) -> f64>),
+}
 
 pub struct Chart {
     x_axis: HashMap<String, Vec<f64>>,
-    y_axis: HashMap<String, Vec<f64>>,
+    x_axis_names: Vec<String>,
+    y_axis: HashMap<String, YAxis>,
     x_step: f64,
     y_step: f64,
     title: String,
@@ -24,6 +31,7 @@ impl Chart {
     pub fn new(title: &str, y_axis_label: &str) -> Chart {
         Chart {
             x_axis: HashMap::new(),
+            x_axis_names: Vec::new(),
             y_axis: HashMap::new(),
             x_step: 0.01,
             y_step: 0.01,
@@ -58,231 +66,239 @@ impl Chart {
                 .map(|x| (x as f64) * self.x_step)
                 .collect::<Vec<f64>>(),
         );
+        self.x_axis_names.push(label.to_string());
         self
     }
 
     pub fn add_x_axis(&mut self, label: &str, x: Vec<f64>) -> &mut Self {
         self.x_axis.insert(label.to_string(), x);
+        self.x_axis_names.push(label.to_string());
         self
     }
 
-    pub fn add_y_axis(&mut self, label: &str, y: Vec<f64>) -> &mut Self {
-        self.y_axis.insert(label.to_string(), y);
+    pub fn add_discrete_y(&mut self, label: &str, y: Vec<f64>) -> &mut Self {
+        self.y_axis.insert(label.to_string(), YAxis::Discrete(y.clone()));
+        self
+    }
+
+    pub fn add_continuous_y(&mut self, label: &str, y: &'static dyn Fn(f64) -> f64) -> &mut Self {
+        self.y_axis.insert(
+            label.to_string(),
+            YAxis::Continuous(Box::new(y)),
+        );
+        self
+    }
+
+    pub fn add_continuous_2d_y(&mut self, label: &str, y: &'static dyn Fn(f64, f64) -> f64) -> &mut Self {
+        self.y_axis.insert(
+            label.to_string(),
+            YAxis::Continuous2D(Box::new(y)),
+        );
         self
     }
 
     fn first_x_name(&self) -> String {
-        self.x_axis.keys().next().unwrap().to_string()
+        self.x_axis_names[0].to_string()
     }
 
     fn first_two_x_names(&self) -> (String, String) {
-        let mut iter = self.x_axis.keys();
-        let first = iter.next().unwrap().to_string();
-        let second = iter.next().unwrap().to_string();
-        (first, second)
+        (
+            self.x_axis_names[0].to_string(),
+            self.x_axis_names[1].to_string()
+        )
     }
 
     fn y_names(&self) -> Vec<String> {
         self.y_axis.keys().map(|x| x.to_string()).collect()
     }
 
-    pub fn scatter_plot(&self, file: &str) {
+    fn is_y_discrete(&self, name: &str) -> bool {
+        match self.y_axis.get(name).unwrap() {
+            YAxis::Discrete(_) => true,
+            _ => false,
+        }
+    }
+
+    fn all_y_values(&self) -> Vec<Vec<f64>> {
+        let mut values = Vec::new();
+
+        for (_, axis) in self.y_axis.iter() {
+            match axis {
+                YAxis::Discrete(v) => {
+                    values.push(v.clone());
+                }
+                YAxis::Continuous(generator) => {
+                    let x_vals = self.x_axis.get(&self.first_x_name()).unwrap();
+                    values.push(
+                        x_vals
+                            .iter()
+                            .map(|x| generator(*x))
+                            .collect::<Vec<f64>>(),
+                    );
+                },
+                YAxis::Continuous2D(generator) => {
+                    let (x1_name, x2_name) = self.first_two_x_names();
+                    values.push(
+                        self.x_axis.get(&x1_name).unwrap()
+                            .iter()
+                            .zip(self.x_axis.get(&x2_name).unwrap().iter())
+                            .map(|(x1, x2)| generator(*x1, *x2))
+                            .collect::<Vec<f64>>(),
+                    );
+                },
+            }
+        }
+
+        values
+    }
+
+    pub fn scatter<S: AsRef<str>>(&self, file: S) {
         let x_name = self.first_x_name();
         let y_names = self.y_names();
 
-        let root = BitMapBackend::new(file, (1024, 768)).into_drawing_area();
+        let root = BitMapBackend::new(file.as_ref(), (1224, 768)).into_drawing_area();
         root.fill(&WHITE).unwrap();
 
-        let x_vals = self.x_axis.get(&x_name).unwrap();
-        let y_all_vals: Vec<_> = y_names
-            .iter()
-            .map(|y_name| self.y_axis.get(y_name).unwrap().clone())
-            .collect();
-
-        let x_min = min_vecf64(&x_vals);
-        let x_max = max_vecf64(&x_vals);
-        println!("x_min: {}, x_max: {}", x_min, x_max);
-        println!("x_vals: {:?}", x_vals);
-
-        let y_min = min_vecvecf64(&y_all_vals);
-        let y_max = max_vecvecf64(&y_all_vals);
-
-        let x_axis = (x_min..x_max).step(self.x_step);
-        let y_axis = (y_min..y_max).step(self.y_step);
+        let (x_vals, x_min, x_max) = normalize_tensor(self.x_axis.get(&x_name).unwrap());
+        let (y_all_vals, y_min, y_max) = normalize_matrix(&self.all_y_values());
 
         let mut chart = ChartBuilder::on(&root)
             .caption(self.title.clone(), ("sans-serif", 20))
             .margin(10)
             .set_left_and_bottom_label_area_size(75)
-            .build_cartesian_2d(x_axis.clone(), y_axis.clone())
+            .build_cartesian_2d(
+                (0f64..1f64).step(self.x_step),
+                (0f64..1f64).step(self.y_step)
+            )
             .unwrap();
 
         chart
             .configure_mesh()
-            .x_label_formatter(&|v| format!("{:.0}", v))
+            .x_label_formatter(&|v| format!("{:.0}", v * (x_max - x_min) + x_min))
             .x_desc(x_name)
             .y_desc(self.y_axis_label.clone())
+            .y_label_formatter(&|v| format!("{:.0}", v * (y_max - y_min) + y_min))
             .disable_mesh()
             .draw()
             .unwrap();
 
-        for i in 0..y_all_vals.len() {
+        for (i, y_name) in y_names.iter().enumerate() {
             let color = self.colors[i % self.colors.len()];
             let color = RGBColor(color.0, color.1, color.2);
 
-            chart
-                .draw_series(
-                    x_vals
-                        .clone()
-                        .into_iter()
-                        .zip(y_all_vals[i].clone().into_iter())
-                        .map(|(x, y)| {
-                            //println!("{} {}", x, y);
-                            Circle::new((x, y), 3, &color)
-                        }),
-                )
-                .unwrap()
-                .label(&y_names[i])
+            let series_annot = if self.is_y_discrete(&y_name) {
+                chart
+                    .draw_series(
+                        x_vals
+                            .clone()
+                            .into_iter()
+                            .zip(y_all_vals[i].clone().into_iter())
+                            .map(|(x, y)| {
+                                //println!("{} {}", x, y);
+                                Circle::new((x, y), 1.5, color.mix(0.8))
+                            }),
+                    )
+                    .unwrap()
+            } else {
+                chart
+                    .draw_series(
+                        LineSeries::new(
+                            x_vals
+                                .clone()
+                                .into_iter()
+                                .zip(y_all_vals[i].clone().into_iter()),
+                            &color,
+                        )
+                    )
+                    .unwrap()
+            };
+
+            series_annot.label(&y_names[i])
                 .legend(move |(x, y)| Circle::new((x, y), 3, &color));
         }
 
         chart
             .configure_series_labels()
             .border_style(&BLACK)
+            .background_style(&WHITE.mix(0.8))
             .draw()
             .unwrap();
 
         root.present().unwrap();
     }
 
-    pub fn line_plot(&self, file: &str) {
-        let x_name = self.first_x_name();
-        let y_names = self.y_names();
-
-        let root = BitMapBackend::new(file, (1024, 768)).into_drawing_area();
-        root.fill(&WHITE).unwrap();
-
-        let x_vals = self.x_axis.get(&x_name).unwrap();
-        let y_all_vals: Vec<_> = y_names
-            .iter()
-            .map(|y_name| self.y_axis.get(y_name).unwrap().clone())
-            .collect();
-
-        let x_min = min_vecf64(&x_vals);
-        let x_max = max_vecf64(&x_vals);
-
-        let y_min = min_vecvecf64(&y_all_vals);
-        let y_max = max_vecvecf64(&y_all_vals);
-
-        let x_axis = (x_min..x_max).step(self.x_step);
-        let y_axis = (y_min..y_max).step(self.y_step);
-
-        let mut chart = ChartBuilder::on(&root)
-            .caption(self.title.clone(), ("sans-serif", 20))
-            .margin(10)
-            .set_left_and_bottom_label_area_size(75)
-            .build_cartesian_2d(x_axis.clone(), y_axis.clone())
-            .unwrap();
-
-        chart
-            .configure_mesh()
-            .x_label_formatter(&|v| format!("{:.0}", v))
-            .x_desc(x_name)
-            .y_desc(self.y_axis_label.clone())
-            .disable_mesh()
-            .draw()
-            .unwrap();
-
-        for i in 0..y_all_vals.len() {
-            let color = self.colors[i % self.colors.len()];
-            let color = RGBColor(color.0, color.1, color.2);
-
-            chart
-                .draw_series(LineSeries::new(
-                    x_vals
-                        .clone()
-                        .into_iter()
-                        .zip(y_all_vals[i].clone().into_iter()),
-                    &color,
-                ))
-                .unwrap()
-                .label(&y_names[i])
-                .legend(move |(x, y)| PathElement::new([(x, y), (x + 15, y)], &color));
-        }
-
-        chart
-            .configure_series_labels()
-            .border_style(&BLACK)
-            .draw()
-            .unwrap();
-
-        root.present().unwrap();
-    }
-
-    pub fn surface_plot(&self, file: &str) {
+    pub fn scatter_3d<S: AsRef<str>>(&self, file: S) {
         let (x1_name, x2_name) = self.first_two_x_names();
         let y_names = self.y_names();
 
-        let root = BitMapBackend::new(file, (1024, 768)).into_drawing_area();
+        let root = BitMapBackend::new(file.as_ref(), (1224, 768)).into_drawing_area();
         root.fill(&WHITE).unwrap();
 
-        let x1_vals = self.x_axis.get(&x1_name).unwrap();
-        let x2_vals = self.x_axis.get(&x2_name).unwrap();
-        let y_all_vals: Vec<_> = y_names
-            .iter()
-            .map(|y_name| self.y_axis.get(y_name).unwrap().clone())
-            .collect();
-
-        let x_min = min_vecf64(&x1_vals);
-        let z_min = min_vecf64(&x2_vals);
-        let x_max = min_vecf64(&x1_vals);
-        let z_max = min_vecf64(&x2_vals);
-
-        let y_min = min_vecvecf64(&y_all_vals);
-        let y_max = max_vecvecf64(&y_all_vals);
-
-        let x_axis = (x_min..x_max).step(self.x_step);
-        let y_axis = (y_min..y_max).step(self.y_step);
-        let z_axis = (z_min..z_max).step(self.x_step);
-
-        let x_z_to_y_hashmap = x1_vals
-            .iter()
-            .zip(x2_vals.iter())
-            .zip(y_all_vals.iter())
-            .map(|((x, z), y)| (format!("{}-{}", x, z), y.clone()))
-            .collect::<HashMap<String, Vec<f64>>>();
+        let (x1_vals, x_min, x_max) = normalize_tensor(self.x_axis.get(&x1_name).unwrap());
+        let (x2_vals, z_min, z_max) = normalize_tensor(self.x_axis.get(&x2_name).unwrap());
+        let (y_all_vals, y_min, y_max) = normalize_matrix(&self.all_y_values());
 
         let mut chart = ChartBuilder::on(&root)
-            .caption(self.title.clone(), ("sans-serif", 50).into_font())
+            .caption(self.title.clone(), ("sans-serif", 20).into_font())
             .margin(10)
             .x_label_area_size(75)
             .y_label_area_size(75)
-            .build_cartesian_3d(x_axis.clone(), y_axis.clone(), z_axis.clone())
+            .build_cartesian_3d(
+                (0f64..1f64).step(self.x_step),
+                (0f64..1f64).step(self.y_step),
+                (0f64..1f64).step(self.x_step)
+            )
             .unwrap();
 
         chart
             .configure_axes()
-            .x_formatter(&|x| format!("{}={:.2}", x1_name, x))
-            .y_formatter(&|y| format!("{}={:.2}", self.y_axis_label, y))
-            .z_formatter(&|z| format!("{}={:.2}", x2_name, z))
+            .x_formatter(&|x| format!("{}={:.2}", x1_name, x * (x_max - x_min) + x_min))
+            .y_formatter(&|y| format!("{}={:.2}", self.y_axis_label, y * (y_max - y_min) + y_min))
+            .z_formatter(&|z| format!("{}={:.2}", x2_name, z * (z_max - z_min) + z_min))
             .draw()
             .unwrap();
 
-        for i in 0..y_names.len() {
+        chart.with_projection(|mut pb| {
+            pb.yaw = 0.5;
+            pb.scale = 1.0;
+            pb.pitch = 0.3;
+            pb.into_matrix()
+        });
+
+        for (i, y_name) in y_names.iter().enumerate() {
             let color = self.colors[i % self.colors.len()];
             let color = RGBColor(color.0, color.1, color.2);
 
-            chart
-                .draw_series(
-                    SurfaceSeries::xoz(
-                        x1_vals.clone().into_iter(),
-                        x2_vals.clone().into_iter(),
-                        |x, z| x_z_to_y_hashmap.get(&format!("{}-{}", x, z)).unwrap()[i],
+            let series_annot = if self.is_y_discrete(&y_name) {
+                chart
+                    .draw_series(
+                        x1_vals
+                            .clone()
+                            .into_iter()
+                            .zip(x2_vals.clone().into_iter())
+                            .zip(y_all_vals[i].clone().into_iter())
+                            .map(|((x1, x2), y)| {
+                                //println!("{} {}", x, y);
+                                Circle::new((x1, y, x2), 1.5, color.mix(0.8))
+                            }),
                     )
-                    .style(color.filled()),
-                )
-                .unwrap()
-                .label(y_names[i].clone())
+                    .unwrap()
+            } else {
+                chart
+                    .draw_series(
+                        SurfaceSeries::xoz(
+                            x1_vals.clone().into_iter(),
+                            x2_vals.clone().into_iter(),
+                            |x, _| {
+                                let ix = (x * (x1_vals.len() - 1) as f64).round() as usize;
+                                y_all_vals[i][ix]
+                            },
+                        )
+                        .style(color.filled())
+                    )
+                    .unwrap()
+            };
+            series_annot.label(y_names[i].clone())
                 .legend(move |(x, y)| {
                     Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], color.filled())
                 });
@@ -291,6 +307,7 @@ impl Chart {
         chart
             .configure_series_labels()
             .border_style(&BLACK)
+            .background_style(&WHITE.mix(0.8))
             .draw()
             .unwrap();
 

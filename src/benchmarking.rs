@@ -93,13 +93,13 @@ impl ModelEvaluation {
         (sum / self.folds.len() as f64).sqrt()
     }
 
-    pub fn from_json_file(path: &str) -> Self {
-        let file = File::open(path).unwrap();
+    pub fn from_json_file<S: AsRef<str>>(path: S) -> Self {
+        let file = File::open(path.as_ref()).unwrap();
         serde_json::from_reader(file).unwrap()
     }
 
-    pub fn to_json_file(&self, path: &str) {
-        let mut file = File::create(path).unwrap();
+    pub fn to_json_file<S: AsRef<str>>(&self, path: S) {
+        let mut file = File::create(path.as_ref()).unwrap();
         let json_string = serde_json::to_string_pretty(self).unwrap();
         file.write_all(json_string.as_bytes()).unwrap();
     }
@@ -113,12 +113,12 @@ impl ModelEvaluation {
     }
 
     //using the chart_utils module
-    pub fn plot_epochs_avg_loss(&self, path: &str) {
+    pub fn plot_epochs_avg_loss<S: AsRef<str>>(&self, path: S) {
         Chart::new("Loss over epochs", "loss")
             .add_range_x_axis("epochs", 0., self.get_n_epochs() as f64, 1.)
-            .add_y_axis("avg over folds", self.get_epochs_avg_loss_avg())
-            .add_y_axis("std over folds", self.get_epochs_std_loss_avg())
-            .line_plot(path);
+            .add_discrete_y("avg over folds", self.get_epochs_avg_loss_avg())
+            .add_discrete_y("std over folds", self.get_epochs_std_loss_avg())
+            .scatter(path.as_ref());
     }
 }
 
