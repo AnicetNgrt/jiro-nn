@@ -68,9 +68,9 @@ impl FullLayer {
                     .total_cmp(&self.dropout_rate.borrow().unwrap())
                     == Ordering::Greater
                 {
-                    0.0
-                } else {
                     1.0
+                } else {
+                    0.0
                 }
             });
             Some((dropout_mask, dropout_rate))
@@ -81,29 +81,26 @@ impl FullLayer {
 }
 
 impl Layer for FullLayer {
-    fn forward(&mut self, input: DMatrix<f64>) -> DMatrix<f64> {
-        let output = self.dense.forward(input);
-
-        if let Some((mask, dropout_rate)) = self.generate_dropout_mask(output.shape()) {
-            let res = self.activation
-                .forward(output.component_mul(&mask) * (1.0 / (1.0 - dropout_rate)));
+    fn forward(&mut self, mut input: DMatrix<f64>) -> DMatrix<f64> {
+        
+        if let Some((mask, dropout_rate)) = self.generate_dropout_mask(input.shape()) {
+            input = input.component_mul(&mask) * (1.0 / (1.0 - dropout_rate));
             self.mask = Some(mask);
-            return res;
         }
 
+        let output = self.dense.forward(input); 
         self.activation.forward(output)
     }
 
     fn backward(&mut self, epoch: usize, output_gradient: DMatrix<f64>) -> DMatrix<f64> {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
-        
-        let activation_input_gradient = if let Some(mask) = &self.mask {
-            activation_input_gradient.component_mul(&mask)
+        let input_gradient = self.dense
+            .backward(epoch, activation_input_gradient);
+    
+        if let Some(mask) = &self.mask {
+            input_gradient.component_mul(&mask)
         } else {
-            activation_input_gradient
-        };
-
-        self.dense
-            .backward(epoch, activation_input_gradient)
+            input_gradient
+        }
     }
 }

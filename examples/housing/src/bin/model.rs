@@ -1,41 +1,16 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use housing::{FEATURES, OUT};
 use nn::benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation};
 use nn::datatable::DataTable;
 use nn::model_spec::ModelSpec;
-use nn::optimizer::Optimizers;
 use nn::pipelines::attach_ids::AttachIds;
 use nn::pipelines::extract_months::ExtractMonths;
 use nn::pipelines::extract_timestamps::ExtractTimestamps;
 use nn::pipelines::log_scale::LogScale10;
 use nn::pipelines::normalize::Normalize;
 use nn::pipelines::Pipeline;
-use nn::{activation::Activation, network::Network, nn};
-
-pub fn new_network(
-    hidden_sizes: Vec<usize>,
-    activation: Activation,
-    optimizer: Optimizers,
-) -> Network {
-    let mut sizes = vec![FEATURES];
-    for s in hidden_sizes {
-        sizes.push(s);
-    }
-    sizes.push(OUT);
-    nn(sizes, vec![activation], vec![optimizer])
-}
-
-pub fn smoothstep(x: f64, min: f64, max: f64) -> f64 {
-    if x <= min {
-        0.
-    } else if x >= max {
-        1.
-    } else {
-        (x - min) / (max - min)
-    }
-}
+use nn::pipelines::square::Square;
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -50,6 +25,7 @@ pub fn main() {
         .add(ExtractMonths)
         .add(ExtractTimestamps)
         .add(LogScale10)
+        .add(Square)
         .add(Normalize::new())
         .run("./dataset", &model.dataset);
 
@@ -87,6 +63,10 @@ pub fn main() {
     
                 let train_x = train_x_table.drop_column("id").to_tensors();
                 let train_y = train_y_table.to_tensors();
+
+                if let Some(ref dropout_rates) = model.dropout {
+                    network.set_dropout_rates(&dropout_rates);
+                }
     
                 let train_loss = network.train(
                     e,
@@ -95,6 +75,8 @@ pub fn main() {
                     &model.loss.to_loss(),
                     model.batch_size.unwrap_or(train_x.len()),
                 );
+
+                network.remove_dropout_rates();
     
                 let (preds, loss_avg, loss_std) =
                     network.predict_evaluate_many(&validation_x, &validation_y, &model.loss.to_loss());
@@ -125,9 +107,6 @@ pub fn main() {
     for handle in handles.into_iter() {
         handle.join().unwrap();
     }
-
-    // let out_features_names = &model.dataset.out_features_names();
-    // let pred_out_features_names = &model.dataset.pred_out_features_names();
 
     let validation_preds = {
         validation_preds.lock().unwrap().clone()

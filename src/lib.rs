@@ -30,7 +30,7 @@ pub fn nn(
         let in_size = sizes[i];
         let out_size = sizes[i+1];
         let layer = FullLayer::new(
-            DenseLayer::new(in_size, out_size, optimizers[i % optimizers.len()].clone()),
+            DenseLayer::new(in_size, out_size, optimizers[i % optimizers.len()].clone(), (-1.0, 1.0)),
             activations[i % activations.len()].to_layer(),
         );
         layers.push(layer);

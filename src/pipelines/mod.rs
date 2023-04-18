@@ -8,6 +8,7 @@ pub mod log_scale;
 pub mod extract_timestamps;
 pub mod extract_months;
 pub mod attach_ids;
+pub mod square;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,

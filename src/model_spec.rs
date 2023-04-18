@@ -1,16 +1,17 @@
-use std::{fs::File};
+use std::fs::File;
 use std::io::Read;
 
 use polars::prelude::NamedFrom;
 use polars::series::Series;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::datatable::DataTable;
+use crate::layer::dense_layer::DenseLayer;
+use crate::layer::full_layer::FullLayer;
 use crate::loss::Losses;
 use crate::network::Network;
-use crate::nn;
-use crate::{activation::Activation, optimizer::Optimizers, dataset::Dataset};
+use crate::{activation::Activation, dataset::Dataset, optimizer::Optimizers};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct ModelSpec {
@@ -18,12 +19,13 @@ pub struct ModelSpec {
     pub epochs: usize,
     pub loss: Losses,
     pub dropout: Option<Vec<f64>>,
+    pub initial_weights_range: Option<(f64, f64)>,
     pub layers: Vec<usize>,
     pub activation: Activation,
     pub optimizer: Optimizers,
     pub batch_size: Option<usize>,
     pub folds: usize,
-    pub dataset: Dataset
+    pub dataset: Dataset,
 }
 
 impl ModelSpec {
@@ -53,10 +55,28 @@ impl ModelSpec {
     }
 
     pub fn to_network(&self) -> Network {
-        let mut layers = vec![self.dataset.in_features_names().len()];
-        layers.append(&mut self.layers.clone());
-        layers.push(self.dataset.out_features_names().len());
-        nn(layers, vec![self.activation], vec![self.optimizer.clone()])
+        let mut sizes = vec![self.dataset.in_features_names().len()];
+        sizes.append(&mut self.layers.clone());
+        sizes.push(self.dataset.out_features_names().len());
+
+        let mut layers = vec![];
+
+        for i in 0..sizes.len() - 1 {
+            let in_size = sizes[i];
+            let out_size = sizes[i + 1];
+            let layer = FullLayer::new(
+                DenseLayer::new(
+                    in_size,
+                    out_size,
+                    self.optimizer.clone(),
+                    self.initial_weights_range.unwrap_or((-1.0, 1.0)),
+                ),
+                self.activation.to_layer(),
+            );
+            layers.push(layer);
+        }
+
+        Network::new(layers, *sizes.first().unwrap(), *sizes.last().unwrap())
     }
 
     pub fn preds_to_table(&self, preds: Vec<Vec<f64>>) -> DataTable {

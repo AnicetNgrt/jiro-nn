@@ -25,6 +25,10 @@ impl DataTable {
         self.0.column(name).is_ok()
     }
 
+    pub fn get_columns_names(&self) -> Vec<&str> {
+        self.0.get_column_names().to_vec()
+    }
+
     pub fn apppend(&self, lines: &DataTable) -> Self {
         Self(self.0.vstack(&lines.df()).unwrap())
     }
@@ -214,13 +218,9 @@ impl DataTable {
 
     pub fn map_f64_column(&self, column: &str, f: impl Fn(f64) -> f64) -> Self {
         let mut edited = self.clone();
-        let series = edited
-            .0
-            .column(column)
-            .unwrap()
-            .f64()
-            .unwrap()
-            .into_iter()
+        let series = edited.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let array = series.f64().unwrap();
+        let series = array.into_iter()
             .map(|p| p.map(|p| f(p)))
             .collect::<Series>();
 
@@ -284,6 +284,8 @@ impl DataTable {
     }
 
     fn series_as_tensor(series: &Series) -> Vec<f64> {
+        let series = series.cast(&DataType::Float64).unwrap();
+
         series
             .f64()
             .unwrap()
@@ -363,7 +365,8 @@ impl DataTable {
     }
 
     pub fn min_max_column(&self, column: &str) -> (f64, f64) {
-        let array = self.0.column(column).unwrap().f64().unwrap();
+        let series = self.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let array = series.f64().unwrap();
         let min = array.min().unwrap_or(f64::MAX);
         let max = array.max().unwrap_or(f64::MIN);
         (min, max)
@@ -372,7 +375,8 @@ impl DataTable {
     pub fn normalize_column(&self, column: &str, min_max: (f64, f64)) -> Self {
         let (min, max) = min_max;
         let mut edited = self.clone();
-        let array = edited.0.column(column).unwrap().f64().unwrap();
+        let series = edited.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let array = series.f64().unwrap();
         let mut serie: Series = array.apply(|v| (v - min) / (max - min)).into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
@@ -381,14 +385,16 @@ impl DataTable {
     pub fn denormalize_column(&self, column: &str, min_max: (f64, f64)) -> Self {
         let (min, max) = min_max;
         let mut edited = self.clone();
-        let array = edited.0.column(column).unwrap().f64().unwrap();
+        let series = edited.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let array = series.f64().unwrap();
         let mut serie: Series = array.apply(|v| v * (max - min) + min).into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
     }
 
     pub fn column_min_max(&self, column: &str) -> (f64, f64) {
-        let array = self.0.column(column).unwrap().f64().unwrap();
+        let series = self.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let array = series.f64().unwrap();
         let min = array.min().unwrap_or(f64::MAX);
         let max = array.max().unwrap_or(f64::MIN);
         (min, max)

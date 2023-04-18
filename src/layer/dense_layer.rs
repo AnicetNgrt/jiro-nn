@@ -1,9 +1,6 @@
 use nalgebra::{DMatrix, DVector};
 
-use crate::{
-    layer::Layer,
-    optimizer::{Optimizers},
-};
+use crate::{layer::Layer, optimizer::Optimizers};
 
 pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
@@ -16,12 +13,20 @@ pub struct DenseLayer {
 }
 
 impl DenseLayer {
-    pub fn new(i: usize, j: usize, optimizer: Optimizers) -> Self {
+    pub fn new(
+        i: usize,
+        j: usize,
+        optimizer: Optimizers,
+        initial_weights_range: (f64, f64),
+    ) -> Self {
         let weights = DMatrix::<f64>::new_random(j, i);
         let biases = DVector::<f64>::new_random(j);
 
+        let weights = (weights * (initial_weights_range.1 - initial_weights_range.0))
+            .add_scalar(initial_weights_range.0);
+
         Self {
-            weights: weights.add_scalar(-0.5) * 2.,
+            weights: weights,
             biases: biases.add_scalar(-0.5) * 2.,
             input: None,
             optimizer,
@@ -53,9 +58,11 @@ impl Layer for DenseLayer {
         let biases_gradient = &output_gradient.transpose().column_sum();
 
         let input_gradient = output_gradient * &self.weights;
-        
+
         let lr = self.optimizer.update_learning_rate(epoch);
-        self.weights = self.optimizer.update_weights(epoch, &self.weights, &weights_gradient);
+        self.weights = self
+            .optimizer
+            .update_weights(epoch, &self.weights, &weights_gradient);
         self.biases = &self.biases - (lr * biases_gradient);
 
         input_gradient

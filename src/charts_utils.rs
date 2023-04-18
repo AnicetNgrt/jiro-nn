@@ -28,15 +28,15 @@ pub struct Chart {
 }
 
 impl Chart {
-    pub fn new(title: &str, y_axis_label: &str) -> Chart {
+    pub fn new<S1: AsRef<str>, S2: AsRef<str>>(title: S1, y_axis_label: S2) -> Chart {
         Chart {
             x_axis: HashMap::new(),
             x_axis_names: Vec::new(),
             y_axis: HashMap::new(),
             x_step: 0.01,
             y_step: 0.01,
-            title: title.to_string(),
-            y_axis_label: y_axis_label.to_string(),
+            title: title.as_ref().to_string(),
+            y_axis_label: y_axis_label.as_ref().to_string(),
             colors: vec![
                 (255, 0, 0),
                 (0, 255, 0),
@@ -174,10 +174,10 @@ impl Chart {
 
         chart
             .configure_mesh()
-            .x_label_formatter(&|v| format!("{:.0}", v * (x_max - x_min) + x_min))
+            .x_label_formatter(&|v| format!("{:.4}", v * (x_max - x_min) + x_min))
             .x_desc(x_name)
             .y_desc(self.y_axis_label.clone())
-            .y_label_formatter(&|v| format!("{:.0}", v * (y_max - y_min) + y_min))
+            .y_label_formatter(&|v| format!("{:.4}", v * (y_max - y_min) + y_min))
             .disable_mesh()
             .draw()
             .unwrap();
@@ -252,9 +252,9 @@ impl Chart {
 
         chart
             .configure_axes()
-            .x_formatter(&|x| format!("{}={:.2}", x1_name, x * (x_max - x_min) + x_min))
-            .y_formatter(&|y| format!("{}={:.2}", self.y_axis_label, y * (y_max - y_min) + y_min))
-            .z_formatter(&|z| format!("{}={:.2}", x2_name, z * (z_max - z_min) + z_min))
+            .x_formatter(&|x| format!("{}={:.4}", x1_name, x * (x_max - x_min) + x_min))
+            .y_formatter(&|y| format!("{}={:.4}", self.y_axis_label, y * (y_max - y_min) + y_min))
+            .z_formatter(&|z| format!("{}={:.4}", x2_name, z * (z_max - z_min) + z_min))
             .draw()
             .unwrap();
 
