@@ -374,7 +374,7 @@ impl DataTable {
 
     pub fn normalize_column(&self, column: &str, min_max: (f64, f64)) -> Self {
         let (min, max) = min_max;
-        let mut edited = self.clone();
+        let mut edited = self.clone();       
         let series = edited.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
         let array = series.f64().unwrap();
         let mut serie: Series = array.apply(|v| (v - min) / (max - min)).into_series();

@@ -24,8 +24,8 @@ pub fn main() {
         .add(AttachIds::new("id"))
         .add(ExtractMonths)
         .add(ExtractTimestamps)
-        .add(LogScale10)
-        .add(Square)
+        .add(LogScale10::new())
+        .add(Square::new())
         .add(Normalize::new())
         .run("./dataset", &model.dataset);
 

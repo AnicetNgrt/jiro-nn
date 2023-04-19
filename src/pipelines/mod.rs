@@ -37,7 +37,7 @@ impl Pipeline {
         
         let mut id = spec.name.clone();
         let mut res = (spec.clone(), data.clone());
-        
+
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
             id = format!("{}-{}", id, transformation.get_name());
@@ -64,7 +64,8 @@ impl Pipeline {
 
     pub fn revert_columnswise(&mut self, data: &DataTable) -> DataTable {
         let mut res = data.clone();
-        for transformation in &mut self.transformations {
+
+        for transformation in &mut self.transformations.iter().rev() {
             let mut transformation = transformation.borrow_mut();
             res = transformation.reverse_columnswise(&res);
         }

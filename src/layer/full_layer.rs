@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::{cell::RefCell, rc::Rc};
 
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -8,35 +7,10 @@ use nalgebra::{DMatrix};
 
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
-pub struct FullLayerConfig {
-    dropout_rate: Rc<RefCell<Option<f64>>>,
-}
-
-impl FullLayerConfig {
-    pub fn new() -> Self {
-        Self {
-            dropout_rate: Rc::new(RefCell::new(None)),
-        }
-    }
-
-    pub fn set_dropout_rate(&self, rate: f64) {
-        *self.dropout_rate.borrow_mut() = Some(rate);
-    }
-
-    pub fn remove_dropout_rate(&self) {
-        *self.dropout_rate.borrow_mut() = None;
-    }
-
-    pub fn update_dropout_rate(&self, f: impl Fn(f64) -> f64) {
-        let rate = self.dropout_rate.borrow().unwrap();
-        self.set_dropout_rate(f(rate));
-    }
-}
-
 pub struct FullLayer {
     dense: DenseLayer,
     activation: ActivationLayer,
-    dropout_rate: Rc<RefCell<Option<f64>>>,
+    dropout_rate: Option<f64>,
     mask: Option<DMatrix<f64>>,
 }
 
@@ -45,27 +19,34 @@ impl FullLayer {
         Self {
             dense,
             activation,
-            dropout_rate: Rc::new(RefCell::new(None)),
+            dropout_rate: None,
             mask: None
         }
     }
 
-    pub fn get_config(&self) -> FullLayerConfig {
-        FullLayerConfig {
-            dropout_rate: self.dropout_rate.clone(),
-        }
+    pub fn set_dropout_rate(&mut self, rate: f64) {
+        self.dropout_rate = Some(rate);
+    }
+
+    pub fn remove_dropout_rate(&mut self) {
+        self.dropout_rate = None;
+    }
+
+    pub fn update_dropout_rate(&mut self, f: impl Fn(f64) -> f64) {
+        let rate = self.dropout_rate.unwrap();
+        self.set_dropout_rate(f(rate));
     }
 
     fn generate_dropout_mask(
         &mut self,
         output_shape: (usize, usize),
     ) -> Option<(DMatrix<f64>, f64)> {
-        if let Some(dropout_rate) = *self.dropout_rate.borrow() {
+        if let Some(dropout_rate) = self.dropout_rate {
             let mut rng = SmallRng::from_entropy();
             let dropout_mask = DMatrix::from_fn(output_shape.0, output_shape.1, |_, _| {
                 if rng
                     .gen_range(0.0f64..1.0f64)
-                    .total_cmp(&self.dropout_rate.borrow().unwrap())
+                    .total_cmp(&self.dropout_rate.unwrap())
                     == Ordering::Greater
                 {
                     1.0

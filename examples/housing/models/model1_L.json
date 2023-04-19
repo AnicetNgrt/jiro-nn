@@ -1,0 +1,105 @@
+{
+    "name": "model4",
+    "epochs": 500,
+    "layers": [9, 18],
+    "activation": {
+        "type": "Tanh"
+    },
+    "loss": {
+        "type": "MSE"
+    },
+    "optimizer": {
+        "type": "Momentum",
+        "params": {
+            "momentum": 0.9,
+            "learning_rate": {
+                "type": "InverseTimeDecay",
+                "params": {
+                    "initial_learning_rate": 0.001,
+                    "decay_steps": 1.0,
+                    "decay_rate": 0.1
+                }
+            }
+        }
+    },
+    "batch_size": 128,
+    "folds": 8,
+    "dataset": {
+        "name": "kc_house_data",
+        "features": [
+            {
+                "name": "lat",
+                "normalized": true
+            },
+            {
+                "name": "long",
+                "normalized": true
+            },
+            {
+                "name": "sqft_living",
+                "normalized": true
+            },
+            {
+                "name": "sqft_lot",
+                "normalized": true
+            },
+            {
+                "name": "sqft_above",
+                "normalized": true
+            },
+            {
+                "name": "sqft_basement",
+                "normalized": true
+            },
+            {
+                "name": "condition",
+                "normalized": true
+            },
+            {
+                "name": "grade",
+                "normalized": true
+            },
+            {
+                "name": "yr_built",
+                "normalized": true
+            },
+            {
+                "name": "yr_renovated",
+                "normalized": true
+            },
+            {
+                "name": "sqft_living15",
+                "normalized": true
+            },
+            {
+                "name": "sqft_lot15",
+                "normalized": true
+            },
+            {
+                "name": "bedrooms",
+                "normalized": true
+            },
+            {
+                "name": "bathrooms",
+                "normalized": true
+            },
+            {
+                "name": "floors",
+                "normalized": true
+            },
+            {
+                "name": "view",
+                "normalized": true
+            },
+            {
+                "name": "waterfront",
+                "normalized": true
+            },
+            {
+                "name": "price",
+                "normalized": true,
+                "out": true
+            }
+        ]
+    }
+}

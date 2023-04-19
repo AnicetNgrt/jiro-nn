@@ -129,13 +129,13 @@ impl Network {
 
     pub fn set_dropout_rates(&mut self, rates: &Vec<f64>) {
         for (i, rate) in rates.into_iter().enumerate() {
-            self.layers[i].get_config().set_dropout_rate(*rate);
+            self.layers[i].set_dropout_rate(*rate);
         }
     }
 
     pub fn remove_dropout_rates(&mut self) {
         for layer in self.layers.iter_mut() {
-            layer.get_config().remove_dropout_rate();
+            layer.remove_dropout_rate();
         }
     }
 }

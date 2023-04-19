@@ -1,0 +1,74 @@
+{
+    "name": "model4",
+    "epochs": 50,
+    "layers": [8, 8, 8, 8, 8],
+    "activation": {
+        "type": "Tanh"
+    },
+    "loss": {
+        "type": "MSE"
+    },
+    "optimizer": {
+        "type": "Momentum",
+        "params": {
+            "momentum": 0.9,
+            "learning_rate": {
+                "type": "Constant",
+                "params": 0.0001
+            }
+        }
+    },
+    "batch_size": 128,
+    "folds": 8,
+    "dataset": {
+        "name": "kc_house_data",
+        "features": [
+            {
+                "name": "lat",
+                "normalized": true
+            },
+            {
+                "name": "long",
+                "normalized": true
+            },
+            {
+                "name": "sqft_living",
+                "normalized": true
+            },
+            {
+                "name": "sqft_lot",
+                "normalized": true
+            },
+            {
+                "name": "sqft_above",
+                "normalized": true
+            },
+            {
+                "name": "sqft_basement",
+                "normalized": true
+            },
+            {
+                "name": "condition",
+                "normalized": true
+            },
+            {
+                "name": "grade",
+                "normalized": true
+            },
+            {
+                "name": "date",
+                "date_format": "%Y%m%dT%H%M%S",
+                "with_extracted_timestamp": {
+                    "name": "timestamp",
+                    "normalized": true
+                },
+                "used_in_model": false
+            },
+            {
+                "name": "price",
+                "normalized": true,
+                "out": true
+            }
+        ]
+    }
+}

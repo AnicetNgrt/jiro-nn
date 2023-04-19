@@ -5,6 +5,7 @@ pub struct InverseTimeDecay {
     pub initial_learning_rate: f64,
     pub decay_steps: f64,
     pub decay_rate: f64,
+    #[serde(default)]
     pub staircase: bool,
 }
 
