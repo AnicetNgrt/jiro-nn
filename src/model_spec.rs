@@ -15,17 +15,23 @@ use crate::{activation::Activation, dataset::Dataset, optimizer::Optimizers};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct ModelSpec {
-    pub name: String,
     pub epochs: usize,
     pub loss: Losses,
-    pub dropout: Option<Vec<f64>>,
-    pub initial_weights_range: Option<(f64, f64)>,
-    pub layers: Vec<usize>,
-    pub activation: Activation,
-    pub optimizer: Optimizers,
+    pub hidden_layers: Vec<LayerSpec>,
+    pub final_layer: LayerSpec,
     pub batch_size: Option<usize>,
     pub folds: usize,
     pub dataset: Dataset,
+}
+
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub struct LayerSpec {
+    #[serde(default)]
+    pub out_size: usize,
+    pub activation: Activation,
+    pub optimizer: Optimizers,
+    pub dropout: Option<f64>,
+    pub initial_weights_range: Option<(f64, f64)>,
 }
 
 impl ModelSpec {
@@ -56,22 +62,28 @@ impl ModelSpec {
 
     pub fn to_network(&self) -> Network {
         let mut sizes = vec![self.dataset.in_features_names().len()];
-        sizes.append(&mut self.layers.clone());
+        sizes.append(&mut self.hidden_layers.iter().map(|l| l.out_size).collect());
         sizes.push(self.dataset.out_features_names().len());
-
+        
         let mut layers = vec![];
 
         for i in 0..sizes.len() - 1 {
+            let layer_spec = if i == sizes.len() - 2 {
+                &self.final_layer
+            } else {
+                &self.hidden_layers[i]
+            };
             let in_size = sizes[i];
             let out_size = sizes[i + 1];
             let layer = FullLayer::new(
                 DenseLayer::new(
                     in_size,
                     out_size,
-                    self.optimizer.clone(),
-                    self.initial_weights_range.unwrap_or((-1.0, 1.0)),
+                    layer_spec.optimizer.clone(),
+                    layer_spec.initial_weights_range.unwrap_or((-1.0, 1.0)),
                 ),
-                self.activation.to_layer(),
+                layer_spec.activation.to_layer(),
+                layer_spec.dropout
             );
             layers.push(layer);
         }

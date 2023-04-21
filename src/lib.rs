@@ -16,7 +16,6 @@ pub mod vec_utils;
 pub mod dataset;
 pub mod pipelines;
 pub mod model_spec;
-pub mod charts_utils;
 
 // Neural network with I inputs and J outputs and 2 hidden layers of sizes H0 & H1
 pub fn nn(
@@ -32,6 +31,7 @@ pub fn nn(
         let layer = FullLayer::new(
             DenseLayer::new(in_size, out_size, optimizers[i % optimizers.len()].clone(), (-1.0, 1.0)),
             activations[i % activations.len()].to_layer(),
+            None
         );
         layers.push(layer);
     }

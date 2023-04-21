@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 nn = { path = "../../" }
-plotly = { version = "0.8.3", features = ["kaleido"] }
+gnuplot = "0.0.37"
 rand = "0.8.5"

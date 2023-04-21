@@ -7,6 +7,7 @@ use nn::model_spec::ModelSpec;
 use nn::pipelines::attach_ids::AttachIds;
 use nn::pipelines::extract_months::ExtractMonths;
 use nn::pipelines::extract_timestamps::ExtractTimestamps;
+use nn::pipelines::filter_outliers::FilterOutliers;
 use nn::pipelines::log_scale::LogScale10;
 use nn::pipelines::normalize::Normalize;
 use nn::pipelines::Pipeline;
@@ -26,6 +27,7 @@ pub fn main() {
         .add(ExtractTimestamps)
         .add(LogScale10::new())
         .add(Square::new())
+        .add(FilterOutliers)
         .add(Normalize::new())
         .run("./dataset", &model.dataset);
 
@@ -63,10 +65,6 @@ pub fn main() {
     
                 let train_x = train_x_table.drop_column("id").to_tensors();
                 let train_y = train_y_table.to_tensors();
-
-                if let Some(ref dropout_rates) = model.dropout {
-                    network.set_dropout_rates(&dropout_rates);
-                }
     
                 let train_loss = network.train(
                     e,
@@ -75,8 +73,6 @@ pub fn main() {
                     &model.loss.to_loss(),
                     model.batch_size.unwrap_or(train_x.len()),
                 );
-
-                network.remove_dropout_rates();
     
                 let (preds, loss_avg, loss_std) =
                     network.predict_evaluate_many(&validation_x, &validation_y, &model.loss.to_loss());

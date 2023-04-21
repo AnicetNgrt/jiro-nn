@@ -4,7 +4,6 @@ use serde::{Serialize, Deserialize};
 pub mod mse;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
-#[serde(tag = "type", content = "params")]
 pub enum Losses {
     MSE,
 }

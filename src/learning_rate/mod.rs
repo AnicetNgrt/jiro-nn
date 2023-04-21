@@ -6,7 +6,6 @@ pub mod inverse_time_decay;
 pub mod piecewise_constant;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "type", content = "params")]
 pub enum LearningRateSchedule {
     Constant(f64),
     InverseTimeDecay(InverseTimeDecay),

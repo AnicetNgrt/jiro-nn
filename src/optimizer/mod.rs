@@ -8,7 +8,6 @@ pub mod momentum;
 // pub mod adam;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "type", content = "params")]
 pub enum Optimizers {
     SGD(SGD),
     Momentum(Momentum),

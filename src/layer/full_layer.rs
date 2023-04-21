@@ -10,33 +10,30 @@ use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::
 pub struct FullLayer {
     dense: DenseLayer,
     activation: ActivationLayer,
+    dropout_enabled: bool,
     dropout_rate: Option<f64>,
     mask: Option<DMatrix<f64>>,
 }
 
 impl FullLayer {
-    pub fn new(dense: DenseLayer, activation: ActivationLayer) -> Self {
+    pub fn new(dense: DenseLayer, activation: ActivationLayer, dropout: Option<f64>) -> Self {
         Self {
             dense,
             activation,
-            dropout_rate: None,
+            dropout_rate: dropout,
+            dropout_enabled: false,
             mask: None
         }
     }
 
-    pub fn set_dropout_rate(&mut self, rate: f64) {
-        self.dropout_rate = Some(rate);
+    pub fn enable_dropout(&mut self) {
+        self.dropout_enabled = true;
     }
 
-    pub fn remove_dropout_rate(&mut self) {
-        self.dropout_rate = None;
+    pub fn disable_dropout(&mut self) {
+        self.dropout_enabled = false;
     }
-
-    pub fn update_dropout_rate(&mut self, f: impl Fn(f64) -> f64) {
-        let rate = self.dropout_rate.unwrap();
-        self.set_dropout_rate(f(rate));
-    }
-
+    
     fn generate_dropout_mask(
         &mut self,
         output_shape: (usize, usize),
@@ -63,10 +60,11 @@ impl FullLayer {
 
 impl Layer for FullLayer {
     fn forward(&mut self, mut input: DMatrix<f64>) -> DMatrix<f64> {
-        
-        if let Some((mask, dropout_rate)) = self.generate_dropout_mask(input.shape()) {
-            input = input.component_mul(&mask) * (1.0 / (1.0 - dropout_rate));
-            self.mask = Some(mask);
+        if self.dropout_enabled {
+            if let Some((mask, dropout_rate)) = self.generate_dropout_mask(input.shape()) {
+                input = input.component_mul(&mask) * (1.0 / (1.0 - dropout_rate));
+                self.mask = Some(mask);
+            }
         }
 
         let output = self.dense.forward(input); 
@@ -77,7 +75,11 @@ impl Layer for FullLayer {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
         let input_gradient = self.dense
             .backward(epoch, activation_input_gradient);
-    
+        
+        if !self.dropout_enabled {
+            return input_gradient
+        }
+
         if let Some(mask) = &self.mask {
             input_gradient.component_mul(&mask)
         } else {

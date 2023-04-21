@@ -1,4 +1,5 @@
-use nn::{datatable::DataTable, charts_utils::Chart};
+use gnuplot::{Figure, PlotOption::{Color, Caption}, AxesCommon};
+use nn::{datatable::DataTable};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -6,26 +7,35 @@ fn main() {
     let out_data = DataTable::from_file(format!("models_stats/{}.csv", model_name));
 
     for col in out_data.get_columns_names().iter() {
-        Chart::new(format!("Predicted price and price according to {}", col), "price")
-            .add_x_axis(col, out_data.column_to_tensor(col))
-            .add_discrete_y("predicted price", out_data.column_to_tensor("pred_price"))
-            .add_discrete_y("true price", out_data.column_to_tensor("price"))
-            .scatter(format!("visuals/{}_{}.png", model_name, col));
+        let mut fg = Figure::new();
+        let x = out_data.column_to_tensor(col);
+        let y1 = out_data.column_to_tensor("pred_price");
+        let y2 = out_data.column_to_tensor("price");
+    
+        fg.axes2d()
+            .set_title(&format!("Predicted price and price according to {}", col), &[])
+            .set_x_label(&col.replace("_", " "), &[])
+            .set_y_label("price", &[])
+            .points(x.clone(), y1.clone(), &[Color("blue"), Caption("predicted price")])
+            .points(x.clone(), y2.clone(), &[Color("green"), Caption("price")]);
+
+        fg.save_to_png(format!("visuals/{}_{}.png", model_name, col), 1024, 728).unwrap();
     }
 
-    Chart::new("Predicted price and price according to latitude and longitude", "price")
-        .add_x_axis("latitude", out_data.column_to_tensor("lat"))
-        .add_x_axis("longitude", out_data.column_to_tensor("long"))
-        .add_discrete_y("predicted price", out_data.column_to_tensor("pred_price"))
-        .add_discrete_y("true price", out_data.column_to_tensor("price"))
-        .scatter_3d(format!("visuals/{}_latlong.png", model_name));
+    let mut fg = Figure::new();
+    let x = out_data.column_to_tensor("lat");
+    let z1 = out_data.column_to_tensor("pred_price");
+    let z2 = out_data.column_to_tensor("price");
+    let y = out_data.column_to_tensor("long");
 
-    let col1 = "lat";
-    let col2 = "long";
-    Chart::new(format!("Predicted price and price according to {} and {}", col1, col2), "price")
-        .add_x_axis(col1, out_data.column_to_tensor(col1))
-        .add_x_axis(col2, out_data.column_to_tensor(col2))
-        .add_discrete_y("predicted price", out_data.column_to_tensor("pred_price"))
-        .add_discrete_y("true price", out_data.column_to_tensor("price"))
-        .scatter_3d(format!("visuals/{}_{}_{}.png", model_name, col1, col2));
+    fg.axes3d()
+        .set_title("Predicted price and price according to latitude and longitude", &[])
+        .set_view(45., 15.)
+        .set_x_label("latitude", &[])
+        .set_y_label("longitude", &[])
+        .set_z_label("price", &[])
+        .points(x.clone(), y.clone(), z1.clone(), &[Color("blue"), Caption("predicted price")])
+        .points(x.clone(), y.clone(), z2.clone(), &[Color("green"), Caption("true price")]);
+
+    fg.save_to_png(format!("visuals/{}_latlong.png", model_name), 1024, 728).unwrap();
 }

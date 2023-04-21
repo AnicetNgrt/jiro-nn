@@ -1,25 +1,21 @@
 {
-    "epochs": 100,
-    "loss": "MSE",
-    "hidden_layers": [
-        {
-            "out_size": 9,
-            "activation": "Tanh",
-            "optimizer": {
-                "SGD": {
-                    "learning_rate": {
-                        "Constant": 0.001
-                    }
-                }
-            }
-        }
-    ],
-    "final_layer": {
-        "activation": "Tanh",
-        "optimizer": {
-            "SGD": {
-                "learning_rate": {
-                    "Constant": 0.001
+    "name": "model4",
+    "epochs": 25,
+    "layers": [9],
+    "activation": {
+        "type": "Tanh"
+    },
+    "loss": {
+        "type": "MSE"
+    },
+    "optimizer": {
+        "type": "SGD",
+        "params": {
+            "learning_rate": {
+                "type": "PiecewiseConstant",
+                "params": {
+                    "boundaries": [20],
+                    "values": [0.001, 0.0001]
                 }
             }
         }

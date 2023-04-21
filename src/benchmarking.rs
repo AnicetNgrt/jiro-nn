@@ -2,19 +2,17 @@ use std::{fs::File, io::Write};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{charts_utils::Chart};
-
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct ModelEvaluation {
     pub folds: Vec<FoldEvaluation>
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct FoldEvaluation {
     pub epochs: Vec<EpochEvaluation>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct EpochEvaluation {
     pub train_loss: f64,
     pub test_loss_avg: f64,
@@ -32,7 +30,7 @@ impl ModelEvaluation {
         self.folds.push(fold);
     }
 
-    pub fn get_epochs_avg_loss_avg(&self) -> Vec<f64> {
+    pub fn epochs_avg_train_loss(&self) -> Vec<f64> {
         let mut avg = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
             for (i, epoch) in fold.epochs.iter().enumerate() {
@@ -45,8 +43,8 @@ impl ModelEvaluation {
         avg
     }
 
-    pub fn get_epochs_std_loss_avg(&self) -> Vec<f64> {
-        let avg = self.get_epochs_avg_loss_avg();
+    pub fn epochs_std_train_loss(&self) -> Vec<f64> {
+        let avg = self.epochs_avg_train_loss();
         let mut std = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
             for (i, epoch) in fold.epochs.iter().enumerate() {
@@ -59,38 +57,31 @@ impl ModelEvaluation {
         std
     }
 
-    pub fn get_folds_avg_final_loss_avg(&self) -> f64 {
-        let mut sum = 0.0;
+    pub fn epochs_avg_test_loss(&self) -> Vec<f64> {
+        let mut avg = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
-            sum += fold.get_final_epoch().test_loss_avg;
+            for (i, epoch) in fold.epochs.iter().enumerate() {
+                avg[i] += epoch.test_loss_avg;
+            }
         }
-        sum / self.folds.len() as f64
+        for i in 0..avg.len() {
+            avg[i] /= self.folds.len() as f64;
+        }
+        avg
     }
 
-    pub fn get_folds_avg_final_loss_std(&self) -> f64 {
-        let mut sum = 0.0;
+    pub fn epochs_std_test_loss(&self) -> Vec<f64> {
+        let avg = self.epochs_avg_test_loss();
+        let mut std = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
-            sum += fold.get_final_epoch().test_loss_std;
+            for (i, epoch) in fold.epochs.iter().enumerate() {
+                std[i] += (epoch.test_loss_avg - avg[i]).powi(2);
+            }
         }
-        sum / self.folds.len() as f64
-    }
-
-    pub fn get_folds_std_final_loss_avg(&self) -> f64 {
-        let avg = self.get_folds_avg_final_loss_avg();
-        let mut sum = 0.0;
-        for fold in &self.folds {
-            sum += (fold.get_final_epoch().test_loss_avg - avg).powi(2);
+        for i in 0..std.len() {
+            std[i] = (std[i] / self.folds.len() as f64).sqrt();
         }
-        (sum / self.folds.len() as f64).sqrt()
-    }
-
-    pub fn get_folds_std_final_loss_std(&self) -> f64 {
-        let avg = self.get_folds_avg_final_loss_std();
-        let mut sum = 0.0;
-        for fold in &self.folds {
-            sum += (fold.get_final_epoch().test_loss_std - avg).powi(2);
-        }
-        (sum / self.folds.len() as f64).sqrt()
+        std
     }
 
     pub fn from_json_file<S: AsRef<str>>(path: S) -> Self {
@@ -110,15 +101,6 @@ impl ModelEvaluation {
 
     pub fn get_n_folds(&self) -> usize {
         self.folds.len()
-    }
-
-    //using the chart_utils module
-    pub fn plot_epochs_avg_loss<S: AsRef<str>>(&self, path: S) {
-        Chart::new("Loss over epochs", "loss")
-            .add_range_x_axis("epochs", 0., self.get_n_epochs() as f64, 1.)
-            .add_discrete_y("avg over folds", self.get_epochs_avg_loss_avg())
-            .add_discrete_y("std over folds", self.get_epochs_std_loss_avg())
-            .scatter(path.as_ref());
     }
 }
 

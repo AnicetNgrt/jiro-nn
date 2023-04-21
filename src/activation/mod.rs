@@ -47,7 +47,6 @@ impl Layer for ActivationLayer {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(tag = "type", content = "params")]
 pub enum Activation {
     Tanh,
     Sigmoid,

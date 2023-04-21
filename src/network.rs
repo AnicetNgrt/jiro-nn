@@ -19,6 +19,8 @@ impl Network {
     }
 
     fn _predict(&mut self, input: DVector<f64>) -> DVector<f64> {
+        self.layers.iter_mut().for_each(|l| l.disable_dropout());
+
         self.layers
             .forward(DMatrix::from_rows(&[input.transpose()]))
             .row(0)
@@ -73,6 +75,8 @@ impl Network {
         loss: &Loss,
         batch_size: usize,
     ) -> f64 {
+        self.layers.iter_mut().for_each(|l| l.enable_dropout());
+
         let mut error = 0.;
         let mut i = 0;
         let transposed_x_train: Vec<_> = x_train.into_iter().map(|v| v.transpose()).collect();
@@ -125,18 +129,6 @@ impl Network {
             loss,
             batch_size,
         )
-    }
-
-    pub fn set_dropout_rates(&mut self, rates: &Vec<f64>) {
-        for (i, rate) in rates.into_iter().enumerate() {
-            self.layers[i].set_dropout_rate(*rate);
-        }
-    }
-
-    pub fn remove_dropout_rates(&mut self) {
-        for layer in self.layers.iter_mut() {
-            layer.remove_dropout_rate();
-        }
     }
 }
 

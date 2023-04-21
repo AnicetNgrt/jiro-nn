@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use serde_aux::field_attributes::bool_true;
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
 pub struct Feature {
     pub name: String,
     #[serde(default)]
@@ -16,6 +16,8 @@ pub struct Feature {
     #[serde(default)]
     pub normalized: bool,
     #[serde(default)]
+    pub filter_outliers: bool,
+    #[serde(default)]
     pub squared: bool,
     pub with_extracted_timestamp: Option<Box<Feature>>,
     pub with_extracted_month: Option<Box<Feature>>,
@@ -28,7 +30,7 @@ pub struct Feature {
     pub is_id: bool
 }
 
-#[derive(Serialize, Debug, Deserialize, Clone)]
+#[derive(Serialize, Debug, Deserialize, Clone, Hash)]
 pub struct Dataset {
     pub name: String,
     pub features: Vec<Feature>,

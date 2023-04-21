@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell, hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
 
 use crate::{dataset::Dataset, datatable::DataTable};
 
@@ -9,6 +9,7 @@ pub mod extract_timestamps;
 pub mod extract_months;
 pub mod attach_ids;
 pub mod square;
+pub mod filter_outliers;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
@@ -35,7 +36,9 @@ impl Pipeline {
         let data = DataTable::from_file(format!("{}/{}.csv", working_dir, spec.name))
             .select_columns(spec.feature_names().as_slice());
         
-        let mut id = spec.name.clone();
+        let mut hasher = DefaultHasher::new();
+        spec.hash(&mut hasher);
+        let mut id = hasher.finish().to_string();
         let mut res = (spec.clone(), data.clone());
 
         for transformation in &mut self.transformations {

@@ -1,28 +1,30 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
-use crate::{dataset::{Dataset, Feature}, datatable::DataTable};
+use crate::{dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_tensor};
 
 use super::{DataTransformation, feature_cached::FeatureExtractorCached};
 
 pub struct LogScale10 {
-    logged_features: HashSet<String>
+    logged_features: HashMap<String, f64>
 }
 
 impl LogScale10 {
     pub fn new() -> Self {
         Self {
-            logged_features: HashSet::new(),
+            logged_features: HashMap::new(),
         }
     }
 }
 
 impl DataTransformation for LogScale10 {
     fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable) {
-        let mut logged_features = HashSet::new();
+        let mut logged_features = HashMap::new();
 
         for feature in spec.features.iter() {
             if feature.log10 {
-                logged_features.insert(feature.name.clone());
+                let values = data.column_to_tensor(&feature.name);
+                let min = min_tensor(&values);
+                logged_features.insert(feature.name.clone(), min);
             }
         }
 
@@ -39,7 +41,14 @@ impl DataTransformation for LogScale10 {
                 }
             }),
             Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data.map_f64_column(&feature.name, |x| x.log(10.))
+                data.map_f64_column(&feature.name, |x| {
+                    let min = logged_features.get(&feature.name).unwrap();
+                    if min <= &1.0 {
+                        (min.abs() + x + 0.001).log10()
+                    } else {
+                        x.log10()
+                    }
+                })
                     .rename_column(&feature.name, &extracted.name)
             }),
         );
@@ -50,9 +59,15 @@ impl DataTransformation for LogScale10 {
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
         let mut reversed_data = data.clone();
 
-        for feature in self.logged_features.iter() {
+        for (feature, min) in self.logged_features.iter() {
             if reversed_data.has_column(feature) {
-                reversed_data = reversed_data.map_f64_column(feature, |x| 10f64.powf(x));
+                reversed_data = reversed_data.map_f64_column(feature, |x| {
+                    if min <= &1.0 {
+                        10f64.powf(x) - min.abs() - 0.001
+                    } else {
+                        10f64.powf(x)
+                    }
+                });
             }
         }
 
