@@ -8,9 +8,9 @@ fn main() {
 
     for col in out_data.get_columns_names().iter() {
         let mut fg = Figure::new();
-        let x = out_data.column_to_tensor(col);
-        let y1 = out_data.column_to_tensor("pred_price");
-        let y2 = out_data.column_to_tensor("price");
+        let x = out_data.column_to_vector(col);
+        let y1 = out_data.column_to_vector("pred_price");
+        let y2 = out_data.column_to_vector("price");
     
         fg.axes2d()
             .set_title(&format!("Predicted price and price according to {}", col), &[])
@@ -23,10 +23,10 @@ fn main() {
     }
 
     let mut fg = Figure::new();
-    let x = out_data.column_to_tensor("lat");
-    let z1 = out_data.column_to_tensor("pred_price");
-    let z2 = out_data.column_to_tensor("price");
-    let y = out_data.column_to_tensor("long");
+    let x = out_data.column_to_vector("lat");
+    let z1 = out_data.column_to_vector("pred_price");
+    let z2 = out_data.column_to_vector("price");
+    let y = out_data.column_to_vector("long");
 
     fg.axes3d()
         .set_title("Predicted price and price according to latitude and longitude", &[])

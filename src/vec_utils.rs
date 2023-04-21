@@ -1,10 +1,10 @@
 use rand::seq::SliceRandom;
 
-pub fn avg_tensor(vec: &Vec<f64>) -> f64 {
+pub fn avg_vector(vec: &Vec<f64>) -> f64 {
     vec.iter().sum::<f64>() / vec.len() as f64
 }
 
-pub fn median_tensor(vec: &Vec<f64>) -> f64 {
+pub fn median_vector(vec: &Vec<f64>) -> f64 {
     if vec.len() == 0 {
         return f64::NAN
     }
@@ -18,7 +18,7 @@ pub fn median_tensor(vec: &Vec<f64>) -> f64 {
     }
 }
 
-pub fn quartiles_tensor(vec: &Vec<f64>) -> (f64, f64, f64) {
+pub fn quartiles_vector(vec: &Vec<f64>) -> (f64, f64, f64) {
     let mut vec = vec.clone();
     vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
     let mid = vec.len() / 2;
@@ -40,15 +40,15 @@ pub fn quartiles_tensor(vec: &Vec<f64>) -> (f64, f64, f64) {
     (q1, q2, q3)
 }
 
-pub fn tensor_boxplot(vals: &Vec<f64>) -> (f64, f64, f64, f64, f64) {
-    let (q1, q2, q3) = quartiles_tensor(vals);
+pub fn vector_boxplot(vals: &Vec<f64>) -> (f64, f64, f64, f64, f64) {
+    let (q1, q2, q3) = quartiles_vector(vals);
     let iqr = q3 - q1;
     let min = q1 - 1.5 * iqr;
     let max = q3 + 1.5 * iqr;
     (q1, q2, q3, min, max)
 }
 
-pub fn min_tensor(vec: &Vec<f64>) -> f64 {
+pub fn min_vector(vec: &Vec<f64>) -> f64 {
     let mut min = vec[0];
     for i in 1..vec.len() {
         if vec[i] < min {
@@ -70,7 +70,7 @@ pub fn min_matrix(vec: &Vec<Vec<f64>>) -> f64 {
     min
 }
 
-pub fn max_tensor(vec: &Vec<f64>) -> f64 {
+pub fn max_vector(vec: &Vec<f64>) -> f64 {
     let mut max = vec[0];
     for i in 1..vec.len() {
         if vec[i] > max {
@@ -92,18 +92,18 @@ pub fn max_matrix(vec: &Vec<Vec<f64>>) -> f64 {
     max
 }
 
-pub fn map_tensor(vec: &Vec<f64>, closure: &dyn Fn(f64) -> f64) -> Vec<f64> {
+pub fn map_vector(vec: &Vec<f64>, closure: &dyn Fn(f64) -> f64) -> Vec<f64> {
     vec.iter().map(|x| closure(*x)).collect()
 }
 
-pub fn normalize_tensor(vec: &Vec<f64>) -> (Vec<f64>, f64, f64) {
-    let min = min_tensor(vec);
-    let max = max_tensor(vec);
+pub fn normalize_vector(vec: &Vec<f64>) -> (Vec<f64>, f64, f64) {
+    let min = min_vector(vec);
+    let max = max_vector(vec);
     let range = max - min;
     (vec.iter().map(|x| (x - min) / range).collect(), min, max)
 }
 
-pub fn denormalize_tensor(vec: &Vec<f64>, min: f64, max: f64) -> Vec<f64> {
+pub fn denormalize_vector(vec: &Vec<f64>, min: f64, max: f64) -> Vec<f64> {
     let range = max - min;
     vec.iter().map(|x| x * range + min).collect()
 }
@@ -120,7 +120,7 @@ pub fn denormalize_matrix(vec: &Vec<Vec<f64>>, min: f64, max: f64) -> Vec<Vec<f6
     vec.iter().map(|x| x.iter().map(|y| y * range + min).collect()).collect()
 }
 
-pub fn tensors_correlation(vec1: &[f64], vec2: &[f64]) -> Option<f64> {
+pub fn vectors_correlation(vec1: &[f64], vec2: &[f64]) -> Option<f64> {
     if vec1.len() != vec2.len() {
         return None;
     }
@@ -149,7 +149,7 @@ pub fn tensors_correlation(vec1: &[f64], vec2: &[f64]) -> Option<f64> {
     Some(cov / ((n - 1.0) * std_dev1 * std_dev2))
 }
 
-pub fn tensor_sample(vec: &Vec<f64>, sample_size: usize) -> Vec<f64> {
+pub fn vector_sample(vec: &Vec<f64>, sample_size: usize) -> Vec<f64> {
     let mut rng = rand::thread_rng();
     let mut vec = vec.clone();
     vec.shuffle(&mut rng);

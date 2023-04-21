@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_tensor};
+use crate::{dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_vector};
 
 use super::{DataTransformation, feature_cached::FeatureExtractorCached};
 
@@ -22,8 +22,8 @@ impl DataTransformation for LogScale10 {
 
         for feature in spec.features.iter() {
             if feature.log10 {
-                let values = data.column_to_tensor(&feature.name);
-                let min = min_tensor(&values);
+                let values = data.column_to_vector(&feature.name);
+                let min = min_vector(&values);
                 logged_features.insert(feature.name.clone(), min);
             }
         }

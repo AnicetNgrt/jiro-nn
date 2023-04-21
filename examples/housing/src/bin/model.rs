@@ -55,16 +55,16 @@ pub fn main() {
             let (validation_x_table, validation_y_table) =
                 validation.random_order_in_out(&model.dataset.out_features_names());
     
-            let validation_x = validation_x_table.drop_column("id").to_tensors();
-            let validation_y = validation_y_table.to_tensors();
+            let validation_x = validation_x_table.drop_column("id").to_vectors();
+            let validation_y = validation_y_table.to_vectors();
     
             let mut fold_eval = FoldEvaluation::new_empty();
             for e in 0..model.epochs {
                 let (train_x_table, train_y_table) =
                     train.random_order_in_out(&model.dataset.out_features_names());
     
-                let train_x = train_x_table.drop_column("id").to_tensors();
-                let train_y = train_y_table.to_tensors();
+                let train_x = train_x_table.drop_column("id").to_vectors();
+                let train_y = train_y_table.to_vectors();
     
                 let train_loss = network.train(
                     e,
@@ -87,7 +87,7 @@ pub fn main() {
                 if e == model.epochs - 1 {
                     let mut vp = validation_preds.lock().unwrap();
                     *vp = vp.apppend(
-                        &DataTable::from_tensors(&model.dataset.out_features_names(), &preds)
+                        &DataTable::from_vectors(&model.dataset.out_features_names(), &preds)
                             .add_column_from(&validation_x_table, "id"),
                     )
                 };

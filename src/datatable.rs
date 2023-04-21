@@ -273,45 +273,45 @@ impl DataTable {
         let columns = self.0.get_column_names();
         let mut hashmap = HashMap::new();
         for column in columns {
-            hashmap.insert(column.to_string(), self.column_to_tensor(column));
+            hashmap.insert(column.to_string(), self.column_to_vector(column));
         }
         hashmap
     }
 
-    pub fn to_tensors(&self) -> Vec<Vec<f64>> {
+    pub fn to_vectors(&self) -> Vec<Vec<f64>> {
         let columns_hashmaps = self.as_f64_hashmap();
-        let mut tensors = vec![vec![0.0; self.0.shape().1]; self.0.shape().0];
+        let mut vectors = vec![vec![0.0; self.0.shape().1]; self.0.shape().0];
         let mut x_id = 0;
         for (_, values) in columns_hashmaps {
             let mut t_id = 0;
             for v in values.iter() {
-                tensors[t_id][x_id] = *v;
+                vectors[t_id][x_id] = *v;
                 t_id += 1;
             }
             x_id += 1;
         }
-        tensors
+        vectors
     }
 
-    pub fn from_tensors<S: AsRef<str>>(columns: &[S], tensors: &Vec<Vec<f64>>) -> Self {
+    pub fn from_vectors<S: AsRef<str>>(columns: &[S], vectors: &Vec<Vec<f64>>) -> Self {
         let mut data = Self::new_empty();
         for (i, column) in columns.iter().enumerate().rev() {
             let mut values = Vec::new();
-            for tensor in tensors.iter() {
-                values.push(tensor[i]);
+            for vector in vectors.iter() {
+                values.push(vector[i]);
             }
             data = data.append_column(Series::new(column.as_ref(), &values));
         }
         data
     }
 
-    pub fn to_tensors_with_ids(&self, id_column: &str) -> (Vec<usize>, Vec<Vec<f64>>) {
+    pub fn to_vectors_with_ids(&self, id_column: &str) -> (Vec<usize>, Vec<Vec<f64>>) {
         let ids = self.column_to_ids(id_column);
-        let tensors = self.drop_column(id_column).to_tensors();
-        (ids, tensors)
+        let vectors = self.drop_column(id_column).to_vectors();
+        (ids, vectors)
     }
 
-    fn series_as_tensor(series: &Series) -> Vec<f64> {
+    fn series_as_vector(series: &Series) -> Vec<f64> {
         let series = series.cast(&DataType::Float64).unwrap();
 
         series
@@ -331,20 +331,20 @@ impl DataTable {
             .collect()
     }
 
-    pub fn column_to_tensor(&self, column: &str) -> Vec<f64> {
-        Self::series_as_tensor(self.0.column(column).unwrap())
+    pub fn column_to_vector(&self, column: &str) -> Vec<f64> {
+        Self::series_as_vector(self.0.column(column).unwrap())
     }
 
     pub fn column_to_ids(&self, column: &str) -> Vec<usize> {
         Self::series_as_ids(self.0.column(column).unwrap())
     }
 
-    pub fn flatten_to_tensor(&self) -> Vec<f64> {
-        self.0.iter().flat_map(Self::series_as_tensor).collect()
+    pub fn flatten_to_vector(&self) -> Vec<f64> {
+        self.0.iter().flat_map(Self::series_as_vector).collect()
     }
 
-    pub fn columns_to_tensor(&self) -> Vec<Vec<f64>> {
-        self.0.iter().map(Self::series_as_tensor).collect()
+    pub fn columns_to_vector(&self) -> Vec<Vec<f64>> {
+        self.0.iter().map(Self::series_as_vector).collect()
     }
 
     pub fn transpose(&self) -> DataTable {
@@ -383,11 +383,11 @@ impl DataTable {
         let out_batch = df
             .select_columns(&out_columns.to_vec())
             .transpose()
-            .columns_to_tensor();
+            .columns_to_vector();
         let in_batch = df
             .drop_columns(&out_columns.to_vec())
             .transpose()
-            .columns_to_tensor();
+            .columns_to_vector();
 
         (in_batch, out_batch)
     }
@@ -458,15 +458,15 @@ impl DataTable {
 }
 
 #[test]
-fn test_from_to_tensors() {
+fn test_from_to_vectors() {
     let columns = vec!["a", "b", "c"];
-    let tensors = vec![
+    let vectors = vec![
         vec![1.0, 2.0, 3.0],
         vec![4.0, 5.0, 6.0],
         vec![7.0, 8.0, 9.0],
     ];
-    let data = DataTable::from_tensors(&columns, &tensors);
-    let tensors2 = data.to_tensors();
-    println!("{:?} {:?}", tensors, tensors2);
-    assert_eq!(tensors, tensors2);
+    let data = DataTable::from_vectors(&columns, &vectors);
+    let vectors2 = data.to_vectors();
+    println!("{:?} {:?}", vectors, vectors2);
+    assert_eq!(vectors, vectors2);
 }

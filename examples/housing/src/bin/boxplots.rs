@@ -10,7 +10,7 @@ use nn::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
         log_scale::LogScale10, normalize::Normalize, square::Square, Pipeline, filter_outliers::FilterOutliers,
     },
-    vec_utils::{tensor_boxplot},
+    vec_utils::{vector_boxplot},
 };
 
 fn main() {
@@ -49,8 +49,8 @@ fn main() {
             .iter()
             .enumerate()
         {
-            let vals = data.column_to_tensor(&feature_name);
-            let (q1, q2, q3, min, max) = tensor_boxplot(&vals);
+            let vals = data.column_to_vector(&feature_name);
+            let (q1, q2, q3, min, max) = vector_boxplot(&vals);
             let outliers = vals.into_iter()
                 .filter(|x| *x < min || *x > max)
                 .collect::<Vec<_>>();

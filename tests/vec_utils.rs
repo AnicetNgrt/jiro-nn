@@ -4,93 +4,93 @@ extern crate assert_float_eq;
 use nn::vec_utils::*;
 
 #[test]
-fn test_avg_tensor_empty() {
+fn test_avg_vector_empty() {
     let vec = vec![];
-    assert!(avg_tensor(&vec).is_nan());
+    assert!(avg_vector(&vec).is_nan());
 }
 
 #[test]
-fn test_avg_tensor_single() {
+fn test_avg_vector_single() {
     let vec = vec![42.0];
-    assert_eq!(avg_tensor(&vec), 42.0);
+    assert_eq!(avg_vector(&vec), 42.0);
 }
 
 #[test]
-fn test_avg_tensor_two() {
+fn test_avg_vector_two() {
     let vec = vec![2.0, 4.0];
-    assert_eq!(avg_tensor(&vec), 3.0);
+    assert_eq!(avg_vector(&vec), 3.0);
 }
 
 #[test]
-fn test_avg_tensor_negative() {
+fn test_avg_vector_negative() {
     let vec = vec![-1.0, 0.0, 1.0];
-    assert_eq!(avg_tensor(&vec), 0.0);
+    assert_eq!(avg_vector(&vec), 0.0);
 }
 
 #[test]
-fn test_avg_tensor_fractional() {
+fn test_avg_vector_fractional() {
     let vec = vec![1.5, 2.5, 3.5];
-    assert_eq!(avg_tensor(&vec), 2.5);
+    assert_eq!(avg_vector(&vec), 2.5);
 }
 
 #[test]
-fn test_median_tensor_empty() {
+fn test_median_vector_empty() {
     let vec = vec![];
-    assert!(median_tensor(&vec).is_nan());
+    assert!(median_vector(&vec).is_nan());
 }
 
 #[test]
-fn test_median_tensor_single() {
+fn test_median_vector_single() {
     let vec = vec![42.0];
-    assert_eq!(median_tensor(&vec), 42.0);
+    assert_eq!(median_vector(&vec), 42.0);
 }
 
 #[test]
-fn test_median_tensor_two() {
+fn test_median_vector_two() {
     let vec = vec![2.0, 4.0];
-    assert_eq!(median_tensor(&vec), 3.0);
+    assert_eq!(median_vector(&vec), 3.0);
 }
 
 #[test]
-fn test_median_tensor_negative() {
+fn test_median_vector_negative() {
     let vec = vec![-1.0, 0.0, 1.0];
-    assert_eq!(median_tensor(&vec), 0.0);
+    assert_eq!(median_vector(&vec), 0.0);
 }
 
 #[test]
-fn test_median_tensor_fractional() {
+fn test_median_vector_fractional() {
     let vec = vec![1.5, 2.5, 3.5];
-    assert_eq!(median_tensor(&vec), 2.5);
+    assert_eq!(median_vector(&vec), 2.5);
 }
 
 #[test]
-fn test_median_tensor_even() {
+fn test_median_vector_even() {
     let vec = vec![1.0, 2.0, 3.0, 4.0];
-    assert_eq!(median_tensor(&vec), 2.5);
+    assert_eq!(median_vector(&vec), 2.5);
 }
 
 #[test]
-fn test_quartiles_tensor_even_len() {
+fn test_quartiles_vector_even_len() {
     let vec = vec![1.0, 2.0, 3.0, 4.0];
-    let (q1, q2, q3) = quartiles_tensor(&vec);
+    let (q1, q2, q3) = quartiles_vector(&vec);
     assert_float_relative_eq!(q1, 1.5, 0.00001);
     assert_float_relative_eq!(q2, 2.5, 0.00001);
     assert_float_relative_eq!(q3, 3.5, 0.00001);
 }
 
 #[test]
-fn test_quartiles_tensor_odd_len() {
+fn test_quartiles_vector_odd_len() {
     let vec = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-    let (q1, q2, q3) = quartiles_tensor(&vec);
+    let (q1, q2, q3) = quartiles_vector(&vec);
     assert_float_relative_eq!(q1, 1.5, 0.00001);
     assert_float_relative_eq!(q2, 3.0, 0.00001);
     assert_float_relative_eq!(q3, 3.5, 0.00001);
 }
 
 #[test]
-fn test_quartiles_tensor_duplicate_values() {
+fn test_quartiles_vector_duplicate_values() {
     let vec = vec![1.0, 2.0, 2.0, 3.0, 4.0, 4.0, 4.0, 5.0];
-    let (q1, q2, q3) = quartiles_tensor(&vec);
+    let (q1, q2, q3) = quartiles_vector(&vec);
     println!("{} {} {}", q1, q2, q3);
     assert_float_relative_eq!(q1, 2.0, 0.00001);
     assert_float_relative_eq!(q2, 3.5, 0.00001);
@@ -98,9 +98,9 @@ fn test_quartiles_tensor_duplicate_values() {
 }
 
 #[test]
-fn test_tensor_boxplot_odd() {
+fn test_vector_boxplot_odd() {
     let vals = vec![1.0, 3.0, 5.0, 7.0, 9.0];
-    let (q1, q2, q3, min, max) = tensor_boxplot(&vals);
+    let (q1, q2, q3, min, max) = vector_boxplot(&vals);
     assert_float_relative_eq!(q1, 2.0, 0.00001);
     assert_float_relative_eq!(q2, 5.0, 0.00001);
     assert_float_relative_eq!(q3, 6.0, 0.00001);
@@ -109,9 +109,9 @@ fn test_tensor_boxplot_odd() {
 }
 
 #[test]
-fn test_tensor_boxplot_even() {
+fn test_vector_boxplot_even() {
     let vals = vec![1.0, 3.0, 5.0, 7.0];
-    let (q1, q2, q3, min, max) = tensor_boxplot(&vals);
+    let (q1, q2, q3, min, max) = vector_boxplot(&vals);
     println!("{} {} {}", q1, q2, q3);
     assert_float_relative_eq!(q1, 2.0, 0.00001);
     assert_float_relative_eq!(q2, 4.0, 0.00001);
@@ -121,9 +121,9 @@ fn test_tensor_boxplot_even() {
 }
 
 #[test]
-fn test_normalize_tensor() {
+fn test_normalize_vector() {
     let vec = vec![1.0, 2.0, 3.0, 4.0];
-    let (normalized_vec, min, max) = normalize_tensor(&vec);
+    let (normalized_vec, min, max) = normalize_vector(&vec);
     assert_float_relative_eq!(normalized_vec[0], 0.0, 0.00001);
     assert_float_relative_eq!(normalized_vec[1], 0.33333, 0.00001);
     assert_float_relative_eq!(normalized_vec[2], 0.66666, 0.00001);
@@ -133,9 +133,9 @@ fn test_normalize_tensor() {
 }
 
 #[test]
-fn test_denormalize_tensor() {
+fn test_denormalize_vector() {
     let vec = vec![0.0, 0.33333, 0.66666, 1.0];
-    let denormalized_vec = denormalize_tensor(&vec, 1.0, 4.0);
+    let denormalized_vec = denormalize_vector(&vec, 1.0, 4.0);
     assert_float_relative_eq!(denormalized_vec[0], 1.0, 0.00001);
     assert_float_relative_eq!(denormalized_vec[1], 2.0, 0.00001);
     assert_float_relative_eq!(denormalized_vec[2], 3.0, 0.00001);
@@ -185,29 +185,29 @@ fn test_denormalize_matrix() {
 }
 
 #[test]
-fn test_tensors_correlation() {
+fn test_vectors_correlation() {
     let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let vec2 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-    let corr = tensors_correlation(&vec1, &vec2);
+    let corr = vectors_correlation(&vec1, &vec2);
     assert_float_relative_eq!(corr.unwrap(), 1.0, 0.00001);
 
     let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let vec2 = vec![5.0, 4.0, 3.0, 2.0, 1.0];
-    let corr = tensors_correlation(&vec1, &vec2);
+    let corr = vectors_correlation(&vec1, &vec2);
     assert_float_relative_eq!(corr.unwrap(), -1.0, 0.00001);
 
     let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let vec2 = vec![2.0, 4.0, 6.0, 8.0, 10.0];
-    let corr = tensors_correlation(&vec1, &vec2);
+    let corr = vectors_correlation(&vec1, &vec2);
     assert_float_relative_eq!(corr.unwrap(), 1.0, 0.00001);
 
     let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let vec2 = vec![5.0, 4.0, 3.0, 4.0, 5.0];
-    let corr = tensors_correlation(&vec1, &vec2);
+    let corr = vectors_correlation(&vec1, &vec2);
     assert_float_relative_eq!(corr.unwrap(), 0.0, 0.00001);
 
     let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let vec2 = vec![3.0, 3.0, 3.0, 4.0, 5.0];
-    let corr = tensors_correlation(&vec1, &vec2);
+    let corr = vectors_correlation(&vec1, &vec2);
     assert_float_relative_eq!(corr.unwrap(), 0.88388, 0.00001);
 }

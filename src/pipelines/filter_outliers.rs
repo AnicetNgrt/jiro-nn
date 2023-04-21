@@ -1,6 +1,6 @@
 use crate::{
     dataset::{Dataset},
-    datatable::DataTable, vec_utils::tensor_boxplot,
+    datatable::DataTable, vec_utils::vector_boxplot,
 };
 
 use super::{DataTransformation};
@@ -19,8 +19,8 @@ impl DataTransformation for FilterOutliers {
         for feature in spec.features.iter() {
             if feature.filter_outliers {
                 println!("FO: {}", feature.name);
-                let vals = data.column_to_tensor(&feature.name);
-                let (_, _, _, min, max) = tensor_boxplot(&vals);
+                let vals = data.column_to_vector(&feature.name);
+                let (_, _, _, min, max) = vector_boxplot(&vals);
                 println!("Filtering outliers {:?} {:#?}", feature.name, data);
                 data = data.filter_by_f64_column(&feature.name, |x| x >= min && x <= max);
             }
