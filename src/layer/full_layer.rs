@@ -10,6 +10,7 @@ use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::
 pub struct FullLayer {
     dense: DenseLayer,
     activation: ActivationLayer,
+    // dropout resources : https://jmlr.org/papers/volume15/srivastava14a/srivastava14a.pdf
     dropout_enabled: bool,
     dropout_rate: Option<f64>,
     mask: Option<DMatrix<f64>>,

@@ -5,8 +5,11 @@ use self::{inverse_time_decay::InverseTimeDecay, piecewise_constant::PiecewiseCo
 pub mod inverse_time_decay;
 pub mod piecewise_constant;
 
-// good resource https://arxiv.org/pdf/1510.04609.pdf
+pub fn default_learning_rate() -> LearningRateSchedule {
+    LearningRateSchedule::Constant(0.001)
+}
 
+// https://arxiv.org/pdf/1510.04609.pdf
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LearningRateSchedule {
     Constant(f64),

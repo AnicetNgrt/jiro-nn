@@ -1,38 +1,29 @@
 use nalgebra::DMatrix;
 use serde::{Serialize, Deserialize};
 
-use crate::learning_rate::LearningRateSchedule;
+use crate::learning_rate::{LearningRateSchedule, default_learning_rate};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SGD {
+    #[serde(default="default_learning_rate")]
     learning_rate: LearningRateSchedule,
-    #[serde(skip)]
-    cached_learning_rate: Option<f64>,
 }
 
 impl SGD {
     pub fn with_const_lr(learning_rate: f64) -> Self {
         Self {
             learning_rate: LearningRateSchedule::Constant(learning_rate),
-            cached_learning_rate: None,
         }
     }
 
     pub fn new(learning_rate: LearningRateSchedule) -> Self {
         Self {
             learning_rate,
-            cached_learning_rate: None,
         }
     }
 
-    pub fn update_learning_rate(&mut self, epoch: usize) -> f64 {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
         let lr = self.learning_rate.get_learning_rate(epoch);
-        self.cached_learning_rate = Some(lr);
-        lr
-    }
-
-    pub fn update_weights(&mut self, _epoch: usize, weights: &DMatrix<f64>, weights_gradient: &DMatrix<f64>) -> DMatrix<f64> {
-        let learning_rate = self.cached_learning_rate.unwrap();
-        weights - (learning_rate * weights_gradient)
+        parameters - (lr * parameters_gradient)
     }
 }

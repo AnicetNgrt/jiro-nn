@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 
 use polars::prelude::NamedFrom;
 use polars::series::Series;
@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::datatable::DataTable;
-use crate::layer::dense_layer::DenseLayer;
+use crate::initializers::{Initializers};
+use crate::layer::dense_layer::{DenseLayer, default_biases_initializer, default_weights_initializer, default_weights_optimizer, default_biases_optimizer};
 use crate::layer::full_layer::FullLayer;
 use crate::loss::Losses;
 use crate::network::Network;
@@ -29,9 +30,25 @@ pub struct LayerSpec {
     #[serde(default)]
     pub out_size: usize,
     pub activation: Activation,
-    pub optimizer: Optimizers,
     pub dropout: Option<f64>,
-    pub initial_weights_range: Option<(f64, f64)>,
+    #[serde(default="default_weights_optimizer")]
+    pub weights_optimizer: Optimizers,
+    #[serde(default="default_biases_optimizer")]
+    pub biases_optimizer: Optimizers,
+    #[serde(default="default_biases_initializer")]
+    pub biases_initializer: Initializers,
+    #[serde(default="default_weights_initializer")]
+    pub weights_initializer: Initializers,
+}
+
+pub enum ModelOptions<'a> {
+    Epochs(usize),
+    Loss(Losses),
+    HiddenLayers(&'a [LayerSpec]),
+    FinalLayer(LayerSpec),
+    BatchSize(Option<usize>),
+    Folds(usize),
+    Dataset(Dataset),
 }
 
 impl ModelSpec {
@@ -40,6 +57,12 @@ impl ModelSpec {
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
         Self::from_json_string(&contents)
+    }
+
+    pub fn to_json_file<S: AsRef<str>>(&self, file_name: S) {
+        let json = serde_json::to_string_pretty(&self).unwrap();
+        let mut file = File::create(file_name.as_ref()).unwrap();
+        file.write_all(json.as_bytes()).unwrap();
     }
 
     pub fn from_json_string<S: AsRef<str>>(json: S) -> ModelSpec {
@@ -79,8 +102,10 @@ impl ModelSpec {
                 DenseLayer::new(
                     in_size,
                     out_size,
-                    layer_spec.optimizer.clone(),
-                    layer_spec.initial_weights_range.unwrap_or((-1.0, 1.0)),
+                    layer_spec.weights_optimizer.clone(),
+                    layer_spec.biases_optimizer.clone(),
+                    layer_spec.weights_initializer.clone(),
+                    layer_spec.biases_initializer.clone()
                 ),
                 layer_spec.activation.to_layer(),
                 layer_spec.dropout
@@ -109,5 +134,98 @@ impl ModelSpec {
             table = table.append_column(Series::new(&format!("pred_{}", names[i]), pred.clone()));
         }
         table
+    }
+
+    /// The `from_options` method is a constructor function for creating a `ModelSpec` object from a list of `ModelOptions`.
+    /// 
+    /// The possible options are:
+    /// 
+    /// - `Epochs`: The number of epochs to train for (an integer).
+    /// - `Loss`: The loss function to be used (a variant of the `Losses` enum).
+    /// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
+    /// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
+    /// - `BatchSize`: The batch size to be used during training (an optional integer).
+    /// - `Folds`: The number of folds to be used during cross-validation (an integer).
+    /// - `Dataset`: The dataset to be used for training (a variant of the `Dataset` enum).
+
+    pub fn from_options(options: &[ModelOptions]) -> ModelSpec {
+        let mut spec = ModelSpec::default();
+        for option in options {
+            match option {
+                ModelOptions::Epochs(epochs) => spec.epochs = epochs.clone(),
+                ModelOptions::Loss(loss) => spec.loss = loss.clone(),
+                ModelOptions::HiddenLayers(hidden_layers) => spec.hidden_layers = hidden_layers.to_vec(),
+                ModelOptions::FinalLayer(final_layer) => spec.final_layer = final_layer.clone(),
+                ModelOptions::BatchSize(batch_size) => spec.batch_size = batch_size.clone(),
+                ModelOptions::Folds(folds) => spec.folds = folds.clone(),
+                ModelOptions::Dataset(dataset) => spec.dataset = dataset.clone(),
+            }
+        }
+        spec
+    }
+
+    pub fn default() -> ModelSpec {
+        ModelSpec {
+            epochs: 100,
+            loss: Losses::MSE,
+            hidden_layers: vec![],
+            final_layer: LayerSpec::default(),
+            batch_size: None,
+            folds: 5,
+            dataset: Dataset::default(),
+        }
+    }
+}
+
+pub enum LayerOptions {
+    OutSize(usize),
+    Activation(Activation),
+    Dropout(Option<f64>),
+    WeightsOptimizer(Optimizers),
+    BiasesOptimizer(Optimizers),
+    WeightsInitializer(Initializers),
+    BiasesInitializer(Initializers),
+}
+
+impl LayerSpec {
+
+    /// The `from_options` method is a constructor function for creating a `LayerSpec` object from a list of `LayerOptions`.
+    /// 
+    /// The possible options are:
+    /// 
+    /// - `OutSize`: The size of the output layer (an integer).
+    /// - `Activation`: The activation function to be used (a variant of the `Activation` enum).
+    /// - `Dropout`: The dropout rate (an optional float).
+    /// - `WeightsOptimizer`: The optimizer to be used for updating the weights (a variant of the `Optimizers` enum).
+    /// - `BiasesOptimizer`: The optimizer to be used for updating the biases (a variant of the `Optimizers` enum).
+    /// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum).
+    /// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum).
+
+    pub fn from_options(options: &[LayerOptions]) -> LayerSpec {
+        let mut spec = LayerSpec::default();
+        for option in options {
+            match option {
+                LayerOptions::OutSize(out_size) => spec.out_size = out_size.clone(),
+                LayerOptions::Activation(activation) => spec.activation = activation.clone(),
+                LayerOptions::Dropout(dropout) => spec.dropout = dropout.clone(),
+                LayerOptions::WeightsOptimizer(weights_optimizer) => spec.weights_optimizer = weights_optimizer.clone(),
+                LayerOptions::BiasesOptimizer(biases_optimizer) => spec.biases_optimizer = biases_optimizer.clone(),
+                LayerOptions::WeightsInitializer(weights_initializer) => spec.weights_initializer = weights_initializer.clone(),
+                LayerOptions::BiasesInitializer(biases_initializer) => spec.biases_initializer = biases_initializer.clone(),
+            }
+        }
+        spec
+    }
+
+    pub fn default() -> LayerSpec {
+        LayerSpec {
+            out_size: 0,
+            activation: Activation::Linear,
+            dropout: None,
+            weights_optimizer: default_weights_optimizer(),
+            biases_optimizer: default_biases_optimizer(),
+            weights_initializer: default_weights_initializer(),
+            biases_initializer: default_biases_initializer(),
+        }
     }
 }

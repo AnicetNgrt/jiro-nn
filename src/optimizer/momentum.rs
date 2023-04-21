@@ -1,15 +1,19 @@
 use nalgebra::DMatrix;
 use serde::{Deserialize, Serialize};
 
-use crate::learning_rate::LearningRateSchedule;
+use crate::learning_rate::{LearningRateSchedule, default_learning_rate};
+
+fn default_momentum() -> f64 {
+    0.9
+}
 
 // https://arxiv.org/pdf/1207.0580.pdf
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Momentum {
+    #[serde(default="default_momentum")]
     momentum: f64,
+    #[serde(default="default_learning_rate")]
     learning_rate: LearningRateSchedule,
-    #[serde(skip)]
-    cached_learning_rate: Option<f64>,
     #[serde(skip)]
     v: Option<DMatrix<f64>>,
 }
@@ -20,31 +24,19 @@ impl Momentum {
             v: None,
             momentum,
             learning_rate,
-            cached_learning_rate: None,
         }
     }
 
-    pub fn update_learning_rate(&mut self, epoch: usize) -> f64 {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
         let lr = self.learning_rate.get_learning_rate(epoch);
-        self.cached_learning_rate = Some(lr);
-        lr
-    }
-
-    pub fn update_weights(
-        &mut self,
-        _epoch: usize,
-        weights: &DMatrix<f64>,
-        weights_gradient: &DMatrix<f64>,
-    ) -> DMatrix<f64> {
-        let learning_rate = self.cached_learning_rate.unwrap();
 
         let v = if let Some(v) = self.v.clone() {
             v
         } else {
-            DMatrix::zeros(weights_gradient.nrows(), weights_gradient.ncols())
+            DMatrix::zeros(parameters_gradient.nrows(), parameters_gradient.ncols())
         };
 
-        self.v = Some(self.momentum * v + learning_rate * weights_gradient);
-        weights - (learning_rate * weights_gradient)
+        self.v = Some(self.momentum * v + lr * parameters_gradient);
+        parameters - (lr * parameters_gradient)
     }
 }

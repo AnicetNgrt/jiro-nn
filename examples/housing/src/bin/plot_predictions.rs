@@ -1,4 +1,4 @@
-use gnuplot::{Figure, PlotOption::{Color, Caption}, AxesCommon};
+use gnuplot::{Figure, PlotOption::{Color, Caption, PointSize}, AxesCommon};
 use nn::{datatable::DataTable};
 
 fn main() {
@@ -16,8 +16,8 @@ fn main() {
             .set_title(&format!("Predicted price and price according to {}", col), &[])
             .set_x_label(&col.replace("_", " "), &[])
             .set_y_label("price", &[])
-            .points(x.clone(), y1.clone(), &[Color("blue"), Caption("predicted price")])
-            .points(x.clone(), y2.clone(), &[Color("green"), Caption("price")]);
+            .points(x.clone(), y2.clone(), &[Color("green"), PointSize(0.2), Caption("price")])
+            .points(x.clone(), y1.clone(), &[Color("blue"), PointSize(0.2), Caption("predicted price")]);
 
         fg.save_to_png(format!("visuals/{}_{}.png", model_name, col), 1024, 728).unwrap();
     }
@@ -34,8 +34,8 @@ fn main() {
         .set_x_label("latitude", &[])
         .set_y_label("longitude", &[])
         .set_z_label("price", &[])
-        .points(x.clone(), y.clone(), z1.clone(), &[Color("blue"), Caption("predicted price")])
-        .points(x.clone(), y.clone(), z2.clone(), &[Color("green"), Caption("true price")]);
+        .points(x.clone(), y.clone(), z2.clone(), &[Color("green"), PointSize(0.2), Caption("true price")])
+        .points(x.clone(), y.clone(), z1.clone(), &[Color("blue"), PointSize(0.2), Caption("predicted price")]);
 
     fg.save_to_png(format!("visuals/{}_latlong.png", model_name), 1024, 728).unwrap();
 }

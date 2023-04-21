@@ -7,6 +7,7 @@ pub mod hbt;
 pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
+pub mod linear;
 
 pub type ActivationFn = fn(&DMatrix<f64>) -> DMatrix<f64>;
 
@@ -52,11 +53,13 @@ pub enum Activation {
     Sigmoid,
     ReLU,
     HyperbolicTangent,
+    Linear
 }
 
 impl Activation {
     pub fn to_layer(&self) -> ActivationLayer {
         match self {
+            Self::Linear => linear::new(),
             Self::Tanh => tanh::new(),
             Self::Sigmoid => sigmoid::new(),
             Self::ReLU => relu::new(),

@@ -1,35 +1,38 @@
-use nalgebra::{DMatrix, DVector};
+use nalgebra::{DMatrix};
 
-use crate::{layer::Layer, optimizer::Optimizers};
+use crate::{layer::Layer, optimizer::{Optimizers, sgd::SGD}, initializers::Initializers, learning_rate::default_learning_rate};
 
 pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
     input: Option<DMatrix<f64>>,
     // j x i connection weights
     weights: DMatrix<f64>,
-    // j output biases
-    biases: DVector<f64>,
-    optimizer: Optimizers,
+    // j output biases (single column)
+    biases: DMatrix<f64>,
+    weights_optimizer: Optimizers,
+    biases_optimizer: Optimizers,
 }
 
 impl DenseLayer {
     pub fn new(
         i: usize,
         j: usize,
-        optimizer: Optimizers,
-        initial_weights_range: (f64, f64),
+        weights_optimizer: Optimizers,
+        biases_optimizer: Optimizers,
+        weights_initializer: Initializers,
+        biases_initializer: Initializers,
     ) -> Self {
-        let weights = DMatrix::<f64>::new_random(j, i);
-        let biases = DVector::<f64>::new_random(j);
+        // about weights initialization : http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf
 
-        let weights = (weights * (initial_weights_range.1 - initial_weights_range.0))
-            .add_scalar(initial_weights_range.0);
+        let weights = weights_initializer.gen_matrix(i, j);
+        let biases = DMatrix::from_columns(&[biases_initializer.gen_vector(j)]);
 
         Self {
             weights: weights,
-            biases: biases.add_scalar(-0.5) * 2.,
+            biases: biases,
             input: None,
-            optimizer,
+            weights_optimizer,
+            biases_optimizer,
         }
     }
 
@@ -58,17 +61,30 @@ impl Layer for DenseLayer {
         let input = self.input.clone().unwrap();
 
         let weights_gradient = &output_gradient.transpose() * &input;
-
-        let biases_gradient = &output_gradient.transpose().column_sum();
+        
+        let biases_gradient = DMatrix::from_columns(&[output_gradient.transpose().column_sum()]);
 
         let input_gradient = output_gradient * &self.weights;
 
-        let lr = self.optimizer.update_learning_rate(epoch);
-        self.weights = self
-            .optimizer
-            .update_weights(epoch, &self.weights, &weights_gradient);
-        self.biases = &self.biases - (lr * biases_gradient);
+        self.weights = self.weights_optimizer.update_parameters(epoch, &self.weights, &weights_gradient);
+        self.biases = self.biases_optimizer.update_parameters(epoch, &self.biases, &biases_gradient);
 
         input_gradient
     }
+}
+
+pub fn default_biases_initializer() -> Initializers {
+    Initializers::Zeros
+}
+
+pub fn default_weights_initializer() -> Initializers {
+    Initializers::GlorotUniform
+}
+
+pub fn default_biases_optimizer() -> Optimizers {
+    Optimizers::SGD(SGD::new(default_learning_rate()))
+}
+
+pub fn default_weights_optimizer() -> Optimizers {
+    Optimizers::SGD(SGD::new(default_learning_rate()))
 }

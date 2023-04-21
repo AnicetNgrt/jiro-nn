@@ -21,6 +21,7 @@ impl DataTransformation for FilterOutliers {
                 println!("FO: {}", feature.name);
                 let vals = data.column_to_tensor(&feature.name);
                 let (_, _, _, min, max) = tensor_boxplot(&vals);
+                println!("Filtering outliers {:?} {:#?}", feature.name, data);
                 data = data.filter_by_f64_column(&feature.name, |x| x >= min && x <= max);
             }
         }

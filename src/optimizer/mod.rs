@@ -1,33 +1,29 @@
 use nalgebra::DMatrix;
 use serde::{Serialize, Deserialize};
 
-use self::{sgd::SGD, momentum::Momentum};
+use self::{sgd::SGD, momentum::Momentum, adam::Adam};
 
 pub mod sgd;
 pub mod momentum;
-// pub mod adam;
+pub mod adam;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Optimizers {
     SGD(SGD),
     Momentum(Momentum),
-    // Adam(Adam),
+    Adam(Adam),
 }
 
 impl Optimizers {
-    pub fn update_learning_rate(&mut self, epoch: usize) -> f64 {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
         match self {
-            Optimizers::SGD(sgd) => sgd.update_learning_rate(epoch),
-            Optimizers::Momentum(momentum) => momentum.update_learning_rate(epoch),
-            // Optimizers::Adam(adam) => adam.update_learning_rate(epoch),
+            Optimizers::SGD(sgd) => sgd.update_parameters(epoch, parameters, parameters_gradient),
+            Optimizers::Momentum(momentum) => momentum.update_parameters(epoch, parameters, parameters_gradient),
+            Optimizers::Adam(adam) => adam.update_parameters(epoch, parameters, parameters_gradient),
         }
     }
 
-    pub fn update_weights(&mut self, epoch: usize, weights: &DMatrix<f64>, weights_gradient: &DMatrix<f64>) -> DMatrix<f64> {
-        match self {
-            Optimizers::SGD(sgd) => sgd.update_weights(epoch, weights, weights_gradient),
-            Optimizers::Momentum(momentum) => momentum.update_weights(epoch, weights, weights_gradient),
-            // Optimizers::Adam(adam) => adam.update_weights(epoch, weights, weights_gradient),
-        }
+    pub fn adam_default() -> Optimizers {
+        Optimizers::Adam(Adam::default())
     }
 }

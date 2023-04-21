@@ -31,7 +31,7 @@ pub fn main() {
         .add(Normalize::new())
         .run("./dataset", &model.dataset);
 
-    println!("dataset: {:#?}", updated_dataset_spec);
+    //println!("dataset: {:#?}", updated_dataset_spec);
     println!("data: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_spec);
