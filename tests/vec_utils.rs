@@ -183,3 +183,31 @@ fn test_denormalize_matrix() {
         }
     }
 }
+
+#[test]
+fn test_tensors_correlation() {
+    let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let vec2 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let corr = tensors_correlation(&vec1, &vec2);
+    assert_float_relative_eq!(corr.unwrap(), 1.0, 0.00001);
+
+    let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let vec2 = vec![5.0, 4.0, 3.0, 2.0, 1.0];
+    let corr = tensors_correlation(&vec1, &vec2);
+    assert_float_relative_eq!(corr.unwrap(), -1.0, 0.00001);
+
+    let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let vec2 = vec![2.0, 4.0, 6.0, 8.0, 10.0];
+    let corr = tensors_correlation(&vec1, &vec2);
+    assert_float_relative_eq!(corr.unwrap(), 1.0, 0.00001);
+
+    let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let vec2 = vec![5.0, 4.0, 3.0, 4.0, 5.0];
+    let corr = tensors_correlation(&vec1, &vec2);
+    assert_float_relative_eq!(corr.unwrap(), 0.0, 0.00001);
+
+    let vec1 = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let vec2 = vec![3.0, 3.0, 3.0, 4.0, 5.0];
+    let corr = tensors_correlation(&vec1, &vec2);
+    assert_float_relative_eq!(corr.unwrap(), 0.88388, 0.00001);
+}
