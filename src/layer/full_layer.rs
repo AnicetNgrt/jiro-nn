@@ -60,14 +60,23 @@ impl FullLayer {
 
 impl Layer for FullLayer {
     fn forward(&mut self, mut input: DMatrix<f64>) -> DMatrix<f64> {
-        if self.dropout_enabled {
-            if let Some((mask, dropout_rate)) = self.generate_dropout_mask(input.shape()) {
-                input = input.component_mul(&mask) * (1.0 / (1.0 - dropout_rate));
+        let output = if self.dropout_enabled {
+            if let Some((mask, _)) = self.generate_dropout_mask(input.shape()) {
+                input = input.component_mul(&mask);
                 self.mask = Some(mask);
+            };
+            self.dense.forward(input)
+        } else {
+            if let Some(dropout_rate) = self.dropout_rate {
+                self.dense.map_weights(|w| w*(1.0-dropout_rate));
+                let output = self.dense.forward(input);
+                self.dense.map_weights(|w| w/(1.0-dropout_rate));
+                output
+            } else {
+                self.dense.forward(input)
             }
-        }
+        };
 
-        let output = self.dense.forward(input); 
         self.activation.forward(output)
     }
 
@@ -76,10 +85,6 @@ impl Layer for FullLayer {
         let input_gradient = self.dense
             .backward(epoch, activation_input_gradient);
         
-        if !self.dropout_enabled {
-            return input_gradient
-        }
-
         if let Some(mask) = &self.mask {
             input_gradient.component_mul(&mask)
         } else {

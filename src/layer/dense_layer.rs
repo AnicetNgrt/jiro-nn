@@ -32,6 +32,10 @@ impl DenseLayer {
             optimizer,
         }
     }
+
+    pub fn map_weights(&mut self, f: impl Fn(f64) -> f64) {
+        self.weights = self.weights.map(f);
+    }
 }
 
 impl Layer for DenseLayer {
