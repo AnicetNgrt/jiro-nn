@@ -26,6 +26,7 @@ impl DataTransformation for ExtractTimestamps {
                         true => {
                             let mut f = feature.clone();
                             f.date_format = None;
+                            f.to_timestamp = false;
                             Some(f)
                         },
                         _ => None,

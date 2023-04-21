@@ -62,7 +62,11 @@ impl DataTransformation for Normalize {
             Box::new(move |feature: &Feature| match &feature.with_normalized {
                 Some(new_feature) => Some(*new_feature.clone()),
                 _ => match &feature.normalized {
-                    true => Some(feature.clone()),
+                    true => {
+                        let mut feature = feature.clone();
+                        feature.normalized = false;
+                        Some(feature)
+                    },
                     _ => None,
                 },
             }),

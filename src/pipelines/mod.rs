@@ -10,6 +10,7 @@ pub mod extract_months;
 pub mod attach_ids;
 pub mod square;
 pub mod filter_outliers;
+pub mod map;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,

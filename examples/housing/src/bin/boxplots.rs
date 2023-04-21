@@ -8,7 +8,7 @@ use nn::{
     model_spec::ModelSpec,
     pipelines::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
-        log_scale::LogScale10, normalize::Normalize, square::Square, Pipeline, filter_outliers::FilterOutliers,
+        log_scale::LogScale10, normalize::Normalize, square::Square, Pipeline, filter_outliers::FilterOutliers, map::Map,
     },
     vec_utils::{vector_boxplot},
 };
@@ -30,6 +30,7 @@ fn main() {
     let (after_spec, data) = pipeline
         .add(ExtractMonths)
         .add(ExtractTimestamps)
+        .add(Map::new())
         .add(LogScale10::new())
         .add(Square::new())
         .add(FilterOutliers)

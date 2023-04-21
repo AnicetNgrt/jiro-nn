@@ -9,6 +9,7 @@ use nn::pipelines::extract_months::ExtractMonths;
 use nn::pipelines::extract_timestamps::ExtractTimestamps;
 use nn::pipelines::filter_outliers::FilterOutliers;
 use nn::pipelines::log_scale::LogScale10;
+use nn::pipelines::map::Map;
 use nn::pipelines::normalize::Normalize;
 use nn::pipelines::Pipeline;
 use nn::pipelines::square::Square;
@@ -25,6 +26,7 @@ pub fn main() {
         .add(AttachIds::new("id"))
         .add(ExtractMonths)
         .add(ExtractTimestamps)
+        .add(Map::new())
         .add(LogScale10::new())
         .add(Square::new())
         .add(FilterOutliers)

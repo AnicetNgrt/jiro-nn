@@ -26,6 +26,7 @@ impl DataTransformation for ExtractMonths {
                         true => {
                             let mut f = feature.clone();
                             f.date_format = None;
+                            f.extract_month = false;
                             Some(f)
                         },
                         false => None,

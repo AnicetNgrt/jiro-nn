@@ -33,7 +33,11 @@ impl DataTransformation for Square {
                 match &feature.with_squared {
                     Some(new_feature) => Some(*new_feature.clone()),
                     _ => match &feature.squared {
-                        true => Some(feature.clone()),
+                        true => {
+                            let mut feature = feature.clone();
+                            feature.squared = false;
+                            Some(feature)
+                        },
                         _ => None,
                     },
                 }

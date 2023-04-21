@@ -21,6 +21,10 @@ impl DataTable {
         Self(DataFrame::new(columns).unwrap())
     }
 
+    pub fn num_rows(&self) -> usize {
+        self.0.height()
+    }
+
     pub fn has_column(&self, name: &str) -> bool {
         self.0.column(name).is_ok()
     }

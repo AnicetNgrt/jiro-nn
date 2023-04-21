@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::bool_true;
 
+use crate::pipelines::map::{MapSelector, MapOp};
+
 #[derive(Serialize, Debug, Deserialize, Clone, Hash, Default)]
 pub struct Dataset {
     pub name: String,
@@ -143,6 +145,8 @@ pub struct Feature {
     #[serde(default)]
     pub filter_outliers: bool,
     #[serde(default)]
+    pub mapped: Option<(MapSelector, MapOp)>,
+    #[serde(default)]
     pub squared: bool,
     pub with_extracted_timestamp: Option<Box<Feature>>,
     pub with_extracted_month: Option<Box<Feature>>,
@@ -169,6 +173,7 @@ impl Feature {
     /// - `Normalized`: Whether or not to normalize the feature (a boolean).
     /// - `FilterOutliers`: Whether or not to filter outliers from the feature (a boolean).
     /// - `Squared`: Whether or not to square the feature (a boolean).
+    /// - `Mapped`: Enables and specifies the mapping of the feature (a tuple of `MapSelector` and `MapOp`).
     /// - `UsedInModel`: Whether or not the feature will be used in the model (a boolean).
     /// - `IsId`: Whether or not the feature is an identifier feature (a boolean).
     /// - `WithExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureOptions`).
@@ -221,6 +226,9 @@ impl Feature {
                 FeatureOptions::WithSquared(with_squared) => {
                     feature.with_squared =
                         Some(Box::new(Feature::from_options(with_squared)))
+                },
+                FeatureOptions::Mapped(map_selector, map_op) => {
+                    feature.mapped = Some((map_selector.clone(), map_op.clone()))
                 }
             }
         }
@@ -245,4 +253,5 @@ pub enum FeatureOptions<'a> {
     WithLog10(&'a [FeatureOptions<'a>]),
     WithNormalized(&'a [FeatureOptions<'a>]),
     WithSquared(&'a [FeatureOptions<'a>]),
+    Mapped(MapSelector, MapOp),
 }

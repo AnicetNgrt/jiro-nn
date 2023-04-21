@@ -35,7 +35,11 @@ impl DataTransformation for LogScale10 {
                 match &feature.with_log10 {
                     Some(new_feature) => Some(*new_feature.clone()),
                     _ => match &feature.log10 {
-                        true => Some(feature.clone()),
+                        true => {
+                            let mut feature = feature.clone();
+                            feature.log10 = false;
+                            Some(feature)
+                        },
                         _ => None,
                     },
                 }
