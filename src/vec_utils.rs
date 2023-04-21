@@ -5,6 +5,9 @@ pub fn avg_tensor(vec: &Vec<f64>) -> f64 {
 }
 
 pub fn median_tensor(vec: &Vec<f64>) -> f64 {
+    if vec.len() == 0 {
+        return f64::NAN
+    }
     let mut vec = vec.clone();
     vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
     let mid = vec.len() / 2;

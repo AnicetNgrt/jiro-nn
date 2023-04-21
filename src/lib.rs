@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate assert_float_eq;
+
 use activation::Activation;
 use layer::dense_layer::DenseLayer;
 use layer::full_layer::{FullLayer};
