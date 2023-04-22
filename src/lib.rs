@@ -14,3 +14,4 @@ pub mod network;
 pub mod optimizer;
 pub mod pipelines;
 pub mod vec_utils;
+pub mod linalg;

@@ -289,7 +289,7 @@ impl DataTable {
         for (_, values) in columns_hashmaps {
             let mut t_id = 0;
             for v in values.iter() {
-                vectors[t_id][x_id] = *v;
+                vectors[t_id][self.0.shape().1-x_id-1] = *v;
                 t_id += 1;
             }
             x_id += 1;

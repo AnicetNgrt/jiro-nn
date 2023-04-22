@@ -115,7 +115,7 @@ fn main() {
     for i in 0..nh {
         layers.push(LayerSpec::from_options(&[
             OutSize(h_size),
-            Activation(ReLU),
+            Activation(Tanh),
             Dropout(if i > 0 { dropout } else { None }),
             WeightsOptimizer(Optimizers::adam_default()),
             BiasesOptimizer(Optimizers::adam_default()),
@@ -124,7 +124,7 @@ fn main() {
 
     let final_layer = LayerSpec::from_options(&[
         OutSize(1),
-        Activation(Linear),
+        Activation(Tanh),
         Dropout(dropout),
         WeightsOptimizer(Optimizers::adam_default()),
         BiasesOptimizer(Optimizers::adam_default()),
