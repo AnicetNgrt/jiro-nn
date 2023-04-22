@@ -1159,7 +1159,6 @@ dependencies = [
  "libm",
  "nalgebra",
  "nalgebra-glm",
- "plotters",
  "polars",
  "rand",
  "rand_distr",

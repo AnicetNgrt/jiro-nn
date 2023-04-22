@@ -283,10 +283,15 @@ impl DataTable {
     }
 
     pub fn to_vectors(&self) -> Vec<Vec<f64>> {
-        let columns_hashmaps = self.as_f64_hashmap();
+        let mut columns_vec = vec![];
+        let columns = self.0.get_column_names();
+        for column in columns {
+            columns_vec.push(self.column_to_vector(column));
+        }
+
         let mut vectors = vec![vec![0.0; self.0.shape().1]; self.0.shape().0];
         let mut x_id = 0;
-        for (_, values) in columns_hashmaps {
+        for values in columns_vec {
             let mut t_id = 0;
             for v in values.iter() {
                 vectors[t_id][self.0.shape().1-x_id-1] = *v;
