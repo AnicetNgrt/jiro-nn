@@ -303,11 +303,11 @@ impl DataTable {
         vectors
     }
 
-    pub fn from_vectors<S: AsRef<str>>(columns: &[S], vectors: &Vec<Vec<f64>>) -> Self {
+    pub fn from_vectors<S: AsRef<str>>(columns_names: &[S], columns_vectors: &Vec<Vec<f64>>) -> Self {
         let mut data = Self::new_empty();
-        for (i, column) in columns.iter().enumerate().rev() {
+        for (i, column) in columns_names.iter().enumerate().rev() {
             let mut values = Vec::new();
-            for vector in vectors.iter() {
+            for vector in columns_vectors.iter() {
                 values.push(vector[i]);
             }
             data = data.append_column(Series::new(column.as_ref(), &values));

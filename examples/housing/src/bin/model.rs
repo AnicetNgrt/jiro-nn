@@ -19,7 +19,6 @@ pub fn main() {
     let config_name = &args[1];
 
     let model = ModelSpec::from_json_file(format!("models/{}.json", config_name));
-    println!("model: {:#?}", model);
 
     let mut pipeline = Pipeline::new();
     let (updated_dataset_spec, data) = pipeline
@@ -50,12 +49,14 @@ pub fn main() {
         let model_eval = model_eval.clone();
 
         let handle = thread::spawn(move || {
+            let out_features = model.dataset.out_features_names();
+
             let mut network = model.to_network();
 
             let (train, validation) = data.split_k_folds(model.folds, i);
     
             let (validation_x_table, validation_y_table) =
-                validation.random_order_in_out(&model.dataset.out_features_names());
+                validation.random_order_in_out(&out_features);
     
             let validation_x = validation_x_table.drop_column("id").to_vectors();
             let validation_y = validation_y_table.to_vectors();
@@ -75,9 +76,10 @@ pub fn main() {
                     &model.loss.to_loss(),
                     model.batch_size.unwrap_or(train_x.len()),
                 );
-    
+                
+                let loss_fn = model.loss.to_loss();
                 let (preds, loss_avg, loss_std) =
-                    network.predict_evaluate_many(&validation_x, &validation_y, &model.loss.to_loss());
+                    network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn);
     
                 println!(
                     "Fold {:3} Epoch {:4} Train avg loss: {:.6} Pred avg loss: {:.6}",
@@ -89,7 +91,7 @@ pub fn main() {
                 if e == model.epochs - 1 {
                     let mut vp = validation_preds.lock().unwrap();
                     *vp = vp.apppend(
-                        &DataTable::from_vectors(&model.dataset.out_features_names(), &preds)
+                        &DataTable::from_vectors(&out_features, &preds)
                             .add_column_from(&validation_x_table, "id"),
                     )
                 };
