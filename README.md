@@ -24,10 +24,14 @@ Feel free to give feedback.
         - Tanh
     - Full layers (Dense + Activation)
         - Optional Dropout regularization
-- Optimizers
-    - Stochastic Gradient Descent (SGD)
-    - Momentum SGD
-    - Adam
+- Stochastic Gradient Descent (SGD)
+    - Optional optimizers
+        - Momentum
+        - Adam
+    - Learning rate scheduling
+        - Constant
+        - Piecewise constant
+        - Inverse time decay
 - Initializers
     - Zeros
     - Random uniform (signed & unsigned)
