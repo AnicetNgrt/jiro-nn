@@ -88,6 +88,30 @@ fn main() {
                 WithSquared(&[Name("grade^2"), Normalized(true), FilterOutliers(true)]),
             ],
             &[
+                Name("bathrooms"),
+                Normalized(true),
+                FilterOutliers(true),
+                WithSquared(&[Name("bathrooms^2"), Normalized(true), FilterOutliers(true)]),
+            ],
+            &[
+                Name("bedrooms"),
+                Normalized(true),
+                FilterOutliers(true),
+                WithSquared(&[Name("bedrooms^2"), Normalized(true)]),
+            ],
+            &[
+                Name("waterfront"),
+                Normalized(true),
+                FilterOutliers(true),
+                WithSquared(&[Name("waterfront^2"), Normalized(true)]),
+            ],
+            &[
+                Name("view"),
+                Normalized(true),
+                FilterOutliers(true),
+                WithSquared(&[Name("view^2"), Normalized(true)]),
+            ],
+            &[
                 Name("date"),
                 DateFormat("%Y%m%dT%H%M%S"),
                 WithExtractedTimestamp(&[
@@ -108,14 +132,14 @@ fn main() {
     );
 
     let h_size = dataset.in_features_names().len() + 1;
-    let nh = 6;
+    let nh = 8;
     let dropout = None;
 
     let mut layers = vec![];
     for i in 0..nh {
         layers.push(LayerSpec::from_options(&[
             OutSize(h_size),
-            Activation(Tanh),
+            Activation(ReLU),
             Dropout(if i > 0 { dropout } else { None }),
             WeightsOptimizer(Optimizers::adam_default()),
             BiasesOptimizer(Optimizers::adam_default()),
@@ -124,7 +148,7 @@ fn main() {
 
     let final_layer = LayerSpec::from_options(&[
         OutSize(1),
-        Activation(Tanh),
+        Activation(Linear),
         Dropout(dropout),
         WeightsOptimizer(Optimizers::adam_default()),
         BiasesOptimizer(Optimizers::adam_default()),
@@ -136,7 +160,7 @@ fn main() {
         FinalLayer(final_layer),
         BatchSize(Some(128)),
         Folds(8),
-        Epochs(120),
+        Epochs(300),
     ]);
 
     println!("{:#?}", model);
