@@ -1,4 +1,8 @@
-Implementing Neural Networks in Rust from scratch (using linear algebra libraries still).
+Implementing Neural Networks in Rust from scratch + utils for data manipulation as a newbie to machine learning (I never had used a ML framework before).
+
+This was made for the purpose of my own learning. It is obviously not a good NN library by any means. 
+
+Feel free to give feedback.
 
 ## Working features
 
