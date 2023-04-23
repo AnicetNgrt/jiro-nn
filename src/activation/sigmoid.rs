@@ -1,3 +1,4 @@
+use crate::linalg::MatrixTrait;
 use super::ActivationLayer;
 
 fn sigmoid(x: f64) -> f64 {

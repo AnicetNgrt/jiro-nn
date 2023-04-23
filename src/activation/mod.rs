@@ -1,7 +1,7 @@
-use nalgebra::DMatrix;
+use crate::linalg::MatrixTrait;
 use serde::{Serialize, Deserialize};
 
-use crate::layer::Layer;
+use crate::{layer::Layer, linalg::Matrix};
 
 pub mod hbt;
 pub mod relu;
@@ -9,11 +9,11 @@ pub mod sigmoid;
 pub mod tanh;
 pub mod linear;
 
-pub type ActivationFn = fn(&DMatrix<f64>) -> DMatrix<f64>;
+pub type ActivationFn = fn(&Matrix) -> Matrix;
 
 pub struct ActivationLayer {
     // i inputs = i outputs (it's just a map)
-    input: Option<DMatrix<f64>>,
+    input: Option<Matrix>,
     activation: ActivationFn,
     derivative: ActivationFn,
 }
@@ -29,7 +29,7 @@ impl ActivationLayer {
 }
 
 impl Layer for ActivationLayer {
-    fn forward(&mut self, input: DMatrix<f64>) -> DMatrix<f64> {
+    fn forward(&mut self, input: Matrix) -> Matrix {
         self.input = Some(input.clone());
         (self.activation)(&input)
     }
@@ -37,8 +37,8 @@ impl Layer for ActivationLayer {
     fn backward(
         &mut self,
         _epoch: usize,
-        output_gradient: DMatrix<f64>
-    ) -> DMatrix<f64> {
+        output_gradient: Matrix
+    ) -> Matrix {
         // ∂E/∂X = ∂E/∂Y ⊙ f'(X)
         let input = self.input.clone().unwrap();
         let fprime_x = (self.derivative)(&input);

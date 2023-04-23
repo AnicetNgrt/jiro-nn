@@ -1,7 +1,6 @@
-use nalgebra::DMatrix;
 use serde::{Serialize, Deserialize};
 
-use crate::learning_rate::{LearningRateSchedule, default_learning_rate};
+use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait}};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SGD {
@@ -22,8 +21,8 @@ impl SGD {
         }
     }
 
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
         let lr = self.learning_rate.get_learning_rate(epoch);
-        parameters - (lr * parameters_gradient)
+        parameters.component_sub(&parameters_gradient.scalar_mul(lr))
     }
 }

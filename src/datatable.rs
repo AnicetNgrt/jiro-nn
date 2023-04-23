@@ -282,6 +282,7 @@ impl DataTable {
         hashmap
     }
 
+    /// Returns a vector of vectors where each vector is a row of the dataset
     pub fn to_vectors(&self) -> Vec<Vec<f64>> {
         let mut columns_vec = vec![];
         let columns = self.0.get_column_names();

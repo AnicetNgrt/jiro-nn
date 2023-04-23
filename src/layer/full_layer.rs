@@ -3,8 +3,7 @@ use std::cmp::Ordering;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use nalgebra::{DMatrix};
-
+use crate::linalg::{Matrix, MatrixTrait};
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
 pub struct FullLayer {
@@ -13,7 +12,7 @@ pub struct FullLayer {
     // dropout resources : https://jmlr.org/papers/volume15/srivastava14a/srivastava14a.pdf
     dropout_enabled: bool,
     dropout_rate: Option<f64>,
-    mask: Option<DMatrix<f64>>,
+    mask: Option<Matrix>,
 }
 
 impl FullLayer {
@@ -38,10 +37,10 @@ impl FullLayer {
     fn generate_dropout_mask(
         &mut self,
         output_shape: (usize, usize),
-    ) -> Option<(DMatrix<f64>, f64)> {
+    ) -> Option<(Matrix, f64)> {
         if let Some(dropout_rate) = self.dropout_rate {
             let mut rng = SmallRng::from_entropy();
-            let dropout_mask = DMatrix::from_fn(output_shape.0, output_shape.1, |_, _| {
+            let dropout_mask = Matrix::from_fn(output_shape.0, output_shape.1, |_, _| {
                 if rng
                     .gen_range(0.0f64..1.0f64)
                     .total_cmp(&self.dropout_rate.unwrap())
@@ -60,9 +59,9 @@ impl FullLayer {
 }
 
 impl Layer for FullLayer {
-    fn forward(&mut self, mut input: DMatrix<f64>) -> DMatrix<f64> {
+    fn forward(&mut self, mut input: Matrix) -> Matrix {
         let output = if self.dropout_enabled {
-            if let Some((mask, _)) = self.generate_dropout_mask(input.shape()) {
+            if let Some((mask, _)) = self.generate_dropout_mask(input.dim()) {
                 input = input.component_mul(&mask);
                 self.mask = Some(mask);
             };
@@ -81,7 +80,7 @@ impl Layer for FullLayer {
         self.activation.forward(output)
     }
 
-    fn backward(&mut self, epoch: usize, output_gradient: DMatrix<f64>) -> DMatrix<f64> {
+    fn backward(&mut self, epoch: usize, output_gradient: Matrix) -> Matrix {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
         let input_gradient = self.dense
             .backward(epoch, activation_input_gradient);

@@ -7,7 +7,7 @@ use nn::{
         dense_layer::{default_biases_initializer, default_weights_initializer, DenseLayer},
         full_layer::FullLayer,
     },
-    linalg::Matrix,
+    linalg::{Matrix, MatrixTrait},
     loss::Losses,
     network::Network,
     optimizer::Optimizers,

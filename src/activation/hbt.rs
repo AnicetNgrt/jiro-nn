@@ -1,3 +1,5 @@
+use crate::linalg::MatrixTrait;
+
 use super::ActivationLayer;
 
 fn hbt(x: f64) -> f64 {

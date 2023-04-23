@@ -6,4 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nn = { path = "../../" }
+nn = { path = "../../", default-features = false }
+
+[features]
+nalgebra = ["nn/nalgebra"]
+linalg = ["nn/linalg"]
+linalg-rayon = ["nn/linalg-rayon"]

@@ -1,5 +1,6 @@
-use nalgebra::{DMatrix, DVector};
 use serde::{Deserialize, Serialize};
+
+use crate::linalg::{Matrix, MatrixTrait};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum Initializers {
@@ -10,30 +11,28 @@ pub enum Initializers {
 }
 
 impl Initializers {
-    pub fn gen_matrix(&self, i: usize, j: usize) -> DMatrix<f64> {
+    pub fn gen_matrix(&self, nrow: usize, ncol: usize) -> Matrix {
         match self {
-            Initializers::Zeros => DMatrix::<f64>::zeros(j, i),
-            Initializers::Uniform => DMatrix::<f64>::new_random(j, i),
-            Initializers::UniformSigned => (DMatrix::<f64>::new_random(j, i) * 2.).add_scalar(1.),
+            Initializers::Zeros => Matrix::zeros(nrow, ncol),
+            Initializers::Uniform => Matrix::random_uniform(nrow, ncol, 0.0, 1.0),
+            Initializers::UniformSigned => Matrix::random_uniform(nrow, ncol, -1.0, 1.0),
             Initializers::GlorotUniform => {
-                let limit = (6. / (i + j) as f64).sqrt();
-                let range = limit * 2.;
-                (DMatrix::<f64>::new_random(j, i) * range).add_scalar(-limit)
+                let limit = (6. / (ncol + nrow) as f64).sqrt();
+                Matrix::random_uniform(nrow, ncol, -limit, limit)
             }
         }
     }
 
-    pub fn gen_vector(&self, i: usize) -> DVector<f64> {
+    pub fn gen_vector(&self, nrow: usize) -> Matrix {
         match self {
-            Initializers::Zeros => DVector::<f64>::zeros(i),
-            Initializers::Uniform => DVector::<f64>::new_random(i),
-            Initializers::UniformSigned => (DVector::<f64>::new_random(i) * 2.).add_scalar(1.),
+            Initializers::Zeros => Matrix::zeros(nrow, 1),
+            Initializers::Uniform => Matrix::random_uniform(nrow, 1, 0.0, 1.0),
+            Initializers::UniformSigned => Matrix::random_uniform(nrow, 1, -1.0, 1.0),
             Initializers::GlorotUniform => {
                 // not specified on vectors in the original paper
                 // but taken from keras' implementation
-                let limit = (6. / (i) as f64).sqrt();
-                let range = limit * 2.;
-                (DVector::<f64>::new_random(i) * range).add_scalar(-limit)
+                let limit = (6. / (nrow) as f64).sqrt();
+                Matrix::random_uniform(nrow, 1, -limit, limit)
             }
         }
     }

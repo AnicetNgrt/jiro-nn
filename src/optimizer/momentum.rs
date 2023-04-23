@@ -1,7 +1,6 @@
-use nalgebra::DMatrix;
 use serde::{Deserialize, Serialize};
 
-use crate::learning_rate::{LearningRateSchedule, default_learning_rate};
+use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait}};
 
 fn default_momentum() -> f64 {
     0.9
@@ -15,7 +14,7 @@ pub struct Momentum {
     #[serde(default="default_learning_rate")]
     learning_rate: LearningRateSchedule,
     #[serde(skip)]
-    v: Option<DMatrix<f64>>,
+    v: Option<Matrix>,
 }
 
 impl Momentum {
@@ -27,16 +26,20 @@ impl Momentum {
         }
     }
 
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
         let lr = self.learning_rate.get_learning_rate(epoch);
 
         let v = if let Some(v) = self.v.clone() {
             v
         } else {
-            DMatrix::zeros(parameters_gradient.nrows(), parameters_gradient.ncols())
+            let (nrow, ncol) = parameters_gradient.dim();
+            Matrix::zeros(nrow, ncol)
         };
 
-        self.v = Some(self.momentum * v + lr * parameters_gradient);
-        parameters - (lr * parameters_gradient)
+        let v = v.scalar_mul(self.momentum).component_add(&parameters_gradient.scalar_mul(lr));
+        
+        let new_params = parameters.component_sub(&v);
+        self.v = Some(v);
+        new_params
     }
 }

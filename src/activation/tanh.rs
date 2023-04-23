@@ -1,3 +1,4 @@
+use crate::linalg::MatrixTrait;
 use super::ActivationLayer;
 
 pub fn hyperbolic_tangent(x: f64) -> f64 {

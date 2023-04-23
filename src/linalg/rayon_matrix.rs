@@ -1,17 +1,10 @@
+use std::{sync::{Mutex, Arc}};
+
 use rand::Rng;
 use rand_distr::Distribution;
+use rayon::prelude::*;
 
 use super::MatrixTrait;
-
-/// Column leading matrix
-/// ```txt
-/// [
-///    [col0: row0 row1 ... rowNrow],
-///    [col1: row0 row1 ... rowNrow],
-///     ...
-///    [colNcol: row0 row1 ... rowNrow],
-/// ]
-/// ```
 
 #[derive(Debug, Clone)]
 pub struct Matrix {
@@ -25,7 +18,6 @@ impl MatrixTrait for Matrix {
         Self { nrow, ncol, data: vec![vec![0.0; nrow]; ncol] }
     }
 
-    /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
         let data: Vec<Vec<f64>> = (0..ncol)
@@ -34,7 +26,6 @@ impl MatrixTrait for Matrix {
         Self { nrow, ncol, data }
     }
 
-    /// Creates a matrix with random values following a normal distribution.
     fn random_normal(nrow: usize, ncol: usize, mean: f64, std_dev: f64) -> Self {
         let normal = rand_distr::Normal::new(mean, std_dev).unwrap();
         let data: Vec<Vec<f64>> = (0..ncol)
@@ -43,17 +34,6 @@ impl MatrixTrait for Matrix {
         Self { nrow, ncol, data }
     }
 
-    /// Fills the matrix with the iterator columns after columns by chunking the data by n_rows.
-    /// ```txt
-    /// Your data : [[col1: row0 row1 ... rowNrow][col2]...[colNcol]]
-    /// Result :
-    /// [
-    ///    [col0: row0 row1 ... rowNrow],
-    ///    [col1: row0 row1 ... rowNrow],
-    ///     ...
-    ///    [colNcol: row0 row1 ... rowNrow],
-    /// ]
-    /// ```
     fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = f64>) -> Self {
         let data: Vec<f64> = data.collect();
         assert_eq!(data.len(), nrow * ncol);
@@ -61,23 +41,6 @@ impl MatrixTrait for Matrix {
         Self { nrow, ncol, data }
     }
 
-    /// ```txt
-    /// Your data :
-    /// [
-    ///    [row0: col0 col1 ... colNcol],
-    ///    [row1: col0 col1 ... colNcol],
-    ///     ...
-    ///    [rowNrow: col0 col1 ... colNcol],
-    /// ]
-    /// 
-    /// Result :
-    /// [
-    ///    [col0: row0 row1 ... rowNrow],
-    ///    [col1: row0 row1 ... rowNrow],
-    ///     ...
-    ///    [colNcol: row0 row1 ... rowNrow],
-    /// ]
-    /// ```
     fn from_row_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
         let ncol = m[0].len();
         let nrow = m.len();
@@ -96,12 +59,10 @@ impl MatrixTrait for Matrix {
         Self { nrow, ncol, data: m.clone() }
     }
 
-    /// fills a column vector row by row with values of index 0 to v.len()
     fn from_column_vector(v: &Vec<f64>) -> Self {
         Self { nrow: v.len(), ncol: 1, data: vec![v.clone()] }
     }
 
-    /// fills a row vector column by column with values of index 0 to v.len()
     fn from_row_vector(v: &Vec<f64>) -> Self {
         let mut result = vec![vec![0.0; v.len()]; 1];
         for (i, col) in v.iter().enumerate() {
@@ -146,45 +107,53 @@ impl MatrixTrait for Matrix {
 
     fn map(&self, f: impl Fn(f64) -> f64 + Sync) -> Self {
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[i][j] = f(*row);
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = f(self.data[i][j]);
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
     fn map_indexed_mut(&mut self, f: impl Fn(usize, usize, f64) -> f64 + Sync) -> &mut Self {
-        for i in 0..self.nrow {
-            for j in 0..self.ncol {
-                *self.index_mut(i, j) = f(i, j, self.index(i, j));
-            }
-        }
+        self.data.par_iter_mut().enumerate().for_each(|(j, col)| {
+            col.iter_mut().enumerate().for_each(|(i, val)| {
+                *val = f(i, j, *val);
+            });
+        });
         self
     }
 
     fn dot(&self, other: &Self) -> Self {
         assert_eq!(self.ncol, other.nrow);
-        let mut result = Matrix::zeros(self.nrow, other.ncol);
+        let result = Arc::new(Mutex::new(Matrix::zeros(self.nrow, other.ncol)));
         
-        for i in 0..self.nrow {
+        let edited_result = result.clone();
+        (0..self.nrow).into_par_iter().for_each(move |i| {
             for j in 0..other.ncol {
+                let mut sum = 0.0;
                 for k in 0..other.nrow {
-                    *result.index_mut(i, j) += self.index(i, k) * other.index(k, j);
+                    sum += self.index(i, k) * other.index(k, j);
                 }
+                *edited_result.lock().unwrap().index_mut(i, j) += sum;
             }
-        }
+        });
 
+        let result = result.lock().unwrap().clone(); 
         result
     }
 
     fn columns_sum(&self) -> Vec<f64> {
         let mut result = vec![0.0; self.nrow];
-        for col in self.data.iter() {
-            for (i, val) in col.iter().enumerate() {
-                result[i] += val;
-            }
-        }
+
+        result.par_iter_mut().zip(&self.data).for_each(|(row_res, col_data)| {
+            col_data.iter().for_each(|val| {
+                *row_res += val;
+            });
+        });
+
         result
     }
 
@@ -192,11 +161,13 @@ impl MatrixTrait for Matrix {
         assert_eq!(self.nrow, other.nrow);
         assert_eq!(self.ncol, other.ncol);
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for i in 0..self.ncol {
-            for j in 0..self.nrow {
-                result[i][j] = self.data[i][j] * other.data[i][j];
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] * other.data[i][j];
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
@@ -204,11 +175,13 @@ impl MatrixTrait for Matrix {
         assert_eq!(self.nrow, other.nrow);
         assert_eq!(self.ncol, other.ncol);
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for i in 0..self.ncol {
-            for j in 0..self.nrow {
-                result[i][j] = self.data[i][j] + other.data[i][j];
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] + other.data[i][j];
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
@@ -216,11 +189,13 @@ impl MatrixTrait for Matrix {
         assert_eq!(self.nrow, other.nrow);
         assert_eq!(self.ncol, other.ncol);
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for i in 0..self.ncol {
-            for j in 0..self.nrow {
-                result[i][j] = self.data[i][j] - other.data[i][j];
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] - other.data[i][j];
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
@@ -228,21 +203,25 @@ impl MatrixTrait for Matrix {
         assert_eq!(self.nrow, other.nrow);
         assert_eq!(self.ncol, other.ncol);
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for i in 0..self.ncol {
-            for j in 0..self.nrow {
-                result[i][j] = self.data[i][j] / other.data[i][j];
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] / other.data[i][j];
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
     fn transpose(&self) -> Self {
         let mut result = vec![vec![0.0; self.ncol]; self.nrow];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[j][i] = *row;
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(j, col)| {
+            col.iter_mut().enumerate().for_each(|(i, val)| {
+                *val = self.data[i][j];
+            });
+        });
+
         Self { nrow: self.ncol, ncol: self.nrow, data: result }
     }
 
@@ -253,41 +232,49 @@ impl MatrixTrait for Matrix {
 
     fn scalar_add(&self, scalar: f64) -> Self {
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[i][j] = *row + scalar;
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] + scalar;
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
     fn scalar_mul(&self, scalar: f64) -> Self {
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[i][j] = *row * scalar;
-            }
-        }
+        
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] * scalar;
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
     fn scalar_sub(&self, scalar: f64) -> Self {
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[i][j] = *row - scalar;
-            }
-        }
+        
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] - scalar;
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
     fn scalar_div(&self, scalar: f64) -> Self {
         let mut result = vec![vec![0.0; self.nrow]; self.ncol];
-        for (i, col) in self.data.iter().enumerate() {
-            for (j, row) in col.iter().enumerate() {
-                result[i][j] = *row / scalar;
-            }
-        }
+    
+        result.par_iter_mut().enumerate().for_each(|(i, col)| {
+            col.iter_mut().enumerate().for_each(|(j, val)| {
+                *val = self.data[i][j] / scalar;
+            });
+        });
+
         Self { nrow: self.nrow, ncol: self.ncol, data: result }
     }
 
@@ -305,11 +292,13 @@ impl MatrixTrait for Matrix {
 
     fn get_data_row_leading(&self) -> Vec<Vec<f64>> {
         let mut result = vec![vec![0.0; self.ncol]; self.nrow];
-        for (j, col) in self.data.iter().enumerate() {
-            for (i, row) in col.iter().enumerate() {
-                result[i][j] = *row;
-            }
-        }
+
+        result.par_iter_mut().enumerate().for_each(|(j, col)| {
+            col.iter_mut().enumerate().for_each(|(i, val)| {
+                *val = self.data[i][j];
+            });
+        });
+
         result
     }
 }

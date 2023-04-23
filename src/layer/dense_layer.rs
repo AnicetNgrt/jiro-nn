@@ -1,14 +1,13 @@
-use nalgebra::{DMatrix};
-
-use crate::{layer::Layer, optimizer::{Optimizers, sgd::SGD}, initializers::Initializers, learning_rate::default_learning_rate};
+use crate::linalg::MatrixTrait;
+use crate::{layer::Layer, optimizer::{Optimizers, sgd::SGD}, initializers::Initializers, learning_rate::default_learning_rate, linalg::Matrix};
 
 pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
-    input: Option<DMatrix<f64>>,
+    input: Option<Matrix>,
     // j x i connection weights
-    weights: DMatrix<f64>,
+    weights: Matrix,
     // j output biases (single column)
-    biases: DMatrix<f64>,
+    biases: Matrix,
     weights_optimizer: Optimizers,
     biases_optimizer: Optimizers,
 }
@@ -24,8 +23,8 @@ impl DenseLayer {
     ) -> Self {
         // about weights initialization : http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf
 
-        let weights = weights_initializer.gen_matrix(i, j);
-        let biases = DMatrix::from_columns(&[biases_initializer.gen_vector(j)]);
+        let weights = weights_initializer.gen_matrix(j, i);
+        let biases = biases_initializer.gen_vector(j);
 
         Self {
             weights: weights,
@@ -36,35 +35,52 @@ impl DenseLayer {
         }
     }
 
-    pub fn map_weights(&mut self, f: impl Fn(f64) -> f64) {
+    pub fn map_weights(&mut self, f: impl Fn(f64) -> f64 + Sync) {
         self.weights = self.weights.map(f);
     }
 }
 
 impl Layer for DenseLayer {
-    fn forward(&mut self, input: DMatrix<f64>) -> DMatrix<f64> {
+    /// `input` has shape `(i, n)` where `i` is the number of inputs and `n` is the number of samples.
+    ///
+    /// Returns output which has shape `(j, n)` where `j` is the number of outputs and `n` is the number of samples.
+    fn forward(&mut self, input: Matrix) -> Matrix {
         // Y = W . X + B
-        let mut res = &input * &self.weights.transpose();
-        // add the biases to each row of res
-        res.column_iter_mut()
-            .zip(self.biases.iter())
-            .for_each(|(mut col, bias)| {
-                col.add_scalar_mut(*bias);
-            });
+        let mut res = self.weights.dot(&input);
+
+        let biases = self.biases.get_column(0);
+
+        res.map_indexed_mut(|i, _, v| {
+            v + biases[i]
+        });
+
+        // Old code for fixing & comparison purposes
+        //
+        // let res = res.columns_map(|i, col| {
+        //     col.iter().map(|x| x + biases[i]).collect()
+        // });
+        //
+        // res.column_iter_mut()
+        //     .zip(self.biases.iter())
+        //     .for_each(|(mut col, bias)| {
+        //         col.add_scalar_mut(*bias);
+        //     });
+
         self.input = Some(input);
-        // each row -> one batch of inputs for one neuron
-        // each column -> inputs for each next neurons
         res
     }
 
-    fn backward(&mut self, epoch: usize, output_gradient: DMatrix<f64>) -> DMatrix<f64> {
+    /// `output_gradient` has shape `(j, n)` where `j` is the number of outputs and `n` is the number of samples.
+    ///
+    /// Returns `input_gradient` which has shape `(i, n)` where `i` is the number of inputs and `n` is the number of samples.
+    fn backward(&mut self, epoch: usize, output_gradient: Matrix) -> Matrix {
         let input = self.input.clone().unwrap();
 
-        let weights_gradient = &output_gradient.transpose() * &input;
-        
-        let biases_gradient = DMatrix::from_columns(&[output_gradient.transpose().column_sum()]);
+        let weights_gradient = &output_gradient.dot(&input.transpose());
 
-        let input_gradient = output_gradient * &self.weights;
+        let biases_gradient = Matrix::from_column_vector(&output_gradient.columns_sum());
+
+        let input_gradient = self.weights.transpose().dot(&output_gradient);
 
         self.weights = self.weights_optimizer.update_parameters(epoch, &self.weights, &weights_gradient);
         self.biases = self.biases_optimizer.update_parameters(epoch, &self.biases, &biases_gradient);

@@ -1,7 +1,9 @@
-use nalgebra::DMatrix;
 use serde::{Deserialize, Serialize};
 
-use crate::learning_rate::{default_learning_rate, LearningRateSchedule};
+use crate::{
+    learning_rate::{default_learning_rate, LearningRateSchedule},
+    linalg::{Matrix, MatrixTrait},
+};
 
 fn default_beta1() -> f64 {
     0.9
@@ -27,9 +29,9 @@ pub struct Adam {
     #[serde(default = "default_learning_rate")]
     learning_rate: LearningRateSchedule,
     #[serde(skip)]
-    m: Option<DMatrix<f64>>, // first moment vector
+    m: Option<Matrix>, // first moment vector
     #[serde(skip)]
-    v: Option<DMatrix<f64>>, // second moment vector
+    v: Option<Matrix>, // second moment vector
 }
 
 impl Adam {
@@ -58,22 +60,18 @@ impl Adam {
     pub fn update_parameters(
         &mut self,
         epoch: usize,
-        parameters: &DMatrix<f64>,
-        parameters_gradient: &DMatrix<f64>,
-    ) -> DMatrix<f64> {
+        parameters: &Matrix,
+        parameters_gradient: &Matrix,
+    ) -> Matrix {
         let alpha = self.learning_rate.get_learning_rate(epoch);
 
+        let (nrow, ncol) = parameters_gradient.dim();
+
         if self.m.is_none() {
-            self.m = Some(DMatrix::zeros(
-                parameters_gradient.nrows(),
-                parameters_gradient.ncols(),
-            ));
+            self.m = Some(Matrix::zeros(nrow, ncol));
         }
         if self.v.is_none() {
-            self.v = Some(DMatrix::zeros(
-                parameters_gradient.nrows(),
-                parameters_gradient.ncols(),
-            ));
+            self.v = Some(Matrix::zeros(nrow, ncol));
         }
         let mut m = self.m.clone().unwrap();
         let mut v = self.v.clone().unwrap();
@@ -81,17 +79,17 @@ impl Adam {
         let g = parameters_gradient;
         let g2 = parameters_gradient.component_mul(&parameters_gradient);
 
-        m = m * self.beta1 + g * (1.0 - self.beta1);
-        v = v * self.beta2 + g2 * (1.0 - self.beta2);
+        m = (m.scalar_mul(self.beta1)).component_add(&g.scalar_mul(1.0 - self.beta1));
+        v = (v.scalar_mul(self.beta2)).component_add(&g2.scalar_mul(1.0 - self.beta2));
 
-        let m_bias_corrected = m / (1.0 - self.beta1);
-        let mut v_bias_corrected = v / (1.0 - self.beta2);
+        let m_bias_corrected = m.scalar_div(1.0 - self.beta1);
+        let v_bias_corrected = v.scalar_div(1.0 - self.beta2);
 
-        v_bias_corrected.apply(|el| {
-            *el = el.sqrt();
-        });
+        let v_bias_corrected = v_bias_corrected.map(f64::sqrt);
 
-        parameters
-            - (alpha * m_bias_corrected).component_div(&v_bias_corrected.add_scalar(self.epsilon))
+        parameters.component_sub(
+            &(m_bias_corrected.scalar_mul(alpha))
+                .component_div(&v_bias_corrected.scalar_add(self.epsilon)),
+        )
     }
 }

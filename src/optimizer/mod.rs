@@ -1,5 +1,6 @@
-use nalgebra::DMatrix;
 use serde::{Serialize, Deserialize};
+
+use crate::linalg::{Matrix};
 
 use self::{sgd::SGD, momentum::Momentum, adam::Adam};
 
@@ -15,7 +16,7 @@ pub enum Optimizers {
 }
 
 impl Optimizers {
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &DMatrix<f64>, parameters_gradient: &DMatrix<f64>) -> DMatrix<f64> {
+    pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
         match self {
             Optimizers::SGD(sgd) => sgd.update_parameters(epoch, parameters, parameters_gradient),
             Optimizers::Momentum(momentum) => momentum.update_parameters(epoch, parameters, parameters_gradient),

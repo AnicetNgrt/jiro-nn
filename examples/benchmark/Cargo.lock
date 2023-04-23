@@ -902,6 +902,7 @@ dependencies = [
  "polars",
  "rand",
  "rand_distr",
+ "rayon",
  "serde",
  "serde-aux",
  "serde_json",

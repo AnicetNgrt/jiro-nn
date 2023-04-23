@@ -1,22 +1,24 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul, Div};
 
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, DVector};
 use rand::Rng;
 use rand_distr::Distribution;
+
+use super::MatrixTrait;
 
 /// Column leading nalgebra Matrix
 
 #[derive(Debug, Clone)]
 pub struct Matrix(DMatrix<f64>);
 
-impl Matrix {
+impl MatrixTrait for Matrix {
     
-    pub fn zeros(nrow: usize, ncol: usize) -> Self {
+    fn zeros(nrow: usize, ncol: usize) -> Self {
         Self(DMatrix::zeros(nrow, ncol))
     }
 
     /// Creates a matrix with random values between min and max (excluded).
-    pub fn random_uniform(nrow: usize, ncol: usize, min: f64, max: f64) -> Self {
+    fn random_uniform(nrow: usize, ncol: usize, min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
         let data: Vec<Vec<f64>> = (0..ncol)
             .map(|_| (0..nrow).map(|_| rng.gen_range(min..max)).collect())
@@ -26,7 +28,7 @@ impl Matrix {
     }
 
     /// Creates a matrix with random values following a normal distribution.
-    pub fn random_normal(nrow: usize, ncol: usize, mean: f64, std_dev: f64) -> Self {
+    fn random_normal(nrow: usize, ncol: usize, mean: f64, std_dev: f64) -> Self {
         let normal = rand_distr::Normal::new(mean, std_dev).unwrap();
         let data: Vec<Vec<f64>> = (0..ncol)
             .map(|_| (0..nrow).map(|_| normal.sample(&mut rand::thread_rng())).collect())
@@ -45,10 +47,17 @@ impl Matrix {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    pub fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = f64>) -> Self {
+    fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = f64>) -> Self {
         let data: Vec<f64> = data.collect();
         assert_eq!(data.len(), nrow * ncol);
         Self(DMatrix::from_column_slice(nrow, ncol, &data))
+    }
+
+    fn from_fn<F>(nrows: usize, ncols: usize, f: F) -> Self
+    where
+        F: FnMut(usize, usize) -> f64,
+    {
+        Self(DMatrix::from_fn(nrows, ncols, f))
     }
 
     /// ```txt
@@ -68,69 +77,87 @@ impl Matrix {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    pub fn from_row_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
+    fn from_row_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
         let ncol = m[0].len();
         let nrow = m.len();
         Self(DMatrix::from_row_slice(nrow, ncol, &m.concat()))
     }
 
-    pub fn from_column_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
+    fn from_column_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
         let ncol = m.len();
         let nrow = m[0].len();
         Self(DMatrix::from_column_slice(nrow, ncol, &m.concat()))
     }
 
-    /// fills a column row by row with values 0 to v.len()
-    pub fn from_column_vector(v: &Vec<f64>) -> Self {
+    /// fills a column vector row by row with values of index 0 to v.len()
+    fn from_column_vector(v: &Vec<f64>) -> Self {
         Self(DMatrix::from_column_slice(v.len(), 1, v))
     }
 
-    /// fills a row column by column with values 0 to v.len()
-    pub fn from_row_vector(v: &Vec<f64>) -> Self {
+    /// fills a row vector column by column with values of index 0 to v.len()
+    fn from_row_vector(v: &Vec<f64>) -> Self {
         Self(DMatrix::from_row_slice(1, v.len(), v))
     }
 
-    pub fn get_column(&self, index: usize) -> Vec<f64> {
+    fn get_column(&self, index: usize) -> Vec<f64> {
         self.0.column(index).iter().map(|x| *x).collect()
     }
 
-    pub fn get_row(&self, index: usize) -> Vec<f64> {
+    fn get_row(&self, index: usize) -> Vec<f64> {
         self.0.row(index).iter().map(|x| *x).collect()
     }
 
-    pub fn map(&self, f: impl Fn(f64) -> f64) -> Self {
+    fn columns_map(&self, f: impl Fn(usize, &Vec<f64>) -> Vec<f64>) -> Self {
+        let mut res = Self::zeros(self.0.nrows(), self.0.ncols());
+        for i in 0..self.0.ncols() {
+            let col = f(i, &self.get_column(i));
+            res.0.set_column(i, &DVector::from_column_slice(col.as_slice()));
+        }
+        res
+    }
+
+    fn map_indexed_mut(&mut self, f: impl Fn(usize, usize, f64) -> f64 + Sync) -> &mut Self {
+        for i in 0..self.0.nrows() {
+            for j in 0..self.0.ncols() {
+                *self.index_mut(i, j) = f(i, j, self.index(i, j));
+            }
+        }
+        self
+    }
+
+    fn map(&self, f: impl Fn(f64) -> f64 + Sync) -> Self {
         Self(self.0.map(f))
     }
 
-    pub fn dot(&self, other: &Self) -> Self {
+    fn dot(&self, other: &Self) -> Self {
         Self(self.0.clone() * other.0.clone())
     }
 
-    pub fn columns_sum(&self) -> Vec<f64> {
+    fn columns_sum(&self) -> Vec<f64> {
         self.0.column_sum().iter().map(|x| *x).collect()
     }
 
-    pub fn component_mul(&self, other: &Self) -> Self {
+    fn component_mul(&self, other: &Self) -> Self {
         Self(self.0.component_mul(&other.0))
     }
 
-    pub fn component_add(&self, other: &Self) -> Self {
+    fn component_add(&self, other: &Self) -> Self {
         Self(self.0.clone().add(&other.0))
     }
 
-    pub fn component_sub(&self, other: &Self) -> Self {
+    fn component_sub(&self, other: &Self) -> Self {
         Self(self.0.clone().sub(&other.0))
     }
 
-    pub fn component_div(&self, other: &Self) -> Self {
+    fn component_div(&self, other: &Self) -> Self {
         Self(self.0.component_div(&other.0))
     }
 
-    pub fn transpose(&self) -> Self {
+    fn transpose(&self) -> Self {
         Self(self.0.transpose())
     }
 
-    pub fn get_data(&self) -> Vec<Vec<f64>> {
+    fn get_data(&self) -> Vec<Vec<f64>> {
         let mut result = vec![vec![0.0; self.0.nrows()]; self.0.ncols()];
         for (j, col) in self.0.column_iter().enumerate() {
             for (i, row) in col.iter().enumerate() {
@@ -140,7 +167,7 @@ impl Matrix {
         result
     }
 
-    pub fn get_data_row_leading(&self) -> Vec<Vec<f64>> {
+    fn get_data_row_leading(&self) -> Vec<Vec<f64>> {
         let mut result = vec![vec![0.0; self.0.ncols()]; self.0.nrows()];
         for (j, col) in self.0.column_iter().enumerate() {
             for (i, row) in col.iter().enumerate() {
@@ -151,7 +178,31 @@ impl Matrix {
     }
     
     /// returns the dimensions of the matrix (nrow, ncol)
-    pub fn dim(&self) -> (usize, usize) {
+    fn dim(&self) -> (usize, usize) {
         (self.0.nrows(), self.0.ncols())
+    }
+
+    fn scalar_add(&self, scalar: f64) -> Self {
+        Self(self.0.add_scalar(scalar))
+    }
+
+    fn scalar_mul(&self, scalar: f64) -> Self {
+        Self(self.0.clone().mul(scalar))
+    }
+
+    fn scalar_sub(&self, scalar: f64) -> Self {
+        Self(self.0.add_scalar(-scalar))
+    }
+
+    fn scalar_div(&self, scalar: f64) -> Self {
+        Self(self.0.clone().div(scalar))
+    }
+
+    fn index(&self, row: usize, col: usize) -> f64 {
+        self.0[(row, col)]
+    }
+
+    fn index_mut(&mut self, row: usize, col: usize) -> &mut f64 {
+        self.0.index_mut((row, col))
     }
 }

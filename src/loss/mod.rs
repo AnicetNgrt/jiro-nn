@@ -1,5 +1,7 @@
-use nalgebra::{DMatrix};
 use serde::{Serialize, Deserialize};
+
+use crate::linalg::Matrix;
+use crate::linalg::MatrixTrait;
 
 pub mod mse;
 
@@ -16,8 +18,8 @@ impl Losses {
     }
 }
 
-pub type LossFn = fn(&DMatrix<f64>, &DMatrix<f64>) -> f64;
-pub type LossPrimeFn = fn(&DMatrix<f64>, &DMatrix<f64>) -> DMatrix<f64>;
+pub type LossFn = fn(&Matrix, &Matrix) -> f64;
+pub type LossPrimeFn = fn(&Matrix, &Matrix) -> Matrix;
 
 pub struct Loss {
     loss: LossFn,
@@ -31,17 +33,17 @@ impl Loss {
 }
 
 impl Loss {
-    pub fn loss(&self, y_true: &DMatrix<f64>, y_pred: &DMatrix<f64>) -> f64 {
+    pub fn loss(&self, y_true: &Matrix, y_pred: &Matrix) -> f64 {
         (self.loss)(y_true, y_pred)
     }
 
-    pub fn loss_prime(&self, y_true: &DMatrix<f64>, y_pred: &DMatrix<f64>) -> DMatrix<f64> {
+    pub fn loss_prime(&self, y_true: &Matrix, y_pred: &Matrix) -> Matrix {
         (self.derivative)(y_true, y_pred)
     }
 
     pub fn loss_vec(&self, y_true: &Vec<Vec<f64>>, y_pred: &Vec<Vec<f64>>) -> f64 {
-        let y_true = DMatrix::from_row_slice(y_true.len(), y_true[0].len(), &y_true.concat());
-        let y_pred = DMatrix::from_row_slice(y_pred.len(), y_pred[0].len(), &y_pred.concat());
+        let y_true = Matrix::from_row_leading_matrix(&y_true);
+        let y_pred = Matrix::from_row_leading_matrix(&y_pred);
         self.loss(&y_true, &y_pred)
     }
 }
