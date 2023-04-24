@@ -3,10 +3,10 @@ use std::thread;
 use nn::{nn, activation::Activation, network::Network, optimizer::{sgd::SGD, Optimizers}};
 use xor::train_and_test;
 
-pub fn score(mut network: &mut Network, epochs: usize, trials: usize) -> f64 {
+pub fn score(mut network: &mut Network, epochs: usize, trials: usize) -> Scalar {
     (0..trials)
         .map(|_| train_and_test(&mut network, epochs).0)
-        .sum::<f64>() / trials as f64
+        .sum::<Scalar>() / trials as Scalar
 }
 
 fn main() {

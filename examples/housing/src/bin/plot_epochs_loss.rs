@@ -1,5 +1,5 @@
 use gnuplot::{Figure, AxesCommon, PlotOption::{Color, Caption, FillAlpha, LineStyle}};
-use nn::{benchmarking::ModelEvaluation};
+use nn::{benchmarking::ModelEvaluation, linalg::Scalar};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -32,13 +32,13 @@ fn main() {
         let x = (0..model_eval.get_n_epochs()).collect::<Vec<usize>>();
         let y1 = model_eval.epochs_avg_train_loss();
         let y2 = model_eval.epochs_std_train_loss();
-        let y1_minus_y2 = y1.iter().zip(y2.iter()).map(|(a, b)| a - b).collect::<Vec<f64>>();
-        let y1_plus_y2 = y1.iter().zip(y2.iter()).map(|(a, b)| a + b).collect::<Vec<f64>>();
+        let y1_minus_y2 = y1.iter().zip(y2.iter()).map(|(a, b)| a - b).collect::<Vec<Scalar>>();
+        let y1_plus_y2 = y1.iter().zip(y2.iter()).map(|(a, b)| a + b).collect::<Vec<Scalar>>();
     
         let y3 = model_eval.epochs_avg_test_loss();
         let y4 = model_eval.epochs_std_test_loss();
-        let y3_minus_y4 = y3.iter().zip(y4.iter()).map(|(a, b)| a - b).collect::<Vec<f64>>();
-        let y3_plus_y4 = y3.iter().zip(y4.iter()).map(|(a, b)| a + b).collect::<Vec<f64>>();
+        let y3_minus_y4 = y3.iter().zip(y4.iter()).map(|(a, b)| a - b).collect::<Vec<Scalar>>();
+        let y3_plus_y4 = y3.iter().zip(y4.iter()).map(|(a, b)| a + b).collect::<Vec<Scalar>>();
         
         axes = axes
             .lines(x.clone(), y1.clone(), &[Color(color), Caption(&format!("{} train loss", model_name.replace("_", " ")))])

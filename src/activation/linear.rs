@@ -1,11 +1,11 @@
-use crate::linalg::MatrixTrait;
+use crate::linalg::{MatrixTrait, Scalar};
 use super::ActivationLayer;
 
-fn linear(x: f64) -> f64 {
+fn linear(x: Scalar) -> Scalar {
     x
 }
 
-fn linear_prime(_: f64) -> f64 {
+fn linear_prime(_: Scalar) -> Scalar {
     1.0
 }
 

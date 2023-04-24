@@ -1,12 +1,14 @@
+use crate::linalg::Scalar;
+
 use rand::seq::SliceRandom;
 
-pub fn avg_vector(vec: &Vec<f64>) -> f64 {
-    vec.iter().sum::<f64>() / vec.len() as f64
+pub fn avg_vector(vec: &Vec<Scalar>) -> Scalar {
+    vec.iter().sum::<Scalar>() / vec.len() as Scalar
 }
 
-pub fn median_vector(vec: &Vec<f64>) -> f64 {
+pub fn median_vector(vec: &Vec<Scalar>) -> Scalar {
     if vec.len() == 0 {
-        return f64::NAN
+        return Scalar::NAN
     }
     let mut vec = vec.clone();
     vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -18,7 +20,7 @@ pub fn median_vector(vec: &Vec<f64>) -> f64 {
     }
 }
 
-pub fn quartiles_vector(vec: &Vec<f64>) -> (f64, f64, f64) {
+pub fn quartiles_vector(vec: &Vec<Scalar>) -> (Scalar, Scalar, Scalar) {
     let mut vec = vec.clone();
     vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
     let mid = vec.len() / 2;
@@ -40,7 +42,7 @@ pub fn quartiles_vector(vec: &Vec<f64>) -> (f64, f64, f64) {
     (q1, q2, q3)
 }
 
-pub fn vector_boxplot(vals: &Vec<f64>) -> (f64, f64, f64, f64, f64) {
+pub fn vector_boxplot(vals: &Vec<Scalar>) -> (Scalar, Scalar, Scalar, Scalar, Scalar) {
     let (q1, q2, q3) = quartiles_vector(vals);
     let iqr = q3 - q1;
     let min = q1 - 1.5 * iqr;
@@ -48,7 +50,7 @@ pub fn vector_boxplot(vals: &Vec<f64>) -> (f64, f64, f64, f64, f64) {
     (q1, q2, q3, min, max)
 }
 
-pub fn min_vector(vec: &Vec<f64>) -> f64 {
+pub fn min_vector(vec: &Vec<Scalar>) -> Scalar {
     let mut min = vec[0];
     for i in 1..vec.len() {
         if vec[i] < min {
@@ -58,7 +60,7 @@ pub fn min_vector(vec: &Vec<f64>) -> f64 {
     min
 }
 
-pub fn min_matrix(vec: &Vec<Vec<f64>>) -> f64 {
+pub fn min_matrix(vec: &Vec<Vec<Scalar>>) -> Scalar {
     let mut min = vec[0][0];
     for i in 0..vec.len() {
         for j in 0..vec[i].len() {
@@ -70,7 +72,7 @@ pub fn min_matrix(vec: &Vec<Vec<f64>>) -> f64 {
     min
 }
 
-pub fn max_vector(vec: &Vec<f64>) -> f64 {
+pub fn max_vector(vec: &Vec<Scalar>) -> Scalar {
     let mut max = vec[0];
     for i in 1..vec.len() {
         if vec[i] > max {
@@ -80,7 +82,7 @@ pub fn max_vector(vec: &Vec<f64>) -> f64 {
     max
 }
 
-pub fn max_matrix(vec: &Vec<Vec<f64>>) -> f64 {
+pub fn max_matrix(vec: &Vec<Vec<Scalar>>) -> Scalar {
     let mut max = vec[0][0];
     for i in 0..vec.len() {
         for j in 0..vec[i].len() {
@@ -92,42 +94,42 @@ pub fn max_matrix(vec: &Vec<Vec<f64>>) -> f64 {
     max
 }
 
-pub fn map_vector(vec: &Vec<f64>, closure: &dyn Fn(f64) -> f64) -> Vec<f64> {
+pub fn map_vector(vec: &Vec<Scalar>, closure: &dyn Fn(Scalar) -> Scalar) -> Vec<Scalar> {
     vec.iter().map(|x| closure(*x)).collect()
 }
 
-pub fn normalize_vector(vec: &Vec<f64>) -> (Vec<f64>, f64, f64) {
+pub fn normalize_vector(vec: &Vec<Scalar>) -> (Vec<Scalar>, Scalar, Scalar) {
     let min = min_vector(vec);
     let max = max_vector(vec);
     let range = max - min;
     (vec.iter().map(|x| (x - min) / range).collect(), min, max)
 }
 
-pub fn denormalize_vector(vec: &Vec<f64>, min: f64, max: f64) -> Vec<f64> {
+pub fn denormalize_vector(vec: &Vec<Scalar>, min: Scalar, max: Scalar) -> Vec<Scalar> {
     let range = max - min;
     vec.iter().map(|x| x * range + min).collect()
 }
 
-pub fn normalize_matrix(vec: &Vec<Vec<f64>>) -> (Vec<Vec<f64>>, f64, f64) {
+pub fn normalize_matrix(vec: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
     let min = min_matrix(vec);
     let max = max_matrix(vec);
     let range = max - min;
     (vec.iter().map(|x| x.iter().map(|y| (y - min) / range).collect()).collect(), min, max)
 }
 
-pub fn denormalize_matrix(vec: &Vec<Vec<f64>>, min: f64, max: f64) -> Vec<Vec<f64>> {
+pub fn denormalize_matrix(vec: &Vec<Vec<Scalar>>, min: Scalar, max: Scalar) -> Vec<Vec<Scalar>> {
     let range = max - min;
     vec.iter().map(|x| x.iter().map(|y| y * range + min).collect()).collect()
 }
 
-pub fn vectors_correlation(vec1: &[f64], vec2: &[f64]) -> Option<f64> {
+pub fn vectors_correlation(vec1: &[Scalar], vec2: &[Scalar]) -> Option<Scalar> {
     if vec1.len() != vec2.len() {
         return None;
     }
 
-    let n = vec1.len() as f64;
-    let mean1 = vec1.iter().sum::<f64>() / n;
-    let mean2 = vec2.iter().sum::<f64>() / n;
+    let n = vec1.len() as Scalar;
+    let mean1 = vec1.iter().sum::<Scalar>() / n;
+    let mean2 = vec2.iter().sum::<Scalar>() / n;
 
     let mut std_dev1 = 0.0;
     let mut std_dev2 = 0.0;
@@ -149,7 +151,7 @@ pub fn vectors_correlation(vec1: &[f64], vec2: &[f64]) -> Option<f64> {
     Some(cov / ((n - 1.0) * std_dev1 * std_dev2))
 }
 
-pub fn vector_sample(vec: &Vec<f64>, sample_size: usize) -> Vec<f64> {
+pub fn vector_sample(vec: &Vec<Scalar>, sample_size: usize) -> Vec<Scalar> {
     let mut rng = rand::thread_rng();
     let mut vec = vec.clone();
     vec.shuffle(&mut rng);

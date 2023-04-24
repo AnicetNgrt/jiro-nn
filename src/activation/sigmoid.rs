@@ -1,11 +1,11 @@
-use crate::linalg::MatrixTrait;
+use crate::linalg::{MatrixTrait, Scalar};
 use super::ActivationLayer;
 
-fn sigmoid(x: f64) -> f64 {
-    1. / (1. + libm::exp(-x))
+fn sigmoid(x: Scalar) -> Scalar {
+    1. / (1. + libm::exp(-x as f64) as Scalar)
 }
 
-fn sigmoid_prime(x: f64) -> f64 {
+fn sigmoid_prime(x: Scalar) -> Scalar {
     let sigofx = sigmoid(x);
     sigofx * (1. - sigofx)
 }

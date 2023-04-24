@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::linalg::{Matrix, MatrixTrait};
+use crate::linalg::{Matrix, Scalar, MatrixTrait};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum Initializers {
@@ -17,7 +17,7 @@ impl Initializers {
             Initializers::Uniform => Matrix::random_uniform(nrow, ncol, 0.0, 1.0),
             Initializers::UniformSigned => Matrix::random_uniform(nrow, ncol, -1.0, 1.0),
             Initializers::GlorotUniform => {
-                let limit = (6. / (ncol + nrow) as f64).sqrt();
+                let limit = (6. / (ncol + nrow) as Scalar).sqrt();
                 Matrix::random_uniform(nrow, ncol, -limit, limit)
             }
         }
@@ -31,7 +31,7 @@ impl Initializers {
             Initializers::GlorotUniform => {
                 // not specified on vectors in the original paper
                 // but taken from keras' implementation
-                let limit = (6. / (nrow) as f64).sqrt();
+                let limit = (6. / (nrow) as Scalar).sqrt();
                 Matrix::random_uniform(nrow, 1, -limit, limit)
             }
         }

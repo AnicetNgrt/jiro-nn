@@ -2,7 +2,7 @@ use nn::{
     network::Network, loss::mse
 };
 
-fn x() -> Vec<Vec<f64>> {
+fn x() -> Vec<Vec<Scalar>> {
     vec![
         vec![0., 0.],
         vec![0., 1.],
@@ -11,16 +11,16 @@ fn x() -> Vec<Vec<f64>> {
     ]
 }
 
-fn y() -> Vec<f64> { vec![ 0., 1., 1., 0. ] }
+fn y() -> Vec<Scalar> { vec![ 0., 1., 1., 0. ] }
 
-pub fn test_set_accuracy(network: &mut Network) -> f64 {
+pub fn test_set_accuracy(network: &mut Network) -> Scalar {
     x().into_iter().zip(y().into_iter()).map(|(input, output)| {
         let pred = network.predict(input);
         1. - (pred[0] - output).abs()
-    }).sum::<f64>() / y().len() as f64
+    }).sum::<Scalar>() / y().len() as Scalar
 }
 
-pub fn train_and_test(network: &mut Network, epochs: usize) -> (f64, Vec<f64>)
+pub fn train_and_test(network: &mut Network, epochs: usize) -> (Scalar, Vec<Scalar>)
 {
     let mut errors = Vec::new();
     for e in 0..epochs {

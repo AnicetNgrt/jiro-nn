@@ -17,18 +17,18 @@ fn main() {
 
     area.fill(&WHITE).unwrap();
 
-    let step = 0.01f64;
-    let in_min = 0f64;
-    let in_max = 1f64;
-    let out_min = 0f64;
-    let out_max = 1f64;
+    let step = 0.01Scalar;
+    let in_min = 0Scalar;
+    let in_max = 1Scalar;
+    let out_min = 0Scalar;
+    let out_max = 1Scalar;
 
     let x_axis = (in_min..in_max).step(step);
-    let xs = ((in_min as i64)..((in_max/step).round() as i64)).map(|x| x as f64 * step);
+    let xs = ((in_min as i64)..((in_max/step).round() as i64)).map(|x| x as Scalar * step);
     let z_axis = (in_min..in_max).step(step);
-    let zs = ((in_min as i64)..((in_max/step).round() as i64)).map(|x| x as f64 * step);
+    let zs = ((in_min as i64)..((in_max/step).round() as i64)).map(|x| x as Scalar * step);
 
-    let mut predictions: HashMap<String, f64> = HashMap::new();
+    let mut predictions: HashMap<String, Scalar> = HashMap::new();
     for x in xs.clone() {
         for z in zs.clone() {
             predictions.insert(

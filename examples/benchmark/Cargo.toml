@@ -12,3 +12,4 @@ nn = { path = "../../", default-features = false }
 nalgebra = ["nn/nalgebra"]
 linalg = ["nn/linalg"]
 linalg-rayon = ["nn/linalg-rayon"]
+f64 = ["nn/f64"]

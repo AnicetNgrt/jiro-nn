@@ -7,13 +7,13 @@ use nn::{
         dense_layer::{default_biases_initializer, default_weights_initializer, DenseLayer},
         full_layer::FullLayer,
     },
-    linalg::{Matrix, MatrixTrait},
+    linalg::{Matrix, MatrixTrait, Scalar},
     loss::Losses,
     network::Network,
     optimizer::Optimizers,
 };
 
-pub fn f(x: &Vec<f64>) -> Vec<f64> {
+pub fn f(x: &Vec<Scalar>) -> Vec<Scalar> {
     let mut res = vec![0.];
 
     for i in 0..x.len() {
@@ -85,7 +85,7 @@ fn main() {
     let mut eps = vec![];
 
     for e in 0..epochs {
-        eps.push(e as f64);
+        eps.push(e as Scalar);
 
         println!("epoch: {} starting", e);
         let start = Instant::now();
@@ -132,15 +132,15 @@ fn main() {
         eps,
         training_times
             .iter()
-            .map(|t| t.as_millis() as f64)
+            .map(|t| t.as_millis() as Scalar)
             .collect::<Vec<_>>(),
         testing_times
             .iter()
-            .map(|t| t.as_millis() as f64)
+            .map(|t| t.as_millis() as Scalar)
             .collect::<Vec<_>>(),
         total
             .iter()
-            .map(|t| t.as_millis() as f64)
+            .map(|t| t.as_millis() as Scalar)
             .collect::<Vec<_>>(),
     ];
     let time_matrix = Matrix::from_column_leading_matrix(&time_matrix.clone());

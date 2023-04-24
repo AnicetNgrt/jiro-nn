@@ -4,12 +4,12 @@ use nalgebra::{DMatrix, DVector};
 use rand::Rng;
 use rand_distr::Distribution;
 
-use super::MatrixTrait;
+use super::{MatrixTrait, Scalar};
 
 /// Column leading nalgebra Matrix
 
 #[derive(Debug, Clone)]
-pub struct Matrix(DMatrix<f64>);
+pub struct Matrix(DMatrix<Scalar>);
 
 impl MatrixTrait for Matrix {
     
@@ -18,9 +18,9 @@ impl MatrixTrait for Matrix {
     }
 
     /// Creates a matrix with random values between min and max (excluded).
-    fn random_uniform(nrow: usize, ncol: usize, min: f64, max: f64) -> Self {
+    fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self {
         let mut rng = rand::thread_rng();
-        let data: Vec<Vec<f64>> = (0..ncol)
+        let data: Vec<Vec<Scalar>> = (0..ncol)
             .map(|_| (0..nrow).map(|_| rng.gen_range(min..max)).collect())
             .collect();
         
@@ -28,9 +28,9 @@ impl MatrixTrait for Matrix {
     }
 
     /// Creates a matrix with random values following a normal distribution.
-    fn random_normal(nrow: usize, ncol: usize, mean: f64, std_dev: f64) -> Self {
+    fn random_normal(nrow: usize, ncol: usize, mean: Scalar, std_dev: Scalar) -> Self {
         let normal = rand_distr::Normal::new(mean, std_dev).unwrap();
-        let data: Vec<Vec<f64>> = (0..ncol)
+        let data: Vec<Vec<Scalar>> = (0..ncol)
             .map(|_| (0..nrow).map(|_| normal.sample(&mut rand::thread_rng())).collect())
             .collect();
         Self(DMatrix::from_row_slice(nrow, ncol, &data.concat()))
@@ -47,15 +47,15 @@ impl MatrixTrait for Matrix {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = f64>) -> Self {
-        let data: Vec<f64> = data.collect();
+    fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = Scalar>) -> Self {
+        let data: Vec<Scalar> = data.collect();
         assert_eq!(data.len(), nrow * ncol);
         Self(DMatrix::from_column_slice(nrow, ncol, &data))
     }
 
     fn from_fn<F>(nrows: usize, ncols: usize, f: F) -> Self
     where
-        F: FnMut(usize, usize) -> f64,
+        F: FnMut(usize, usize) -> Scalar,
     {
         Self(DMatrix::from_fn(nrows, ncols, f))
     }
@@ -77,37 +77,37 @@ impl MatrixTrait for Matrix {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    fn from_row_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
+    fn from_row_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
         let ncol = m[0].len();
         let nrow = m.len();
         Self(DMatrix::from_row_slice(nrow, ncol, &m.concat()))
     }
 
-    fn from_column_leading_matrix(m: &Vec<Vec<f64>>) -> Self {
+    fn from_column_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
         let ncol = m.len();
         let nrow = m[0].len();
         Self(DMatrix::from_column_slice(nrow, ncol, &m.concat()))
     }
 
     /// fills a column vector row by row with values of index 0 to v.len()
-    fn from_column_vector(v: &Vec<f64>) -> Self {
+    fn from_column_vector(v: &Vec<Scalar>) -> Self {
         Self(DMatrix::from_column_slice(v.len(), 1, v))
     }
 
     /// fills a row vector column by column with values of index 0 to v.len()
-    fn from_row_vector(v: &Vec<f64>) -> Self {
+    fn from_row_vector(v: &Vec<Scalar>) -> Self {
         Self(DMatrix::from_row_slice(1, v.len(), v))
     }
 
-    fn get_column(&self, index: usize) -> Vec<f64> {
+    fn get_column(&self, index: usize) -> Vec<Scalar> {
         self.0.column(index).iter().map(|x| *x).collect()
     }
 
-    fn get_row(&self, index: usize) -> Vec<f64> {
+    fn get_row(&self, index: usize) -> Vec<Scalar> {
         self.0.row(index).iter().map(|x| *x).collect()
     }
 
-    fn columns_map(&self, f: impl Fn(usize, &Vec<f64>) -> Vec<f64>) -> Self {
+    fn columns_map(&self, f: impl Fn(usize, &Vec<Scalar>) -> Vec<Scalar>) -> Self {
         let mut res = Self::zeros(self.0.nrows(), self.0.ncols());
         for i in 0..self.0.ncols() {
             let col = f(i, &self.get_column(i));
@@ -116,7 +116,7 @@ impl MatrixTrait for Matrix {
         res
     }
 
-    fn map_indexed_mut(&mut self, f: impl Fn(usize, usize, f64) -> f64 + Sync) -> &mut Self {
+    fn map_indexed_mut(&mut self, f: impl Fn(usize, usize, Scalar) -> Scalar + Sync) -> &mut Self {
         for i in 0..self.0.nrows() {
             for j in 0..self.0.ncols() {
                 *self.index_mut(i, j) = f(i, j, self.index(i, j));
@@ -125,7 +125,7 @@ impl MatrixTrait for Matrix {
         self
     }
 
-    fn map(&self, f: impl Fn(f64) -> f64 + Sync) -> Self {
+    fn map(&self, f: impl Fn(Scalar) -> Scalar + Sync) -> Self {
         Self(self.0.map(f))
     }
 
@@ -133,7 +133,7 @@ impl MatrixTrait for Matrix {
         Self(self.0.clone() * other.0.clone())
     }
 
-    fn columns_sum(&self) -> Vec<f64> {
+    fn columns_sum(&self) -> Vec<Scalar> {
         self.0.column_sum().iter().map(|x| *x).collect()
     }
 
@@ -157,7 +157,7 @@ impl MatrixTrait for Matrix {
         Self(self.0.transpose())
     }
 
-    fn get_data(&self) -> Vec<Vec<f64>> {
+    fn get_data(&self) -> Vec<Vec<Scalar>> {
         let mut result = vec![vec![0.0; self.0.nrows()]; self.0.ncols()];
         for (j, col) in self.0.column_iter().enumerate() {
             for (i, row) in col.iter().enumerate() {
@@ -167,7 +167,7 @@ impl MatrixTrait for Matrix {
         result
     }
 
-    fn get_data_row_leading(&self) -> Vec<Vec<f64>> {
+    fn get_data_row_leading(&self) -> Vec<Vec<Scalar>> {
         let mut result = vec![vec![0.0; self.0.ncols()]; self.0.nrows()];
         for (j, col) in self.0.column_iter().enumerate() {
             for (i, row) in col.iter().enumerate() {
@@ -182,27 +182,27 @@ impl MatrixTrait for Matrix {
         (self.0.nrows(), self.0.ncols())
     }
 
-    fn scalar_add(&self, scalar: f64) -> Self {
+    fn scalar_add(&self, scalar: Scalar) -> Self {
         Self(self.0.add_scalar(scalar))
     }
 
-    fn scalar_mul(&self, scalar: f64) -> Self {
+    fn scalar_mul(&self, scalar: Scalar) -> Self {
         Self(self.0.clone().mul(scalar))
     }
 
-    fn scalar_sub(&self, scalar: f64) -> Self {
+    fn scalar_sub(&self, scalar: Scalar) -> Self {
         Self(self.0.add_scalar(-scalar))
     }
 
-    fn scalar_div(&self, scalar: f64) -> Self {
+    fn scalar_div(&self, scalar: Scalar) -> Self {
         Self(self.0.clone().div(scalar))
     }
 
-    fn index(&self, row: usize, col: usize) -> f64 {
+    fn index(&self, row: usize, col: usize) -> Scalar {
         self.0[(row, col)]
     }
 
-    fn index_mut(&mut self, row: usize, col: usize) -> &mut f64 {
+    fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar {
         self.0.index_mut((row, col))
     }
 }

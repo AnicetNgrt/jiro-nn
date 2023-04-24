@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use crate::linalg::{Matrix, MatrixTrait};
+use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
 pub struct FullLayer {
@@ -11,12 +11,12 @@ pub struct FullLayer {
     activation: ActivationLayer,
     // dropout resources : https://jmlr.org/papers/volume15/srivastava14a/srivastava14a.pdf
     dropout_enabled: bool,
-    dropout_rate: Option<f64>,
+    dropout_rate: Option<Scalar>,
     mask: Option<Matrix>,
 }
 
 impl FullLayer {
-    pub fn new(dense: DenseLayer, activation: ActivationLayer, dropout: Option<f64>) -> Self {
+    pub fn new(dense: DenseLayer, activation: ActivationLayer, dropout: Option<Scalar>) -> Self {
         Self {
             dense,
             activation,
@@ -37,12 +37,12 @@ impl FullLayer {
     fn generate_dropout_mask(
         &mut self,
         output_shape: (usize, usize),
-    ) -> Option<(Matrix, f64)> {
+    ) -> Option<(Matrix, Scalar)> {
         if let Some(dropout_rate) = self.dropout_rate {
             let mut rng = SmallRng::from_entropy();
             let dropout_mask = Matrix::from_fn(output_shape.0, output_shape.1, |_, _| {
                 if rng
-                    .gen_range(0.0f64..1.0f64)
+                    .gen_range((0.0 as Scalar)..(1.0 as Scalar))
                     .total_cmp(&self.dropout_rate.unwrap())
                     == Ordering::Greater
                 {

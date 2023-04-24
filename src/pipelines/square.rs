@@ -43,7 +43,7 @@ impl DataTransformation for Square {
                 }
             }),
             Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data.map_f64_column(&feature.name, |x| x.powi(2))
+                data.map_scalar_column(&feature.name, |x| x.powi(2))
                     .rename_column(&feature.name, &extracted.name)
             }),
         );
@@ -56,7 +56,7 @@ impl DataTransformation for Square {
 
         for feature in self.squared_features.iter() {
             if reversed_data.has_column(feature) {
-                reversed_data = reversed_data.map_f64_column(feature, |x| x.sqrt());
+                reversed_data = reversed_data.map_scalar_column(feature, |x| x.sqrt());
             }
         }
 

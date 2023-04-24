@@ -1,9 +1,9 @@
 {
     "rust-analyzer.linkedProjects": [
-        "./examples/xor/Cargo.toml",
         "./examples/housing/Cargo.toml",
         "./examples/benchmark/Cargo.toml",
         "./Cargo.toml"
     ],
-    "rust-analyzer.showUnlinkedFileNotification": false
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "rust-analyzer.check.features": ["nalgebra"]
 }

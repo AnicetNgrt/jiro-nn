@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait}};
+use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait, Scalar}};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SGD {
@@ -9,7 +9,7 @@ pub struct SGD {
 }
 
 impl SGD {
-    pub fn with_const_lr(learning_rate: f64) -> Self {
+    pub fn with_const_lr(learning_rate: Scalar) -> Self {
         Self {
             learning_rate: LearningRateSchedule::Constant(learning_rate),
         }

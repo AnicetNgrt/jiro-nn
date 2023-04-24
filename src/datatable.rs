@@ -3,6 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::linalg::Scalar;
+
 use polars::prelude::*;
 
 #[derive(Clone, Debug)]
@@ -138,7 +140,7 @@ impl DataTable {
         datasets
     }
 
-    pub fn with_column_f64(&self, name: &str, values: &[f64]) -> Self {
+    pub fn with_column_scalar(&self, name: &str, values: &[Scalar]) -> Self {
         Self(
             self.0
                 .clone()
@@ -208,11 +210,11 @@ impl DataTable {
         )
     }
 
-    pub fn map_str_column_to_f64_column(
+    pub fn map_str_column_to_scalar_column(
         &self,
         column: &str,
         new_column: &str,
-        f: impl Fn(&str) -> f64,
+        f: impl Fn(&str) -> Scalar,
     ) -> Self {
         let series = self
             .0
@@ -222,19 +224,19 @@ impl DataTable {
             .unwrap()
             .into_iter()
             .map(|p| p.map(|p| f(p)).unwrap_or_default())
-            .collect::<Vec<f64>>();
+            .collect::<Vec<Scalar>>();
 
-        self.with_column_f64(new_column, &series)
+        self.with_column_scalar(new_column, &series)
     }
 
-    pub fn filter_by_f64_column(&self, column: &str, f: impl Fn(f64) -> bool) -> Self {
+    pub fn filter_by_scalar_column(&self, column: &str, f: impl Fn(Scalar) -> bool) -> Self {
         let binding = self.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
         let series = binding.f64().unwrap();
         let mut mask = BooleanChunked::full("mask", true, series.len());
         mask = mask.set_at_idx(
             series
                 .into_iter()
-                .filter(|v| if let Some(v) = v { !f(*v) } else { true })
+                .filter(|v| if let Some(v) = v { !f(*v as Scalar) } else { true })
                 .enumerate()
                 .map(|(i, _)| i as u32),
             Some(false),
@@ -242,7 +244,7 @@ impl DataTable {
         Self(self.0.filter(&mask).unwrap())
     }
 
-    pub fn map_f64_column(&self, column: &str, f: impl Fn(f64) -> f64) -> Self {
+    pub fn map_scalar_column(&self, column: &str, f: impl Fn(Scalar) -> Scalar) -> Self {
         let mut edited = self.clone();
         let series = edited
             .0
@@ -253,7 +255,7 @@ impl DataTable {
         let array = series.f64().unwrap();
         let series = array
             .into_iter()
-            .map(|p| p.map(|p| f(p)))
+            .map(|p| p.map(|p| f(p as Scalar)))
             .collect::<Series>();
 
         Self(edited.0.replace(column, series).unwrap().clone())
@@ -273,7 +275,7 @@ impl DataTable {
         (train, validation)
     }
 
-    pub fn as_f64_hashmap(&self) -> HashMap<String, Vec<f64>> {
+    pub fn as_scalar_hashmap(&self) -> HashMap<String, Vec<Scalar>> {
         let columns = self.0.get_column_names();
         let mut hashmap = HashMap::new();
         for column in columns {
@@ -283,7 +285,7 @@ impl DataTable {
     }
 
     /// Returns a vector of vectors where each vector is a row of the dataset
-    pub fn to_vectors(&self) -> Vec<Vec<f64>> {
+    pub fn to_vectors(&self) -> Vec<Vec<Scalar>> {
         let mut columns_vec = vec![];
         let columns = self.0.get_column_names();
         for column in columns {
@@ -303,7 +305,7 @@ impl DataTable {
         vectors
     }
 
-    pub fn from_vectors<S: AsRef<str>>(columns_names: &[S], columns_vectors: &Vec<Vec<f64>>) -> Self {
+    pub fn from_vectors<S: AsRef<str>>(columns_names: &[S], columns_vectors: &Vec<Vec<Scalar>>) -> Self {
         let mut data = Self::new_empty();
         for (i, column) in columns_names.iter().enumerate().rev() {
             let mut values = Vec::new();
@@ -315,20 +317,20 @@ impl DataTable {
         data
     }
 
-    pub fn to_vectors_with_ids(&self, id_column: &str) -> (Vec<usize>, Vec<Vec<f64>>) {
+    pub fn to_vectors_with_ids(&self, id_column: &str) -> (Vec<usize>, Vec<Vec<Scalar>>) {
         let ids = self.column_to_ids(id_column);
         let vectors = self.drop_column(id_column).to_vectors();
         (ids, vectors)
     }
 
-    fn series_as_vector(series: &Series) -> Vec<f64> {
+    fn series_as_vector(series: &Series) -> Vec<Scalar> {
         let series = series.cast(&DataType::Float64).unwrap();
 
         series
             .f64()
             .unwrap()
             .into_iter()
-            .map(|p| p.unwrap())
+            .map(|p| p.unwrap() as Scalar)
             .collect()
     }
 
@@ -341,7 +343,7 @@ impl DataTable {
             .collect()
     }
 
-    pub fn column_to_vector(&self, column: &str) -> Vec<f64> {
+    pub fn column_to_vector(&self, column: &str) -> Vec<Scalar> {
         Self::series_as_vector(self.0.column(column).unwrap())
     }
 
@@ -349,11 +351,11 @@ impl DataTable {
         Self::series_as_ids(self.0.column(column).unwrap())
     }
 
-    pub fn flatten_to_vector(&self) -> Vec<f64> {
+    pub fn flatten_to_vector(&self) -> Vec<Scalar> {
         self.0.iter().flat_map(Self::series_as_vector).collect()
     }
 
-    pub fn columns_to_vector(&self) -> Vec<Vec<f64>> {
+    pub fn columns_to_vector(&self) -> Vec<Vec<Scalar>> {
         self.0.iter().map(Self::series_as_vector).collect()
     }
 
@@ -388,7 +390,7 @@ impl DataTable {
         &self,
         out_columns: &[&str],
         size: Option<usize>,
-    ) -> (Vec<Vec<f64>>, Vec<Vec<f64>>) {
+    ) -> (Vec<Vec<Scalar>>, Vec<Vec<Scalar>>) {
         let df = self.clone().sample(size, true);
         let out_batch = df
             .select_columns(&out_columns.to_vec())
@@ -402,7 +404,7 @@ impl DataTable {
         (in_batch, out_batch)
     }
 
-    pub fn min_max_column(&self, column: &str) -> (f64, f64) {
+    pub fn min_max_column(&self, column: &str) -> (Scalar, Scalar) {
         let series = self
             .0
             .column(column)
@@ -410,12 +412,12 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let min = array.min().unwrap_or(f64::MAX);
-        let max = array.max().unwrap_or(f64::MIN);
+        let min = array.min().map(|f| f as Scalar).unwrap_or(Scalar::MAX);
+        let max = array.max().map(|f| f as Scalar).unwrap_or(Scalar::MIN);
         (min, max)
     }
 
-    pub fn normalize_column(&self, column: &str, min_max: (f64, f64)) -> Self {
+    pub fn normalize_column(&self, column: &str, min_max: (Scalar, Scalar)) -> Self {
         let (min, max) = min_max;
         let mut edited = self.clone();
         let series = edited
@@ -425,12 +427,12 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let mut serie: Series = array.apply(|v| (v - min) / (max - min)).into_series();
+        let mut serie: Series = array.apply(|v| (((v as Scalar) - min) / (max - min)).into()).into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
     }
 
-    pub fn denormalize_column(&self, column: &str, min_max: (f64, f64)) -> Self {
+    pub fn denormalize_column(&self, column: &str, min_max: (Scalar, Scalar)) -> Self {
         let (min, max) = min_max;
         let mut edited = self.clone();
         let series = edited
@@ -440,12 +442,12 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let mut serie: Series = array.apply(|v| v * (max - min) + min).into_series();
+        let mut serie: Series = array.apply(|v| ((v as Scalar) * (max - min) + min).into()).into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
     }
 
-    pub fn column_min_max(&self, column: &str) -> (f64, f64) {
+    pub fn column_min_max(&self, column: &str) -> (Scalar, Scalar) {
         let series = self
             .0
             .column(column)
@@ -453,8 +455,8 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let min = array.min().unwrap_or(f64::MAX);
-        let max = array.max().unwrap_or(f64::MIN);
+        let min = array.min().map(|f| f as Scalar).unwrap_or(Scalar::MAX);
+        let max = array.max().map(|f| f as Scalar).unwrap_or(Scalar::MIN);
         (min, max)
     }
 

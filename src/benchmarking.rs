@@ -2,6 +2,8 @@ use std::{fs::File, io::Write};
 
 use serde::{Deserialize, Serialize};
 
+use crate::linalg::Scalar;
+
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct ModelEvaluation {
     pub folds: Vec<FoldEvaluation>
@@ -14,9 +16,9 @@ pub struct FoldEvaluation {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct EpochEvaluation {
-    pub train_loss: f64,
-    pub test_loss_avg: f64,
-    pub test_loss_std: f64,
+    pub train_loss: Scalar,
+    pub test_loss_avg: Scalar,
+    pub test_loss_std: Scalar,
 }
 
 impl ModelEvaluation {
@@ -30,7 +32,7 @@ impl ModelEvaluation {
         self.folds.push(fold);
     }
 
-    pub fn epochs_avg_train_loss(&self) -> Vec<f64> {
+    pub fn epochs_avg_train_loss(&self) -> Vec<Scalar> {
         let mut avg = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
             for (i, epoch) in fold.epochs.iter().enumerate() {
@@ -38,12 +40,12 @@ impl ModelEvaluation {
             }
         }
         for i in 0..avg.len() {
-            avg[i] /= self.folds.len() as f64;
+            avg[i] /= self.folds.len() as Scalar;
         }
         avg
     }
 
-    pub fn epochs_std_train_loss(&self) -> Vec<f64> {
+    pub fn epochs_std_train_loss(&self) -> Vec<Scalar> {
         let avg = self.epochs_avg_train_loss();
         let mut std = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
@@ -52,12 +54,12 @@ impl ModelEvaluation {
             }
         }
         for i in 0..std.len() {
-            std[i] = (std[i] / self.folds.len() as f64).sqrt();
+            std[i] = (std[i] / self.folds.len() as Scalar).sqrt();
         }
         std
     }
 
-    pub fn epochs_avg_test_loss(&self) -> Vec<f64> {
+    pub fn epochs_avg_test_loss(&self) -> Vec<Scalar> {
         let mut avg = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
             for (i, epoch) in fold.epochs.iter().enumerate() {
@@ -65,12 +67,12 @@ impl ModelEvaluation {
             }
         }
         for i in 0..avg.len() {
-            avg[i] /= self.folds.len() as f64;
+            avg[i] /= self.folds.len() as Scalar;
         }
         avg
     }
 
-    pub fn epochs_std_test_loss(&self) -> Vec<f64> {
+    pub fn epochs_std_test_loss(&self) -> Vec<Scalar> {
         let avg = self.epochs_avg_test_loss();
         let mut std = vec![0.0; self.folds[0].epochs.len()];
         for fold in &self.folds {
@@ -79,7 +81,7 @@ impl ModelEvaluation {
             }
         }
         for i in 0..std.len() {
-            std[i] = (std[i] / self.folds.len() as f64).sqrt();
+            std[i] = (std[i] / self.folds.len() as Scalar).sqrt();
         }
         std
     }
@@ -119,17 +121,17 @@ impl FoldEvaluation {
         self.epochs[self.epochs.len() - 1].clone()
     }
 
-    pub fn get_final_test_loss_avg(&self) -> f64 {
+    pub fn get_final_test_loss_avg(&self) -> Scalar {
         self.get_final_epoch().test_loss_avg
     }
 
-    pub fn get_final_test_loss_std(&self) -> f64 {
+    pub fn get_final_test_loss_std(&self) -> Scalar {
         self.get_final_epoch().test_loss_std
     }
 }
 
 impl EpochEvaluation {
-    pub fn new(train_loss: f64, test_loss_avg: f64, test_loss_std: f64) -> Self {
+    pub fn new(train_loss: Scalar, test_loss_avg: Scalar, test_loss_std: Scalar) -> Self {
         Self {
             train_loss,
             test_loss_avg,

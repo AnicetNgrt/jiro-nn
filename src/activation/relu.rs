@@ -1,11 +1,11 @@
-use crate::linalg::MatrixTrait;
+use crate::linalg::{MatrixTrait, Scalar};
 use super::ActivationLayer;
 
-fn relu(x: f64) -> f64 {
+fn relu(x: Scalar) -> Scalar {
     x.max(0.)
 }
 
-fn relu_prime(x: f64) -> f64 {
+fn relu_prime(x: Scalar) -> Scalar {
     if x > 0. {
         1.
     } else {

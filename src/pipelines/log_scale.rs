@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_vector};
+use crate::{linalg::Scalar, dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_vector};
 
 use super::{DataTransformation, feature_cached::FeatureExtractorCached};
 
 pub struct LogScale10 {
-    logged_features: HashMap<String, f64>
+    logged_features: HashMap<String, Scalar>
 }
 
 impl LogScale10 {
@@ -45,7 +45,7 @@ impl DataTransformation for LogScale10 {
                 }
             }),
             Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data.map_f64_column(&feature.name, |x| {
+                data.map_scalar_column(&feature.name, |x| {
                     let min = logged_features.get(&feature.name).unwrap();
                     if min <= &1.0 {
                         (min.abs() + x + 0.001).log10()
@@ -65,11 +65,11 @@ impl DataTransformation for LogScale10 {
 
         for (feature, min) in self.logged_features.iter() {
             if reversed_data.has_column(feature) {
-                reversed_data = reversed_data.map_f64_column(feature, |x| {
+                reversed_data = reversed_data.map_scalar_column(feature, |x| {
                     if min <= &1.0 {
-                        10f64.powf(x) - min.abs() - 0.001
+                        (10 as Scalar).powf(x) - min.abs() - 0.001
                     } else {
-                        10f64.powf(x)
+                        (10 as Scalar).powf(x)
                     }
                 });
             }

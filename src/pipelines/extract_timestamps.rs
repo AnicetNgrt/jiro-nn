@@ -3,6 +3,7 @@ use polars::export::chrono::{DateTime, NaiveDateTime, Utc};
 use crate::{
     dataset::{Dataset, Feature},
     datatable::DataTable,
+    linalg::Scalar,
 };
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
@@ -39,7 +40,7 @@ impl DataTransformation for ExtractTimestamps {
 
         let extract_feature = |data: &DataTable, extracted: &Feature, feature: &Feature| {
             let format = feature.date_format.clone().unwrap();
-            data.map_str_column_to_f64_column(
+            data.map_str_column_to_scalar_column(
                 &feature.name,
                 &extracted.name,
                 |date| {
@@ -47,7 +48,7 @@ impl DataTransformation for ExtractTimestamps {
                         NaiveDateTime::parse_from_str(date, &format).unwrap();
                     let timestamp: DateTime<Utc> = DateTime::from_utc(datetime, Utc);
                     let unix_seconds = timestamp.timestamp();
-                    unix_seconds as f64
+                    unix_seconds as Scalar
                 },
             )
         };

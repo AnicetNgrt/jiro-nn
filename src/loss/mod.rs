@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::linalg::Matrix;
 use crate::linalg::MatrixTrait;
+use crate::linalg::Scalar;
 
 pub mod mse;
 
@@ -18,7 +19,7 @@ impl Losses {
     }
 }
 
-pub type LossFn = fn(&Matrix, &Matrix) -> f64;
+pub type LossFn = fn(&Matrix, &Matrix) -> Scalar;
 pub type LossPrimeFn = fn(&Matrix, &Matrix) -> Matrix;
 
 pub struct Loss {
@@ -33,7 +34,7 @@ impl Loss {
 }
 
 impl Loss {
-    pub fn loss(&self, y_true: &Matrix, y_pred: &Matrix) -> f64 {
+    pub fn loss(&self, y_true: &Matrix, y_pred: &Matrix) -> Scalar {
         (self.loss)(y_true, y_pred)
     }
 
@@ -41,7 +42,7 @@ impl Loss {
         (self.derivative)(y_true, y_pred)
     }
 
-    pub fn loss_vec(&self, y_true: &Vec<Vec<f64>>, y_pred: &Vec<Vec<f64>>) -> f64 {
+    pub fn loss_vec(&self, y_true: &Vec<Vec<Scalar>>, y_pred: &Vec<Vec<Scalar>>) -> Scalar {
         let y_true = Matrix::from_row_leading_matrix(&y_true);
         let y_pred = Matrix::from_row_leading_matrix(&y_pred);
         self.loss(&y_true, &y_pred)

@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate assert_float_eq;
 
-use nn::linalg::{Matrix, MatrixTrait};
+use nn::linalg::{Matrix, MatrixTrait, Scalar};
 
 #[test]
 fn test_zeros() {
@@ -26,17 +26,17 @@ fn test_random_uniform() {
 
 #[test]
 fn test_random_normal() {
-    let mat = Matrix::random_normal(100, 100, 0.0, 1.0_f64.sqrt());
+    let mat = Matrix::random_normal(100, 100, 0.0, (1.0 as Scalar).sqrt());
     assert_eq!(mat.dim().0, 100);
     assert_eq!(mat.dim().1, 100);
     // Check that the values are roughly normally distributed
-    let mean = mat.get_data_row_leading().iter().flatten().sum::<f64>() / 10000.0;
+    let mean = mat.get_data_row_leading().iter().flatten().sum::<Scalar>() / 10000.0;
     let variance = mat
         .get_data_row_leading()
         .iter()
         .flatten()
         .map(|val| (val - mean).powi(2))
-        .sum::<f64>()
+        .sum::<Scalar>()
         / 1000.0;
 
     assert!(mean.abs() < 0.1);
@@ -68,8 +68,9 @@ fn test_from_column_vector() {
 #[test]
 fn test_from_row_vector() {
     let m = Matrix::from_row_vector(&vec![1.0, 2.0, 3.0]);
+    println!("{:?}", m.get_data_row_leading());
     assert_float_relative_eq!(m.get_data_row_leading()[0][0], 1.0, 0.00001);
-    assert_float_relative_eq!(m.get_data_row_leading()[2][0], 3.0, 0.00001);
+    assert_float_relative_eq!(m.get_data_row_leading()[0][2], 3.0, 0.00001);
 }
 
 #[test]

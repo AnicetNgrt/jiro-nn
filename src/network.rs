@@ -1,6 +1,6 @@
 use crate::{
     layer::{full_layer::FullLayer, Layer},
-    linalg::{Matrix, MatrixTrait},
+    linalg::{Matrix, Scalar, MatrixTrait},
     loss::Loss,
 };
 
@@ -18,7 +18,7 @@ impl Network {
     }
 
     /// `input` has shape `(i,)` where `i` is the number of inputs.
-    pub fn predict(&mut self, input: &Vec<f64>) -> Vec<f64> {
+    pub fn predict(&mut self, input: &Vec<Scalar>) -> Vec<Scalar> {
         self.layers.iter_mut().for_each(|l| l.disable_dropout());
 
         self.layers
@@ -31,10 +31,10 @@ impl Network {
     /// `y` has shape `(j,)` where `j` is the number of outputs.
     pub fn predict_evaluate(
         &mut self,
-        input: Vec<f64>,
-        y: Vec<f64>,
+        input: Vec<Scalar>,
+        y: Vec<Scalar>,
         loss: &Loss,
-    ) -> (Vec<f64>, f64) {
+    ) -> (Vec<Scalar>, Scalar) {
         let preds: Vec<_> = self.predict(&input);
         let loss = loss.loss_vec(&vec![y], &vec![preds.clone()]);
 
@@ -51,10 +51,10 @@ impl Network {
     /// - `std_loss` which is the standard deviation of the loss over all samples.
     pub fn predict_evaluate_many(
         &mut self,
-        inputs: &Vec<Vec<f64>>,
-        ys: &Vec<Vec<f64>>,
+        inputs: &Vec<Vec<Scalar>>,
+        ys: &Vec<Vec<Scalar>>,
         loss: &Loss,
-    ) -> (Vec<Vec<f64>>, f64, f64) {
+    ) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
         let preds_losses: Vec<_> = inputs
             .into_iter()
             .zip(ys.into_iter())
@@ -63,11 +63,11 @@ impl Network {
 
         let preds = preds_losses.iter().map(|(p, _)| p.clone()).collect();
         let losses: Vec<_> = preds_losses.iter().map(|(_, l)| *l).collect();
-        let avg_loss = losses.iter().sum::<f64>() / preds_losses.len() as f64;
+        let avg_loss = losses.iter().sum::<Scalar>() / preds_losses.len() as Scalar;
         let std_loss = losses
             .iter()
             .fold(0., |acc, x| acc + (x - avg_loss).powi(2))
-            / preds_losses.len() as f64;
+            / preds_losses.len() as Scalar;
 
         (preds, avg_loss, std_loss)
     }
@@ -80,11 +80,11 @@ impl Network {
     pub fn train(
         &mut self,
         epoch: usize,
-        x_train: &Vec<Vec<f64>>,
-        y_train: &Vec<Vec<f64>>,
+        x_train: &Vec<Vec<Scalar>>,
+        y_train: &Vec<Vec<Scalar>>,
         loss: &Loss,
         batch_size: usize,
-    ) -> f64 {
+    ) -> Scalar {
         self.layers.iter_mut().for_each(|l| l.enable_dropout());
 
         let mut error = 0.;
@@ -105,7 +105,7 @@ impl Network {
             self.layers.backward(epoch, error_gradient);
             i += 1;
         }
-        error /= i as f64;
+        error /= i as Scalar;
         error
     }
 }

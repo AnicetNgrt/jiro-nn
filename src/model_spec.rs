@@ -13,6 +13,7 @@ use crate::layer::full_layer::FullLayer;
 use crate::loss::Losses;
 use crate::network::Network;
 use crate::{activation::Activation, dataset::Dataset, optimizer::Optimizers};
+use crate::linalg::Scalar;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct ModelSpec {
@@ -30,7 +31,7 @@ pub struct LayerSpec {
     #[serde(default)]
     pub out_size: usize,
     pub activation: Activation,
-    pub dropout: Option<f64>,
+    pub dropout: Option<Scalar>,
     #[serde(default="default_weights_optimizer")]
     pub weights_optimizer: Optimizers,
     #[serde(default="default_biases_optimizer")]
@@ -116,10 +117,10 @@ impl ModelSpec {
         Network::new(layers, *sizes.first().unwrap(), *sizes.last().unwrap())
     }
 
-    pub fn preds_to_table(&self, preds: Vec<Vec<f64>>) -> DataTable {
+    pub fn preds_to_table(&self, preds: Vec<Vec<Scalar>>) -> DataTable {
         let mut table = DataTable::new_empty();
         let names = self.dataset.out_features_names();
-        let mut preds_columns: Vec<Vec<f64>> = Vec::new();
+        let mut preds_columns: Vec<Vec<Scalar>> = Vec::new();
 
         // inverse the transpose
         for i in 0..preds[0].len() {
@@ -180,7 +181,7 @@ impl ModelSpec {
 pub enum LayerOptions {
     OutSize(usize),
     Activation(Activation),
-    Dropout(Option<f64>),
+    Dropout(Option<Scalar>),
     WeightsOptimizer(Optimizers),
     BiasesOptimizer(Optimizers),
     WeightsInitializer(Initializers),

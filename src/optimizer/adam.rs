@@ -2,18 +2,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     learning_rate::{default_learning_rate, LearningRateSchedule},
-    linalg::{Matrix, MatrixTrait},
+    linalg::{Matrix, MatrixTrait, Scalar},
 };
 
-fn default_beta1() -> f64 {
+fn default_beta1() -> Scalar {
     0.9
 }
 
-fn default_beta2() -> f64 {
+fn default_beta2() -> Scalar {
     0.999
 }
 
-fn default_epsilon() -> f64 {
+fn default_epsilon() -> Scalar {
     1e-8
 }
 
@@ -21,11 +21,11 @@ fn default_epsilon() -> f64 {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Adam {
     #[serde(default = "default_beta1")]
-    beta1: f64,
+    beta1: Scalar,
     #[serde(default = "default_beta2")]
-    beta2: f64,
+    beta2: Scalar,
     #[serde(default = "default_epsilon")]
-    epsilon: f64,
+    epsilon: Scalar,
     #[serde(default = "default_learning_rate")]
     learning_rate: LearningRateSchedule,
     #[serde(skip)]
@@ -35,7 +35,7 @@ pub struct Adam {
 }
 
 impl Adam {
-    pub fn new(learning_rate: LearningRateSchedule, beta1: f64, beta2: f64, epsilon: f64) -> Self {
+    pub fn new(learning_rate: LearningRateSchedule, beta1: Scalar, beta2: Scalar, epsilon: Scalar) -> Self {
         Self {
             m: None,
             v: None,
@@ -85,7 +85,7 @@ impl Adam {
         let m_bias_corrected = m.scalar_div(1.0 - self.beta1);
         let v_bias_corrected = v.scalar_div(1.0 - self.beta2);
 
-        let v_bias_corrected = v_bias_corrected.map(f64::sqrt);
+        let v_bias_corrected = v_bias_corrected.map(Scalar::sqrt);
 
         parameters.component_sub(
             &(m_bias_corrected.scalar_mul(alpha))

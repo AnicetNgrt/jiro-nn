@@ -22,7 +22,7 @@ impl DataTransformation for FilterOutliers {
                 let vals = data.column_to_vector(&feature.name);
                 let (_, _, _, min, max) = vector_boxplot(&vals);
                 println!("Filtering outliers {:?} {:#?}", feature.name, data);
-                data = data.filter_by_f64_column(&feature.name, |x| x >= min && x <= max);
+                data = data.filter_by_scalar_column(&feature.name, |x| x >= min && x <= max);
             }
         }
         (spec.clone(), data.clone())

@@ -4,8 +4,8 @@ use xor::{train_and_test};
 
 const OUT_FILE_NAME: &'static str = "./visuals/dropout_rate.png";
 
-fn avg_error_at_epoch(epochs: usize, dropout_rate: f64, trials: usize) -> Vec<f64> {
-    let mut total_errors = Vec::<f64>::from_iter((0..epochs).map(|_| 0.));
+fn avg_error_at_epoch(epochs: usize, dropout_rate: Scalar, trials: usize) -> Vec<Scalar> {
+    let mut total_errors = Vec::<Scalar>::from_iter((0..epochs).map(|_| 0.));
     for _ in 0..trials {
         let mut network = nn(vec![2, 3, 1], vec![Activation::Tanh], vec![Optimizers::SGD(SGD::with_const_lr(0.1))]);
         network.set_dropout_rates(vec![dropout_rate * 0.1, dropout_rate].as_ref());
@@ -16,7 +16,7 @@ fn avg_error_at_epoch(epochs: usize, dropout_rate: f64, trials: usize) -> Vec<f6
         }
     }
 
-    total_errors.into_iter().map(|e| e / trials as f64).collect()
+    total_errors.into_iter().map(|e| e / trials as Scalar).collect()
 }
 
 fn main() {
@@ -40,14 +40,14 @@ fn main() {
 
     area.fill(&WHITE).unwrap();
 
-    let x_axis = (0f64..(epochs as f64)).step(1f64);
+    let x_axis = (0Scalar..(epochs as Scalar)).step(1Scalar);
     let xs = 0usize..epochs;
 
     let mut chart = ChartBuilder::on(&area)
         .margin(5)
         .set_all_label_area_size(50)
         .caption("XOR model predictions", ("sans", 20))
-        .build_cartesian_2d(x_axis.clone(), 0f64..0.3f64)
+        .build_cartesian_2d(x_axis.clone(), 0Scalar..0.3Scalar)
         .unwrap();
 
     chart
@@ -62,17 +62,17 @@ fn main() {
         .unwrap();
 
     chart
-        .draw_series(LineSeries::new(xs.clone().map(|x| (x as f64, errors_0[x])), &RED)).unwrap()
+        .draw_series(LineSeries::new(xs.clone().map(|x| (x as Scalar, errors_0[x])), &RED)).unwrap()
         .label(format!("dropout_rate = {}", dropout_rate_0))
         .legend(|(x, y)| PathElement::new([(x, y), (x + 15, y)], &RED));
 
     chart
-        .draw_series(LineSeries::new(xs.clone().map(|x| (x as f64, errors_1[x])), &BLUE)).unwrap()
+        .draw_series(LineSeries::new(xs.clone().map(|x| (x as Scalar, errors_1[x])), &BLUE)).unwrap()
         .label(format!("dropout_rate = {}", dropout_rate_1))
         .legend(|(x, y)| PathElement::new([(x, y), (x + 15, y)], &BLUE));
 
     chart
-        .draw_series(LineSeries::new(xs.clone().map(|x| (x as f64, errors_2[x])), &GREEN)).unwrap()
+        .draw_series(LineSeries::new(xs.clone().map(|x| (x as Scalar, errors_2[x])), &GREEN)).unwrap()
         .label(format!("dropout_rate = {}", dropout_rate_2))
         .legend(|(x, y)| PathElement::new([(x, y), (x + 15, y)], &GREEN));
 

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     dataset::{Dataset, Feature},
     datatable::DataTable,
+    linalg::Scalar
 };
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
@@ -17,7 +18,7 @@ pub enum MapSelector {
 }
 
 impl MapSelector {
-    pub fn find_all_corresponding(&self, data: &DataTable, column: &str) -> Vec<(f64, bool)> {
+    pub fn find_all_corresponding(&self, data: &DataTable, column: &str) -> Vec<(Scalar, bool)> {
         let mut values = Vec::new();
 
         match self {
@@ -52,7 +53,7 @@ pub enum MapOp {
 }
 
 impl MapOp {
-    pub fn apply(&self, data: &DataTable, corresponding_in: Vec<(f64, bool)>) -> Vec<f64> {
+    pub fn apply(&self, data: &DataTable, corresponding_in: Vec<(Scalar, bool)>) -> Vec<Scalar> {
         let mut values = Vec::new();
 
         match self {
@@ -86,7 +87,7 @@ pub enum MapValue {
 }
 
 impl MapValue {
-    pub fn find_all_corresponding(&self, data: &DataTable) -> Vec<f64> {
+    pub fn find_all_corresponding(&self, data: &DataTable) -> Vec<Scalar> {
         let mut values = Vec::new();
 
         match self {
@@ -96,7 +97,7 @@ impl MapValue {
                 }
             }
             MapValue::ConstantF64(value) => {
-                let value = value.parse::<f64>().unwrap();
+                let value = value.parse::<Scalar>().unwrap();
                 for _ in 0..data.num_rows() {
                     values.push(value);
                 }
@@ -158,7 +159,7 @@ impl DataTransformation for Map {
                         .apply(data, corresponding_in);
 
                     data.drop_column(&feature.name)
-                        .with_column_f64(&feature.name, &out)
+                        .with_column_scalar(&feature.name, &out)
                         .rename_column(&feature.name, &extracted.name)
                 },
             ),

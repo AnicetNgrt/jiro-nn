@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait}};
+use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait, Scalar}};
 
-fn default_momentum() -> f64 {
+fn default_momentum() -> Scalar {
     0.9
 }
 
@@ -10,7 +10,7 @@ fn default_momentum() -> f64 {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Momentum {
     #[serde(default="default_momentum")]
-    momentum: f64,
+    momentum: Scalar,
     #[serde(default="default_learning_rate")]
     learning_rate: LearningRateSchedule,
     #[serde(skip)]
@@ -18,7 +18,7 @@ pub struct Momentum {
 }
 
 impl Momentum {
-    pub fn new(learning_rate: LearningRateSchedule, momentum: f64) -> Self {
+    pub fn new(learning_rate: LearningRateSchedule, momentum: Scalar) -> Self {
         Self {
             v: None,
             momentum,

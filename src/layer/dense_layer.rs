@@ -1,5 +1,11 @@
 use crate::linalg::MatrixTrait;
-use crate::{layer::Layer, optimizer::{Optimizers, sgd::SGD}, initializers::Initializers, learning_rate::default_learning_rate, linalg::Matrix};
+use crate::{
+    initializers::Initializers,
+    layer::Layer,
+    learning_rate::default_learning_rate,
+    linalg::{Matrix, Scalar},
+    optimizer::{sgd::SGD, Optimizers},
+};
 
 pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
@@ -35,7 +41,7 @@ impl DenseLayer {
         }
     }
 
-    pub fn map_weights(&mut self, f: impl Fn(f64) -> f64 + Sync) {
+    pub fn map_weights(&mut self, f: impl Fn(Scalar) -> Scalar + Sync) {
         self.weights = self.weights.map(f);
     }
 }
@@ -50,9 +56,7 @@ impl Layer for DenseLayer {
 
         let biases = self.biases.get_column(0);
 
-        res.map_indexed_mut(|i, _, v| {
-            v + biases[i]
-        });
+        res.map_indexed_mut(|i, _, v| v + biases[i]);
 
         // Old code for fixing & comparison purposes
         //
@@ -82,8 +86,12 @@ impl Layer for DenseLayer {
 
         let input_gradient = self.weights.transpose().dot(&output_gradient);
 
-        self.weights = self.weights_optimizer.update_parameters(epoch, &self.weights, &weights_gradient);
-        self.biases = self.biases_optimizer.update_parameters(epoch, &self.biases, &biases_gradient);
+        self.weights =
+            self.weights_optimizer
+                .update_parameters(epoch, &self.weights, &weights_gradient);
+        self.biases =
+            self.biases_optimizer
+                .update_parameters(epoch, &self.biases, &biases_gradient);
 
         input_gradient
     }

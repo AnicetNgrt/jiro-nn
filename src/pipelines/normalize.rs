@@ -6,9 +6,10 @@ use crate::{
 };
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
+use crate::linalg::Scalar;
 
 pub struct Normalize {
-    pub features_min_max: HashMap<String, (f64, f64)>,
+    pub features_min_max: HashMap<String, (Scalar, Scalar)>,
 }
 
 impl Normalize {
@@ -46,7 +47,7 @@ impl DataTransformation for Normalize {
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
-        let mut features_min_max: HashMap<String, (f64, f64)> = HashMap::new();
+        let mut features_min_max: HashMap<String, (Scalar, Scalar)> = HashMap::new();
 
         for feature in spec.features.iter() {
             if feature.normalized {
