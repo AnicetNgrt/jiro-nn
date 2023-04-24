@@ -20,6 +20,11 @@ pub mod matrix;
 #[cfg(all(feature = "linalg", not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
 pub use matrix::Matrix;
 
+#[cfg(feature = "faer")]
+pub mod faer_matrix;
+#[cfg(all(feature = "faer", not(feature = "linalg"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
+pub use faer_matrix::Matrix;
+
 pub trait MatrixTrait: Clone {
     fn zeros(nrow: usize, ncol: usize) -> Self;
 

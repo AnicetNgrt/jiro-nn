@@ -881,6 +881,7 @@ dependencies = [
  "num-traits",
  "rand",
  "rand_distr",
+ "rayon",
  "simba",
  "typenum",
 ]

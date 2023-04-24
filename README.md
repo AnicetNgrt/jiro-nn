@@ -82,17 +82,22 @@ Feel free to give feedback.
 ### Linear algebra
 
 - Many backends for the Matrix type (toggled using compile-time cargo features)
-    - nalgebra (default)
+    - Feature `nalgebra` (default)
         - Fast
         - CPU-bound
-    - linalg
+    - Feature `linalg`
         - 100% custom Vec-based
         - Slow
         - CPU-bound
-    - linalg-rayon
+    - Feature `linalg-rayon`
         - linalg parallelized with rayon
         - Way faster than linalg but slower than nalgebra
         - CPU-bound
+    - Feature `faer`
+        - WIP
+        - Should be fast but for now it's on par with linalg-rayon
+        - CPU-bound
+- Toggling f64 with the `f64` feature (default is f32)
 
 ## Examples
 
