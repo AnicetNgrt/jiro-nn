@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust_nn = { path = "../../" }
+neural_networks_rust = { path = "../../" }
 gnuplot = "0.0.37"
 rand = "0.8.5"
 
 [features]
-f64 = ["rust_nn/f64"]
+f64 = ["neural_networks_rust/f64"]
 # default = ["nalgebra"]
-# nalgebra = ["rust_nn/nalgebra"]
+# nalgebra = ["neural_networks_rust/nalgebra"]

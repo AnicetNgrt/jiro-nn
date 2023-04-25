@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use rust_nn::{activation::Activation, nn, optimizer::{Optimizers, sgd::SGD}};
+use neural_networks_rust::{activation::Activation, nn, optimizer::{Optimizers, sgd::SGD}};
 use plotters::prelude::*;
 use xor::{train_and_test, test_set_accuracy};
 

@@ -1,4 +1,4 @@
-use rust_nn::{nn, activation::Activation, optimizer::{Optimizers, sgd::SGD}};
+use neural_networks_rust::{nn, activation::Activation, optimizer::{Optimizers, sgd::SGD}};
 use plotters::prelude::*;
 use xor::{train_and_test};
 

@@ -1,4 +1,4 @@
-use rust_nn::{
+use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
     model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
@@ -14,7 +14,7 @@ fn main() {
     dataset_spec
         .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
         .add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
-        //.add_opt_to("date", AddExtractedMonth)
+        .add_opt_to("date", AddExtractedMonth)
         .add_opt_to("date", AddExtractedTimestamp)
         .add_opt_to("date", Not(&UsedInModel))
         .add_opt_to(

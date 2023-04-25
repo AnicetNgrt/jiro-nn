@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 nalgebra = "*"
-rust_nn = { path = "../../" }
+neural_networks_rust = { path = "../../" }
 plotters = "0.3.4"

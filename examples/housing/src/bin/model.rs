@@ -1,7 +1,7 @@
-use rust_nn::model::Model;
-use rust_nn::pipelines::Pipeline;
-use rust_nn::pipelines::attach_ids::AttachIds;
-use rust_nn::trainers::Trainer;
+use neural_networks_rust::model::Model;
+use neural_networks_rust::pipelines::Pipeline;
+use neural_networks_rust::pipelines::attach_ids::AttachIds;
+use neural_networks_rust::trainers::Trainer;
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();

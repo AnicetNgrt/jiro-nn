@@ -4,11 +4,10 @@ use gnuplot::{
     LabelOption::Rotate,
     PlotOption::{Color, PointSymbol}, MarginSide::MarginBottom,
 };
-use rust_nn::{
+use neural_networks_rust::{
     model::Model,
     pipelines::{
-        extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
-        log_scale::LogScale10, normalize::Normalize, square::Square, Pipeline, filter_outliers::FilterOutliers, map::Map,
+        extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, normalize::Normalize, Pipeline,
     },
     vec_utils::{vector_boxplot},
 };
@@ -35,7 +34,7 @@ fn main() {
 
     let mut fg = Figure::new();
 
-    let mut axes = fg.axes2d().set_title("Box and whisker", &[]).set_margins(&[
+    let mut axes = fg.axes2d().set_title("Before and after preprocessing features boxes & whiskers", &[]).set_margins(&[
         MarginBottom(0.2)
     ]);
 
@@ -44,6 +43,9 @@ fn main() {
             .iter()
             .enumerate()
         {
+            if data.has_column(feature_name) == false {
+                continue;
+            }
             let vals = data.column_to_vector(&feature_name);
             let (q1, q2, q3, min, max) = vector_boxplot(&vals);
             let outliers = vals.into_iter()

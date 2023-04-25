@@ -1,14 +1,25 @@
-Implementing Neural Networks in Rust from scratch + utils for data manipulation as a newbie to machine learning (I never had used a ML framework before).
+# Neural Networks in Rust
 
-This was made for the purpose of my own learning. It is obviously not a good NN library by any means. 
+Implementing Neural Networks in Rust from scratch + utils for data manipulation.
+
+This was made for the purpose of my own learning. It is obviously not a production-ready library by any means. 
 
 Feel free to give feedback.
 
+## Include
+
+Add this in your project's `Cargo.toml` file:
+
+```toml
+[dependencies]
+neural_networks_rust = "*"
+```
+
 ## Code example
 
-Simple regression example:
+Simple regression workflow example:
 
-```rs
+```rust
 // Loading a model specification from JSON
 let mut model = Model::from_json_file("my_model_spec.json");
 
@@ -40,9 +51,13 @@ data_and_preds.to_file(format!("models_stats/{}.csv", config_name));
 model_eval.to_json_file(format!("models_stats/{}.json", config_name));
 ```
 
-Generating our model's specification with code:
+You can then plot the results using a third-party crate like `gnuplot` *(recommended)*, `plotly` or even `plotters`.
 
-```rs
+But first you would need to write or generate your model's specification.
+
+Here is an example generating it with code *(recommended)*:
+
+```rust
 // Including all features from some CSV dataset
 let mut dataset_spec = Dataset::from_csv("kc_house_data.csv");
 dataset_spec
@@ -186,7 +201,7 @@ model.to_json_file("my_model_spec.json");
 ### Linear algebra
 
 - Many backends for the Matrix type (toggled using compile-time cargo features)
-    - Feature `nalgebra` (default)
+    - Feature `nalgebra` (enabled by default)
         - Fast
         - CPU-bound
     - Feature `linalg`
@@ -201,49 +216,4 @@ model.to_json_file("my_model_spec.json");
         - WIP
         - Should be fast but for now it's on par with linalg-rayon
         - CPU-bound
-- Toggling f64 with the `f64` feature (default is f32)
-
-## Examples
-
-### [King County House price regression](./examples/housing/)
-
-Standard looking results by doing roughly [the same approach as a user named frederico on Kaggle using Pytorch](https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook). Involving data manipulation with pipelines, and a 8 layers of ~20 inputs each model using ReLU & Adam. Training over 300 epochs with 8 folds k-folds.
-
-Charts made with the gnuplot crate.
-
-![loss according to training epochs](examples/visuals/full_lt_8ReLU-Adam-Lin-Adam_loss.png)
-
-![prices according to predicted prices](./examples/visuals/full_lt_8ReLU-Adam-Lin-Adam_price.png)
-
-![prices & predicted prices according to lat & long](examples/visuals/full_lt_8ReLU-Adam-Lin-Adam_latlong.png)
-
-
-### [XOR function (deprecated example)](./examples/xor%5Bdeprecated%5D/)
-
-Standard looking results. 
-
-Charts made with the plotters crate.
-
-![dropout rates](examples/visuals/dropout_rate.png)
-
-![learning rate decays](examples/visuals/learning_rate_decay.png)
-
-![dropout rates](examples/visuals/xor-example-predictions.png)
-
-### [Backend benchmarking](./examples/benchmark/)
-
-Compute speed benchmark of the Matrix backends by trying to learn the following function + some Gaussian noise with 1024 params inputs:
-
-```rs
-pub fn f(x: &Vec<f64>) -> Vec<f64> {
-    let mut res = vec![0.];
-
-    for i in 0..x.len() {
-        res[0] *= (x[i]).sin();
-    }
-
-    res
-}
-```
-
-[Results available there](./examples/benchmark/results/).
+- Switching from `f32` (default) to `f64`-backed `Scalar` type with the `f64` feature

@@ -1,6 +1,6 @@
 use std::thread;
 
-use rust_nn::{nn, activation::Activation, network::Network, optimizer::{sgd::SGD, Optimizers}};
+use neural_networks_rust::{nn, activation::Activation, network::Network, optimizer::{sgd::SGD, Optimizers}};
 use xor::train_and_test;
 
 pub fn score(mut network: &mut Network, epochs: usize, trials: usize) -> Scalar {

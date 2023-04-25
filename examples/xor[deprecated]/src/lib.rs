@@ -1,4 +1,4 @@
-use rust_nn::{
+use neural_networks_rust::{
     network::Network, loss::mse
 };
 

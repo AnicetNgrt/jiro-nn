@@ -596,8 +596,8 @@ name = "housing"
 version = "0.1.0"
 dependencies = [
  "gnuplot",
+ "neural_networks_rust",
  "rand",
- "rust_nn",
 ]
 
 [[package]]
@@ -907,6 +907,23 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "neural_networks_rust"
+version = "0.1.0"
+dependencies = [
+ "assert_float_eq",
+ "libm",
+ "nalgebra",
+ "nalgebra-glm",
+ "polars",
+ "rand",
+ "rand_distr",
+ "serde",
+ "serde-aux",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1411,23 +1428,6 @@ name = "regex-syntax"
 version = "0.6.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
-
-[[package]]
-name = "rust_nn"
-version = "0.1.0"
-dependencies = [
- "assert_float_eq",
- "libm",
- "nalgebra",
- "nalgebra-glm",
- "polars",
- "rand",
- "rand_distr",
- "serde",
- "serde-aux",
- "serde_json",
- "sha2",
-]
 
 [[package]]
 name = "rustc_version"

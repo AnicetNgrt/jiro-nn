@@ -1,5 +1,5 @@
 use gnuplot::{Figure, PlotOption::{Color, Caption, PointSize}, AxesCommon};
-use rust_nn::{datatable::DataTable};
+use neural_networks_rust::{datatable::DataTable};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
