@@ -23,6 +23,10 @@ keywords = [
     "statistics",
 ]
 categories = ["science"]
+exclude = [
+    ".vscode/*",
+    "examples/**/*",
+]
 
 [dependencies]
 nalgebra-glm = "0.18.0"
