@@ -151,7 +151,9 @@
     "weights_initializer": "GlorotUniform"
   },
   "batch_size": 128,
-  "folds": 8,
+  "trainer": {
+    "KFolds": 8
+  },
   "dataset": {
     "name": "kc_house_data",
     "features": [

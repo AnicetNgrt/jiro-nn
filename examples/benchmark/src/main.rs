@@ -1,6 +1,6 @@
 use std::{ops::Add, time::Instant};
 
-use nn::{
+use rust_nn::{
     activation::Activation,
     datatable::DataTable,
     layer::{

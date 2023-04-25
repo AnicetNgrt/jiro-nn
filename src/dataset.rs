@@ -166,6 +166,15 @@ impl Dataset {
         }
         dataset
     }
+
+    pub fn get_id_column(&self) -> Option<&str> {
+        for feature in &self.features {
+            if feature.is_id {
+                return Some(feature.name.as_str());
+            }
+        }
+        None
+    }
 }
 
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]

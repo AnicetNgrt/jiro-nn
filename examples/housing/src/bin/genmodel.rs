@@ -1,9 +1,9 @@
-use nn::{
+use rust_nn::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
-    model_spec::{LayerOptions::*, LayerSpec, ModelOptions::*, ModelSpec},
+    model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
     optimizer::{adam},
-    pipelines::map::{MapOp, MapSelector, MapValue},
+    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
 };
 
 fn main() {
@@ -51,12 +51,12 @@ fn main() {
         Optimizer(adam()),
     ]);
 
-    let model = ModelSpec::from_options(&[
+    let model = Model::from_options(&[
         Dataset(dataset_spec),
         HiddenLayers(layers.as_slice()),
         FinalLayer(final_layer),
         BatchSize(128),
-        Folds(8),
+        Trainer(Trainers::KFolds(8)),
         Epochs(300),
     ]);
 
