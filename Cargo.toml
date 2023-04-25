@@ -6,6 +6,22 @@ license = "MIT OR Apache-2.0"
 description = "Neural Networks framework with model specification & data preprocessing features."
 readme = "README.md"
 repository = "https://github.com/AnicetNgrt/neural_networks_rust"
+keywords = [
+    "machine learning",
+    "neural networks",
+    "ml",
+    "nn",
+    "adam",
+    "gradient descent",
+    "sgd",
+    "backpropagation",
+    "data pipeline",
+    "data science",
+    "data analysis",
+    "regression",
+    "linear algebra",
+    "statistics",
+]
 
 [dependencies]
 nalgebra-glm = "0.18.0"
