@@ -22,6 +22,7 @@ keywords = [
     "linear algebra",
     "statistics",
 ]
+categories = ["science"]
 
 [dependencies]
 nalgebra-glm = "0.18.0"
