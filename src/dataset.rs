@@ -12,6 +12,7 @@ pub struct Dataset {
 }
 
 impl Dataset {
+    /// Create a new dataset with a new feature added.
     pub fn with_added_feature(&self, feature: Feature) -> Self {
         let mut features = self.features.clone();
         features.push(feature);
@@ -21,6 +22,7 @@ impl Dataset {
         }
     }
 
+    /// Create a new dataset with a feature replaced.
     pub fn with_replaced_feature(&self, old_feature_name: &str, feature: Feature) -> Self {
         let mut features = self.features.clone();
         let index = features
@@ -42,6 +44,7 @@ impl Dataset {
         names
     }
 
+    /// Return the names of the features that are not specified as outputs.
     pub fn in_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
@@ -52,6 +55,7 @@ impl Dataset {
         names
     }
 
+    /// Return the names of the features that are specified as outputs.
     pub fn out_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
@@ -62,6 +66,7 @@ impl Dataset {
         names
     }
 
+    /// Return the names of the features that are specified as outputs with a `"pred"` prefix added.
     pub fn pred_out_features_names(&self) -> Vec<String> {
         let mut names = Vec::new();
         for feature in &self.features {
@@ -79,6 +84,7 @@ impl Dataset {
         }
     }
 
+    /// Create a new dataset from a csv file by adding all its columns as default features.
     pub fn from_csv<P: Into<PathBuf>>(path: P) -> Self {
         let path = Into::<PathBuf>::into(path);
         
@@ -110,6 +116,7 @@ impl Dataset {
         self
     }
 
+    /// The `add_opt_to` method adds a `FeatureOptions` to a specific feature in the dataset.
     pub fn add_opt_to(&mut self, feature_name: &str, option: FeatureOptions) -> &mut Self {
         for feature in &mut self.features {
             if feature.name == feature_name {
@@ -119,6 +126,7 @@ impl Dataset {
         self
     }
 
+    /// The `add_opt` method adds a `FeatureOptions` to all features in the dataset.
     pub fn add_opt(&mut self, option: FeatureOptions) -> &mut Self {
         for feature in &mut self.features {
             option.apply(feature);
@@ -130,25 +138,8 @@ impl Dataset {
     /// 
     /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureOptions` representing the individual features to be included in the dataset. The `FeatureOptions` for each feature specify how that feature should be preprocessed before being included in the dataset.
     /// 
-    /// The possible `FeatureOptions` are:
+    /// See the `FeatureOptions` documentation for more information on the available options.
     /// 
-    /// - `Name`: The name of the feature (a string).
-    /// - `Out`: Whether the feature is the target variable (a boolean).
-    /// - `DateFormat`: The format of the date if the feature is a date (a string).
-    /// - `ToTimestamp`: Whether to convert the feature to a Unix timestamp if the feature is a date (a boolean).
-    /// - `ExtractMonth`: Whether to extract the month from the date if the feature is a date (a boolean).
-    /// - `Log10`: Whether to apply the base-10 logarithm transformation to the feature (a boolean).
-    /// - `Normalized`: Whether to normalize the feature to have zero mean and unit variance (a boolean).
-    /// - `FilterOutliers`: Whether to filter out outliers using the median absolute deviation (a boolean).
-    /// - `Squared`: Whether to add a feature representing the squared value of the feature (a boolean).
-    /// - `UsedInModel`: Whether the feature is used in the model (a boolean).
-    /// - `IsId`: Whether the feature is an identifier (a boolean).
-    /// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a collection of `FeatureOptions`).
-    /// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted timestamp feature extraction from that feature (a collection of `FeatureOptions`).
-    /// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a collection of `FeatureOptions`).
-    /// - `AddFeatureNormalized`: Enables and specifies the normalized feature extraction from that feature (a collection of `FeatureOptions`).
-    /// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a collection of `FeatureOptions`).
-    ///
     /// Example:
     /// 
     /// ```
@@ -211,44 +202,7 @@ pub struct Feature {
 impl Feature {
     /// The `from_options` method is a constructor function for creating a `Feature` object from a list of `FeatureOptions`.
     ///
-    /// **Feature description options**:
-    /// 
-    /// - `Name`: The name of the feature.
-    /// - `UsedInModel`: Disables the pruning of the feature at the end of the pipeline. All features are used in the model by default.
-    /// - `Out`: Sets the feature as an output feature. All features are input features by default.
-    /// - `IsId`: Identifies the feature as an id. All features are not ids by default.
-    /// - `DateFormat`: The date format to use for date/time features.
-    ///
-    /// **Feature replacement/mapping options**:
-    /// 
-    /// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
-    /// - `ExtractMonth`: Enables conversion of the date/time to it's month. Requires the feature to have a `DateFormat` specified.
-    /// - `Log10`: Enables applying base-10 logarithm to the feature.
-    /// - `Normalized`: Enables normalizing the feature.
-    /// - `FilterOutliers`: Enables filtering outliers from the feature.
-    /// - `Squared`: Enables squaring the feature.
-    /// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
-    ///
-    /// **Automatic feature extraction options**:
-    ///
-    /// - `AddExtractedMonth`: Enables the extracted month feature extraction from that feature. The extracted feature will be named `"<feature_name>_month"`.
-    /// - `AddExtractedTimestamp`: Enables the extracted Unix timestamp feature extraction from that feature. The extracted feature will be named `"<feature_name>_timestamp"`.
-    /// - `AddLog10`: Enables the extracted base-10 logarithm feature extraction from that feature. The extracted feature will be named `"log10(<feature_name>)"`.
-    /// - `AddNormalized`: Enables the extracted normalized feature extraction from that feature. The extracted feature will be named `"<feature_name>_normalized"`.
-    /// - `AddSquared`: Enables the extracted squared feature extraction from that feature. The extracted feature will be named `"<feature_name>^2"`.
-    ///
-    /// **"Semi-automatic" feature extraction options**:
-    ///
-    /// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureOptions`).
-    /// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureOptions`).
-    /// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureOptions`).
-    /// - `AddFeatureNormalized`: Enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureOptions`).
-    /// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
-    ///
-    /// **Meta options**:
-    /// 
-    /// - `Not`: Negates the effect of the following option.
-    /// - Some others that are internal and should not be used there.
+    /// See the documentation for `FeatureOptions` for more information on available options.
 
     pub fn from_options(feature_options: &[FeatureOptions]) -> Self {
         let mut feature = Feature::default();
@@ -280,37 +234,107 @@ impl Feature {
     }
 }
 
+
+/// **Feature description options**:
+/// 
+/// - `Name`: The name of the feature.
+/// - `UsedInModel`: Disables the pruning of the feature at the end of the pipeline. All features are used in the model by default.
+/// - `Out`: Sets the feature as an output feature. All features are input features by default.
+/// - `IsId`: Identifies the feature as an id. All features are not ids by default.
+/// - `DateFormat`: The date format to use for date/time features.
+///
+/// **Feature replacement/mapping options**:
+/// 
+/// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
+/// - `ExtractMonth`: Enables conversion of the date/time to it's month. Requires the feature to have a `DateFormat` specified.
+/// - `Log10`: Enables applying base-10 logarithm to the feature.
+/// - `Normalized`: Enables normalizing the feature.
+/// - `FilterOutliers`: Enables filtering outliers from the feature.
+/// - `Squared`: Enables squaring the feature.
+/// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+///
+/// **Feature row filtering options**:
+/// 
+/// - `FilterOutliers`: Enables filtering outlier rows from the feature's column using Tukey's fence method.
+/// 
+/// **Automatic feature extraction options**:
+///
+/// - `AddExtractedMonth`: Enables the extracted month feature extraction from that feature. The extracted feature will be named `"<feature_name>_month"`.
+/// - `AddExtractedTimestamp`: Enables the extracted Unix timestamp feature extraction from that feature. The extracted feature will be named `"<feature_name>_timestamp"`.
+/// - `AddLog10`: Enables the extracted base-10 logarithm feature extraction from that feature. The extracted feature will be named `"log10(<feature_name>)"`.
+/// - `AddNormalized`: Enables the extracted normalized feature extraction from that feature. The extracted feature will be named `"<feature_name>_normalized"`.
+/// - `AddSquared`: Enables the extracted squared feature extraction from that feature. The extracted feature will be named `"<feature_name>^2"`.
+///
+/// **"Semi-automatic" feature extraction options**:
+///
+/// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureOptions`).
+/// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureOptions`).
+/// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureOptions`).
+/// - `AddFeatureNormalized`: Enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureOptions`).
+/// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
+///
+/// **Meta options**:
+/// 
+/// - `Not`: Negates the effect of the following option.
+/// - Some others that are internal and should not be used there.
 #[derive(Debug)]
 pub enum FeatureOptions<'a> {
+    /// The `Name` option specifies the name of the feature.
     Name(&'a str),
+    /// The `Out` option specifies that the feature is an output feature.
     Out,
+    /// The `DateFormat` option specifies the date format to use for date/time features.
     DateFormat(&'a str),
+    /// The `ToTimestamp` option enables conversion of the date/time feature to a Unix timestamp.
     ToTimestamp,
+    /// The `ExtractMonth` option enables conversion of the date/time to it's month.
     ExtractMonth,
+    /// The `Log10` option enables applying base-10 logarithm to the feature.
     Log10,
+    /// The `Normalized` option enables normalizing the feature.
     Normalized,
+    /// The `FilterOutliers` option enables filtering outliers from the feature using Tukey's fence method.
     FilterOutliers,
+    /// The `Squared` option enables squaring the feature.
     Squared,
+    /// The `UsedInModel` option enables the feature in the model.
     UsedInModel,
+    /// The `IsId` option identifies the feature as an id.
     IsId,
+    /// The `AddExtractedMonth` option enables the extracted month feature extraction from that feature.
     AddExtractedMonth,
+    /// The `AddExtractedTimestamp` option enables the extracted Unix timestamp feature extraction from that feature.
     AddExtractedTimestamp,
+    /// The `AddLog10` option enables the extracted base-10 logarithm feature extraction from that feature.
     AddLog10,
+    /// The `AddNormalized` option enables the extracted normalized feature extraction from that feature.
     AddNormalized,
+    /// The `AddSquared` option enables the extracted squared feature extraction from that feature.
     AddSquared,
+    /// The `Mapped` option enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
     AddFeatureExtractedMonth(&'a [FeatureOptions<'a>]),
+    /// The `AddFeatureExtractedTimestamp` option enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureOptions`).
     AddFeatureExtractedTimestamp(&'a [FeatureOptions<'a>]),
+    /// The `AddFeatureLog10` option enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureOptions`).
     AddFeatureLog10(&'a [FeatureOptions<'a>]),
+    /// The `AddFeatureNormalized` option enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureOptions`).
     AddFeatureNormalized(&'a [FeatureOptions<'a>]),
+    /// The `AddFeatureSquared` option enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
     AddFeatureSquared(&'a [FeatureOptions<'a>]),
+    /// The `Mapped` option enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
     Mapped(MapSelector, MapOp),
+    /// The `Not` option negates the effect of the following option.
     Not(&'a FeatureOptions<'a>),
+    /// The `RecurseAdded` option enables the feature option to be applied to all added features extracted from the feature option.
     RecurseAdded(&'a FeatureOptions<'a>),
+    /// The `ExceptFeatures` option enables the feature option to be applied to all features except some features.
     ExceptFeatures(&'a FeatureOptions<'a>, &'a [&'a str]),
+    /// The `OnlyFeatures` option enables the feature option to be applied to only some features.
     OnlyFeatures(&'a FeatureOptions<'a>, &'a [&'a str])
 }
 
 impl<'a> FeatureOptions<'a> {
+    /// Applies the feature option to the feature.
     pub fn apply(&self, feature: &mut Feature) {
         self.apply_bool(feature, true)
     }
