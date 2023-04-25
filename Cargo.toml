@@ -7,19 +7,19 @@ description = "Neural Networks framework with model specification & data preproc
 readme = "README.md"
 repository = "https://github.com/AnicetNgrt/neural_networks_rust"
 keywords = [
-    "machine learning",
-    "neural networks",
+    "machine-learning",
+    "neura-networks",
     "ml",
     "nn",
     "adam",
-    "gradient descent",
+    "gradient-descent",
     "sgd",
     "backpropagation",
-    "data pipeline",
-    "data science",
-    "data analysis",
+    "data-pipeline",
+    "data-science",
+    "data-analysis",
     "regression",
-    "linear algebra",
+    "linear-algebra",
     "statistics",
 ]
 categories = ["science"]
