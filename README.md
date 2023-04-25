@@ -6,7 +6,7 @@ Feel free to give feedback.
 
 ## Example
 
-Loading a model specification from JSON, applying a data pipeline on it according to its specification, training it using k-fold cross validation, extracting test & training metrics per folds & per epochs, extracting all the predictions made at last epoch on each fold. Saving it all to disk.
+Simple regression example:
 
 ```rs
 // Loading a model specification from JSON
