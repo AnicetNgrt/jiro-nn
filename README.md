@@ -47,8 +47,8 @@ let data = pipeline.revert_columnswise(&data);
 let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
 
 // Saving it all to disk
-data_and_preds.to_file(format!("models_stats/{}.csv", config_name));
-model_eval.to_json_file(format!("models_stats/{}.json", config_name));
+data_and_preds.to_file("my_model_preds.csv");
+model_eval.to_json_file("my_model_evals.json");
 ```
 
 You can then plot the results using a third-party crate like `gnuplot` *(recommended)*, `plotly` or even `plotters`.
