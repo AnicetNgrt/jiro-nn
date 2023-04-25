@@ -1,13 +1,5 @@
 use rust_nn::model::Model;
-use rust_nn::pipelines::attach_ids::AttachIds;
-use rust_nn::pipelines::extract_months::ExtractMonths;
-use rust_nn::pipelines::extract_timestamps::ExtractTimestamps;
-use rust_nn::pipelines::filter_outliers::FilterOutliers;
-use rust_nn::pipelines::log_scale::LogScale10;
-use rust_nn::pipelines::map::Map;
-use rust_nn::pipelines::normalize::Normalize;
 use rust_nn::pipelines::Pipeline;
-use rust_nn::pipelines::square::Square;
 use rust_nn::trainers::Trainer;
 
 pub fn main() {
@@ -16,17 +8,8 @@ pub fn main() {
 
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
 
-    let mut pipeline = Pipeline::new();
-    let (updated_dataset_spec, data) = pipeline
-        .add(AttachIds::new("id"))
-        .add(ExtractMonths)
-        .add(ExtractTimestamps)
-        .add(Map::new())
-        .add(LogScale10::new())
-        .add(Square::new())
-        .add(FilterOutliers)
-        .add(Normalize::new())
-        .run("./dataset", &model.dataset);
+    let mut pipeline = Pipeline::basic_single_pass();
+    let (updated_dataset_spec, data) = pipeline.run("./dataset", &model.dataset);
 
     println!("data: {:#?}", data);
 

@@ -13,17 +13,8 @@ Simple regression example:
 let mut model = Model::from_json_file("my_model_spec.json");
 
 // Applying a data pipeline on it according to its dataset specification
-let mut pipeline = Pipeline::new();
-let (updated_dataset_spec, data) = pipeline
-    .add(AttachIds::new("id"))
-    .add(ExtractMonths)
-    .add(ExtractTimestamps)
-    .add(Map::new())
-    .add(LogScale10::new())
-    .add(Square::new())
-    .add(FilterOutliers)
-    .add(Normalize::new())
-    .run("./caching_dir", &model.dataset);
+let mut pipeline = Pipeline::basic_single_pass();
+let (updated_dataset_spec, data) = pipeline.run("./caching_dir", &model.dataset);
 
 let model = model.with_new_dataset(updated_dataset_spec);
 

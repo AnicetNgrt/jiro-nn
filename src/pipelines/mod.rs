@@ -2,6 +2,8 @@ use std::{rc::Rc, cell::RefCell, hash::{Hash, Hasher}, collections::hash_map::De
 
 use crate::{dataset::Dataset, datatable::DataTable};
 
+use self::{attach_ids::AttachIds, extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, map::Map, log_scale::LogScale10, square::Square, filter_outliers::FilterOutliers, normalize::Normalize};
+
 pub mod feature_cached;
 pub mod normalize;
 pub mod log_scale;
@@ -21,6 +23,34 @@ impl Pipeline {
         Pipeline {
             transformations: Vec::new(),
         }
+    }
+
+    /// Creates a pipeline that does every possible operations once.
+    ///
+    /// This may not fit your exact usecase, but it's a good starting point.
+    /// 
+    /// The pipeline is:
+    /// - Extract months if required
+    /// - Extract timestamps if required
+    /// - Map values if required
+    /// - Log scale if required
+    /// - Square values if required
+    /// - Filter outliers if required
+    /// - Normalize values if required
+    /// 
+    pub fn basic_single_pass() -> Pipeline {
+        let mut pipeline = Pipeline::new();
+        pipeline
+            .add(AttachIds::new("id"))
+            .add(ExtractMonths)
+            .add(ExtractTimestamps)
+            .add(Map::new())
+            .add(LogScale10::new())
+            .add(Square::new())
+            .add(FilterOutliers)
+            .add(Normalize::new());
+        
+        pipeline
     }
 
     pub fn add_shared(&mut self, transformation: Rc<RefCell<dyn DataTransformation>>) -> &mut Pipeline {
