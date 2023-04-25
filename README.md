@@ -4,6 +4,49 @@ This was made for the purpose of my own learning. It is obviously not a good NN 
 
 Feel free to give feedback.
 
+## Example
+
+Loading a model specification from JSON, applying a data pipeline on it according to its specification, training it using k-fold cross validation, extracting test & training metrics per folds & per epochs, extracting all the predictions made at last epoch on each fold. Saving it all to disk.
+
+```rs
+// Loading a model specification from JSON
+let mut model = Model::from_json_file("my_model_spec.json");
+
+// Applying a data pipeline on it according to its specification
+let mut pipeline = Pipeline::new();
+let (updated_dataset_spec, data) = pipeline
+    .add(AttachIds::new("id"))
+    .add(ExtractMonths)
+    .add(ExtractTimestamps)
+    .add(Map::new())
+    .add(LogScale10::new())
+    .add(Square::new())
+    .add(FilterOutliers)
+    .add(Normalize::new())
+    .run("./caching_dir", &model.dataset);
+
+let model = model.with_new_dataset(updated_dataset_spec);
+
+// Training it using k-fold cross validation
+// + extracting test & training metrics per folds & per epochs
+// + extracting all predictions made during final epoch
+let kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
+let (validation_preds, model_eval) = kfold
+    .attach_real_time_reporter(|report| println!("Perf report: {:#?}", report))
+    .run(&model, &data);
+
+// Reverting the pipeline on the predictions & data to get interpretable values
+let validation_preds = pipeline.revert_columnswise(&validation_preds);
+let data = pipeline.revert_columnswise(&data);
+
+// Joining the data and the predictions together
+let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
+
+// Saving it all to disk
+data_and_preds.to_file(format!("models_stats/{}.csv", config_name));
+model_eval.to_json_file(format!("models_stats/{}.json", config_name));
+```
+
 ## Working features
 
 ### Neural Networks
@@ -41,6 +84,8 @@ Feel free to give feedback.
 
 ### Models utils
 
+- Abstractions over training
+    - KFolds + model benchmarking in a few LoC
 - Model specification
     - Simple API to create as code
     - From/to JSON conversion
