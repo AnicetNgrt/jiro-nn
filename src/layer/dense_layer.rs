@@ -2,9 +2,8 @@ use crate::linalg::MatrixTrait;
 use crate::{
     initializers::Initializers,
     layer::Layer,
-    learning_rate::default_learning_rate,
     linalg::{Matrix, Scalar},
-    optimizer::{sgd::SGD, Optimizers},
+    optimizer::{sgd, Optimizers},
 };
 
 pub struct DenseLayer {
@@ -106,9 +105,9 @@ pub fn default_weights_initializer() -> Initializers {
 }
 
 pub fn default_biases_optimizer() -> Optimizers {
-    Optimizers::SGD(SGD::new(default_learning_rate()))
+    sgd()
 }
 
 pub fn default_weights_optimizer() -> Optimizers {
-    Optimizers::SGD(SGD::new(default_learning_rate()))
+    sgd()
 }

@@ -10,7 +10,7 @@ use nn::{
     linalg::{Matrix, MatrixTrait, Scalar},
     loss::Losses,
     network::Network,
-    optimizer::Optimizers,
+    optimizer::{adam},
 };
 
 pub fn f(x: &Vec<Scalar>) -> Vec<Scalar> {
@@ -44,8 +44,8 @@ fn main() {
             DenseLayer::new(
                 in_size,
                 out_size,
-                Optimizers::adam_default(),
-                Optimizers::adam_default(),
+                adam(),
+                adam(),
                 default_weights_initializer(),
                 default_biases_initializer(),
             ),

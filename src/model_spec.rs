@@ -42,6 +42,20 @@ pub struct LayerSpec {
     pub weights_initializer: Initializers,
 }
 
+/// Options to be used in order to build a `Model` struct with the `from_options` method.
+///
+/// **Required options**:
+///
+/// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
+/// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
+/// - `Dataset`: The dataset to be used for training (a variant of the `Dataset` enum).
+///
+/// **Optional options**:
+/// 
+/// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
+/// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
+/// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
+/// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
 pub enum ModelOptions<'a> {
     Epochs(usize),
     Loss(Losses),
@@ -117,6 +131,7 @@ impl ModelSpec {
         Network::new(layers, *sizes.first().unwrap(), *sizes.last().unwrap())
     }
 
+    /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
     pub fn preds_to_table(&self, preds: Vec<Vec<Scalar>>) -> DataTable {
         let mut table = DataTable::new_empty();
         let names = self.dataset.out_features_names();
@@ -139,19 +154,7 @@ impl ModelSpec {
 
     /// The `from_options` method is a constructor function for creating a `ModelSpec` object from a list of `ModelOptions`.
     /// 
-    /// **Required options**:
-    ///
-    /// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
-    /// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
-    /// - `Dataset`: The dataset to be used for training (a variant of the `Dataset` enum).
-    ///
-    /// **Optional options**:
-    /// 
-    /// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
-    /// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
-    /// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
-    /// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
-
+    /// See the `ModelOptions` enum for more information.
     pub fn from_options(options: &[ModelOptions]) -> ModelSpec {
         let mut spec = ModelSpec::default();
         for option in options {
@@ -181,6 +184,21 @@ impl ModelSpec {
     }
 }
 
+/// Options to be used in order to specify the properties of a layer.
+///
+/// **Required options**:
+/// 
+/// - `OutSize`: The size of the output layer.
+///
+/// **Optional options**:
+///
+/// - `Activation`: The activation function to be used (a variant of the `Activation` enum). If ommited defaults to `Activation::Linear`.
+/// - `Dropout`: The dropout rate (an optional float). If ommited defaults to `None`.
+/// - `WeightsOptimizer`: The optimizer to be used for updating the weights (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
+/// - `BiasesOptimizer`: The optimizer to be used for updating the biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
+/// - `Optimizer`: The optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
+/// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum). If ommited defaults to `initializer::GlorotUniform`.
+/// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum). If ommited defaults to `initializer::Zeros`.
 pub enum LayerOptions {
     OutSize(usize),
     Activation(Activation),
@@ -196,17 +214,7 @@ impl LayerSpec {
 
     /// The `from_options` method is a constructor function for creating a `LayerSpec` object from a list of `LayerOptions`.
     /// 
-    /// The possible options are:
-    /// 
-    /// - `OutSize`: The size of the output layer (an integer).
-    /// - `Activation`: The activation function to be used (a variant of the `Activation` enum).
-    /// - `Dropout`: The dropout rate (an optional float).
-    /// - `WeightsOptimizer`: The optimizer to be used for updating the weights (a variant of the `Optimizers` enum).
-    /// - `BiasesOptimizer`: The optimizer to be used for updating the biases (a variant of the `Optimizers` enum).
-    /// - `Optimizer`: The optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum).
-    /// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum).
-    /// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum).
-
+    /// See the `LayerOptions` enum for more information.
     pub fn from_options(options: &[LayerOptions]) -> LayerSpec {
         let mut spec = LayerSpec::default();
         for option in options {
