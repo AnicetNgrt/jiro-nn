@@ -48,7 +48,7 @@ pub struct LayerSpec {
 ///
 /// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
 /// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
-/// - `Dataset`: The dataset to be used for training (a variant of the `Dataset` enum).
+/// - `Dataset`: The dataset to be used for training (a `Dataset` object).
 ///
 /// **Optional options**:
 /// 
@@ -57,12 +57,19 @@ pub struct LayerSpec {
 /// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
 /// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
 pub enum ModelOptions<'a> {
+    /// The number of epochs to train for. If ommited, defaults to `100`.
     Epochs(usize),
+    /// The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
     Loss(Losses),
+    /// The hidden layers of the model (an array of `LayerSpec` objects).
     HiddenLayers(&'a [LayerSpec]),
+    /// The final layer of the model (a `LayerSpec` object).
     FinalLayer(LayerSpec),
+    /// The batch size to be used during training. If ommited, defaults to the size of the dataset.
     BatchSize(usize),
+    /// The number of folds to be used during cross-validation. If ommited, defaults to `10`.
     Folds(usize),
+    /// The dataset to be used for training (a `Dataset` object).
     Dataset(Dataset),
 }
 
@@ -200,13 +207,21 @@ impl ModelSpec {
 /// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum). If ommited defaults to `initializer::GlorotUniform`.
 /// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum). If ommited defaults to `initializer::Zeros`.
 pub enum LayerOptions {
+    /// The `OutSize` option specifies the size of the output layer.
     OutSize(usize),
+    /// The `Activation` option specifies the activation function to be used (a variant of the `Activation` enum). If ommited defaults to `Activation::Linear`.
     Activation(Activation),
+    /// The `Dropout` option specifies the dropout rate (an optional float). If ommited defaults to `None`.
     Dropout(Option<Scalar>),
+    /// The `WeightsOptimizer` option specifies the optimizer to be used for updating the weights (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
     WeightsOptimizer(Optimizers),
+    /// The `BiasesOptimizer` option specifies the optimizer to be used for updating the biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
     BiasesOptimizer(Optimizers),
+    /// The `Optimizer` option specifies the optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
     Optimizer(Optimizers),
+    /// The `WeightsInitializer` option specifies the initializer to be used for initializing the weights (a variant of the `Initializers` enum). If ommited defaults to `initializer::GlorotUniform`.
     WeightsInitializer(Initializers),
+    /// The `BiasesInitializer` option specifies the initializer to be used for initializing the biases (a variant of the `Initializers` enum). If ommited defaults to `initializer::Zeros`.
     BiasesInitializer(Initializers),
 }
 

@@ -234,7 +234,8 @@ impl Feature {
     }
 }
 
-
+/// Options to be used to describe a feature and its related preprocessing.
+///
 /// **Feature description options**:
 /// 
 /// - `Name`: The name of the feature.

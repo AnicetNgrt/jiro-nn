@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate assert_float_eq;
 
-use nn::linalg::{Matrix, MatrixTrait, Scalar};
+use rust_nn::linalg::{Matrix, MatrixTrait, Scalar};
 
 #[test]
 fn test_zeros() {

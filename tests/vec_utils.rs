@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate assert_float_eq;
 
-use nn::vec_utils::*;
+use rust_nn::vec_utils::*;
 
 #[test]
 fn test_avg_vector_empty() {
