@@ -1,4 +1,4 @@
-use nn::{nn, activation::Activation, optimizer::{Optimizers, sgd::SGD}};
+use rust_nn::{nn, activation::Activation, optimizer::{Optimizers, sgd::SGD}};
 use plotters::prelude::*;
 use xor::{train_and_test};
 

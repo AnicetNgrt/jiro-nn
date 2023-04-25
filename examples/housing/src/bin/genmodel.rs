@@ -1,4 +1,4 @@
-use nn::{
+use rust_nn::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
     model_spec::{LayerOptions::*, LayerSpec, ModelOptions::*, ModelSpec},

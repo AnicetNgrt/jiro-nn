@@ -1,4 +1,4 @@
-use nn::{
+use rust_nn::{
     network::Network, loss::mse
 };
 

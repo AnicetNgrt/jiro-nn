@@ -1,18 +1,18 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use nn::benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation};
-use nn::datatable::DataTable;
-use nn::model_spec::ModelSpec;
-use nn::pipelines::attach_ids::AttachIds;
-use nn::pipelines::extract_months::ExtractMonths;
-use nn::pipelines::extract_timestamps::ExtractTimestamps;
-use nn::pipelines::filter_outliers::FilterOutliers;
-use nn::pipelines::log_scale::LogScale10;
-use nn::pipelines::map::Map;
-use nn::pipelines::normalize::Normalize;
-use nn::pipelines::Pipeline;
-use nn::pipelines::square::Square;
+use rust_nn::benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation};
+use rust_nn::datatable::DataTable;
+use rust_nn::model_spec::ModelSpec;
+use rust_nn::pipelines::attach_ids::AttachIds;
+use rust_nn::pipelines::extract_months::ExtractMonths;
+use rust_nn::pipelines::extract_timestamps::ExtractTimestamps;
+use rust_nn::pipelines::filter_outliers::FilterOutliers;
+use rust_nn::pipelines::log_scale::LogScale10;
+use rust_nn::pipelines::map::Map;
+use rust_nn::pipelines::normalize::Normalize;
+use rust_nn::pipelines::Pipeline;
+use rust_nn::pipelines::square::Square;
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();

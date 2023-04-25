@@ -4,7 +4,7 @@ use gnuplot::{
     LabelOption::Rotate,
     PlotOption::{Color, PointSymbol}, MarginSide::MarginBottom,
 };
-use nn::{
+use rust_nn::{
     model_spec::ModelSpec,
     pipelines::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,

@@ -1,5 +1,5 @@
 use gnuplot::{Figure, AxesCommon, PlotOption::{Color, Caption, FillAlpha, LineStyle}};
-use nn::{benchmarking::ModelEvaluation, linalg::Scalar};
+use rust_nn::{benchmarking::ModelEvaluation, linalg::Scalar};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
