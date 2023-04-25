@@ -8,19 +8,10 @@ readme = "README.md"
 repository = "https://github.com/AnicetNgrt/neural_networks_rust"
 keywords = [
     "machine-learning",
-    "neura-networks",
-    "ml",
-    "nn",
-    "adam",
+    "neural-networks",
     "gradient-descent",
-    "sgd",
-    "backpropagation",
-    "data-pipeline",
     "data-science",
     "data-analysis",
-    "regression",
-    "linear-algebra",
-    "statistics",
 ]
 categories = ["science"]
 exclude = [
