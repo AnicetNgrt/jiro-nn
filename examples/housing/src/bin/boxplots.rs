@@ -27,14 +27,8 @@ fn main() {
         .add(Normalize::new())
         .run("./dataset", &model.dataset);
 
+    let mut pipeline = Pipeline::basic_single_pass();
     let (after_spec, data) = pipeline
-        .add(ExtractMonths)
-        .add(ExtractTimestamps)
-        .add(Map::new())
-        .add(LogScale10::new())
-        .add(Square::new())
-        .add(FilterOutliers)
-        .add(Normalize::new())
         .run("./dataset", &model.dataset);
 
     println!("{:#?}", data);

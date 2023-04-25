@@ -1,5 +1,6 @@
 use rust_nn::model::Model;
 use rust_nn::pipelines::Pipeline;
+use rust_nn::pipelines::attach_ids::AttachIds;
 use rust_nn::trainers::Trainer;
 
 pub fn main() {
@@ -9,7 +10,9 @@ pub fn main() {
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
 
     let mut pipeline = Pipeline::basic_single_pass();
-    let (updated_dataset_spec, data) = pipeline.run("./dataset", &model.dataset);
+    let (updated_dataset_spec, data) = pipeline
+        .add(AttachIds::new("id"))
+        .run("./dataset", &model.dataset);
 
     println!("data: {:#?}", data);
 

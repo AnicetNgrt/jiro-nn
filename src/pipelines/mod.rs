@@ -2,7 +2,7 @@ use std::{rc::Rc, cell::RefCell, hash::{Hash, Hasher}, collections::hash_map::De
 
 use crate::{dataset::Dataset, datatable::DataTable};
 
-use self::{attach_ids::AttachIds, extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, map::Map, log_scale::LogScale10, square::Square, filter_outliers::FilterOutliers, normalize::Normalize};
+use self::{extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, map::Map, log_scale::LogScale10, square::Square, filter_outliers::FilterOutliers, normalize::Normalize};
 
 pub mod feature_cached;
 pub mod normalize;
@@ -41,7 +41,6 @@ impl Pipeline {
     pub fn basic_single_pass() -> Pipeline {
         let mut pipeline = Pipeline::new();
         pipeline
-            .add(AttachIds::new("id"))
             .add(ExtractMonths)
             .add(ExtractTimestamps)
             .add(Map::new())
