@@ -1,9 +1,9 @@
 use rust_nn::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
-    model_spec::{LayerOptions::*, LayerSpec, ModelOptions::*, ModelSpec},
+    model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
     optimizer::{adam},
-    pipelines::map::{MapOp, MapSelector, MapValue},
+    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
 };
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
     dataset_spec
         .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
         .add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
-        .add_opt_to("date", AddExtractedMonth)
+        //.add_opt_to("date", AddExtractedMonth)
         .add_opt_to("date", AddExtractedTimestamp)
         .add_opt_to("date", Not(&UsedInModel))
         .add_opt_to(
@@ -24,9 +24,9 @@ fn main() {
                 MapOp::ReplaceWith(MapValue::Feature("yr_built".to_string())),
             ),
         )
-        .add_opt_to("pricce", Out)
+        .add_opt_to("price", Out)
         .add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
-        .add_opt(AddSquared.except(&["date"]).incl_added_features())
+        .add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
         .add_opt(FilterOutliers.except(&["date"]).incl_added_features())
         .add_opt(Normalized.except(&["date"]).incl_added_features());
 
@@ -51,12 +51,12 @@ fn main() {
         Optimizer(adam()),
     ]);
 
-    let model = ModelSpec::from_options(&[
+    let model = Model::from_options(&[
         Dataset(dataset_spec),
         HiddenLayers(layers.as_slice()),
         FinalLayer(final_layer),
         BatchSize(128),
-        Folds(8),
+        Trainer(Trainers::KFolds(8)),
         Epochs(300),
     ]);
 

@@ -5,7 +5,7 @@ use gnuplot::{
     PlotOption::{Color, PointSymbol}, MarginSide::MarginBottom,
 };
 use rust_nn::{
-    model_spec::ModelSpec,
+    model::Model,
     pipelines::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
         log_scale::LogScale10, normalize::Normalize, square::Square, Pipeline, filter_outliers::FilterOutliers, map::Map,
@@ -17,7 +17,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
 
-    let model = ModelSpec::from_json_file(format!("models/{}.json", config_name));
+    let model = Model::from_json_file(format!("models/{}.json", config_name));
     println!("model: {:#?}", model);
 
     let mut pipeline = Pipeline::new();

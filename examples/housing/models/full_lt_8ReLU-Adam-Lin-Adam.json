@@ -3,18 +3,24 @@
   "loss": "MSE",
   "hidden_layers": [
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -24,18 +30,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -45,18 +57,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -66,18 +84,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -87,18 +111,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -108,18 +138,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -129,18 +165,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -150,18 +192,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 16,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -176,14 +224,20 @@
     "activation": "Linear",
     "dropout": null,
     "weights_optimizer": {
-      "SGD": {
+      "Adam": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8,
         "learning_rate": {
           "Constant": 0.001
         }
       }
     },
     "biases_optimizer": {
-      "SGD": {
+      "Adam": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8,
         "learning_rate": {
           "Constant": 0.001
         }
@@ -193,7 +247,9 @@
     "weights_initializer": "GlorotUniform"
   },
   "batch_size": 128,
-  "folds": 8,
+  "trainer": {
+    "KFolds": 8
+  },
   "dataset": {
     "name": "kc_house_data",
     "features": [
@@ -245,43 +301,7 @@
           "used_in_model": true,
           "is_id": false
         },
-        "with_extracted_month": {
-          "name": "date_month",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": {
-            "name": "date_month^2",
-            "out": false,
-            "date_format": null,
-            "to_timestamp": false,
-            "extract_month": false,
-            "log10": false,
-            "normalized": true,
-            "filter_outliers": true,
-            "mapped": null,
-            "squared": false,
-            "with_extracted_timestamp": null,
-            "with_extracted_month": null,
-            "with_log10": null,
-            "with_normalized": null,
-            "with_squared": null,
-            "used_in_model": true,
-            "is_id": false
-          },
-          "used_in_model": true,
-          "is_id": false
-        },
+        "with_extracted_month": null,
         "with_log10": null,
         "with_normalized": null,
         "with_squared": null,
@@ -290,7 +310,7 @@
       },
       {
         "name": "price",
-        "out": false,
+        "out": true,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -303,25 +323,7 @@
         "with_extracted_month": null,
         "with_log10": null,
         "with_normalized": null,
-        "with_squared": {
-          "name": "price^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
+        "with_squared": null,
         "used_in_model": true,
         "is_id": false
       },
