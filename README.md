@@ -4,7 +4,7 @@ This was made for the purpose of my own learning. It is obviously not a good NN 
 
 Feel free to give feedback.
 
-## Example
+## Code example
 
 Simple regression example:
 
@@ -12,7 +12,7 @@ Simple regression example:
 // Loading a model specification from JSON
 let mut model = Model::from_json_file("my_model_spec.json");
 
-// Applying a data pipeline on it according to its specification
+// Applying a data pipeline on it according to its dataset specification
 let mut pipeline = Pipeline::new();
 let (updated_dataset_spec, data) = pipeline
     .add(AttachIds::new("id"))
@@ -45,6 +45,72 @@ let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred")
 // Saving it all to disk
 data_and_preds.to_file(format!("models_stats/{}.csv", config_name));
 model_eval.to_json_file(format!("models_stats/{}.json", config_name));
+```
+
+Generating our model's specification with code:
+
+```rs
+    // Including all features from some CSV dataset
+    let mut dataset_spec = Dataset::from_csv("kc_house_data.csv");
+    dataset_spec
+        // Removing useless features for both the model & derived features
+        .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
+        // Setting up the price as the "output" predicted feature
+        .add_opt_to("price", Out)
+        // Setting up the date format
+        .add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
+        // Converting the date to a date_timestamp feature
+        .add_opt_to("date", AddExtractedTimestamp)
+        // Excluding the date from the model
+        .add_opt_to("date", Not(&UsedInModel))
+        // Mapping yr_renovated to yr_built if = to 0
+        .add_opt_to(
+            "yr_renovated",
+            Mapped(
+                MapSelector::Equal(0.0.into()),
+                MapOp::ReplaceWith(MapValue::Feature("yr_built".to_string())),
+            ),
+        )
+        // Converting relevant features to their log10
+        .add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
+        // Adding ^2 features of all input features 
+        // (including the added ones like the timestamp)
+        .add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
+        // Filtering rows according to feature's outliers
+        .add_opt(FilterOutliers.except(&["date"]).incl_added_features())
+        // Normalizing everything
+        .add_opt(Normalized.except(&["date"]).incl_added_features());
+
+    // Creating our layers
+    let h_size = dataset_spec.in_features_names().len() + 1;
+    let nh = 8;
+
+    let mut layers = vec![];
+    for i in 0..nh {
+        layers.push(LayerSpec::from_options(&[
+            OutSize(h_size),
+            Activation(ReLU),
+            Optimizer(adam()),
+        ]));
+    }
+    let final_layer = LayerSpec::from_options(&[
+        OutSize(1),
+        Activation(Linear),
+        Optimizer(adam()),
+    ]);
+
+    // Putting it all together
+    let model = Model::from_options(&[
+        Dataset(dataset_spec),
+        HiddenLayers(layers.as_slice()),
+        FinalLayer(final_layer),
+        BatchSize(128),
+        Trainer(Trainers::KFolds(8)),
+        Epochs(300),
+    ]);
+
+    // Saving it all
+    model.to_json_file("my_model_spec.json");
 ```
 
 ## Working features

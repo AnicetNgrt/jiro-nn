@@ -256,7 +256,7 @@ impl Feature {
 /// **Feature replacement/mapping options**:
 /// 
 /// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
-/// - `ExtractMonth`: Enables conversion of the date/time to it's month. Requires the feature to have a `DateFormat` specified.
+/// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` specified.
 /// - `Log10`: Enables applying base-10 logarithm to the feature.
 /// - `Normalized`: Enables normalizing the feature.
 /// - `FilterOutliers`: Enables filtering outliers from the feature.
@@ -297,7 +297,7 @@ pub enum FeatureOptions<'a> {
     DateFormat(&'a str),
     /// The `ToTimestamp` option enables conversion of the date/time feature to a Unix timestamp.
     ToTimestamp,
-    /// The `ExtractMonth` option enables conversion of the date/time to it's month.
+    /// The `ExtractMonth` option enables conversion of the date/time to its month.
     ExtractMonth,
     /// The `Log10` option enables applying base-10 logarithm to the feature.
     Log10,
