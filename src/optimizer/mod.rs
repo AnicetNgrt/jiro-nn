@@ -23,8 +23,16 @@ impl Optimizers {
             Optimizers::Adam(adam) => adam.update_parameters(epoch, parameters, parameters_gradient),
         }
     }
+}
 
-    pub fn adam_default() -> Optimizers {
-        Optimizers::Adam(Adam::default())
-    }
+pub fn adam() -> Optimizers {
+    Optimizers::Adam(Adam::default())
+}
+
+pub fn sgd() -> Optimizers {
+    Optimizers::SGD(SGD::default())
+}
+
+pub fn momentum() -> Optimizers {
+    Optimizers::Momentum(Momentum::default())
 }

@@ -3,18 +3,24 @@
   "loss": "MSE",
   "hidden_layers": [
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -24,18 +30,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -45,18 +57,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -66,18 +84,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -87,18 +111,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -108,18 +138,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -129,18 +165,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -150,18 +192,24 @@
       "weights_initializer": "GlorotUniform"
     },
     {
-      "out_size": 17,
+      "out_size": 15,
       "activation": "ReLU",
       "dropout": null,
       "weights_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
         }
       },
       "biases_optimizer": {
-        "SGD": {
+        "Adam": {
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
           "learning_rate": {
             "Constant": 0.001
           }
@@ -176,14 +224,20 @@
     "activation": "Linear",
     "dropout": null,
     "weights_optimizer": {
-      "SGD": {
+      "Adam": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8,
         "learning_rate": {
           "Constant": 0.001
         }
       }
     },
     "biases_optimizer": {
-      "SGD": {
+      "Adam": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8,
         "learning_rate": {
           "Constant": 0.001
         }
@@ -198,103 +252,12 @@
     "name": "kc_house_data",
     "features": [
       {
-        "name": "date",
-        "out": false,
-        "date_format": "%Y%m%dT%H%M%S",
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": false,
-        "filter_outliers": false,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": {
-          "name": "date_timestamp",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": {
-            "name": "date_timestamp^2",
-            "out": false,
-            "date_format": null,
-            "to_timestamp": false,
-            "extract_month": false,
-            "log10": false,
-            "normalized": true,
-            "filter_outliers": true,
-            "mapped": null,
-            "squared": false,
-            "with_extracted_timestamp": null,
-            "with_extracted_month": null,
-            "with_log10": null,
-            "with_normalized": null,
-            "with_squared": null,
-            "used_in_model": true,
-            "is_id": false
-          },
-          "used_in_model": true,
-          "is_id": false
-        },
-        "with_extracted_month": {
-          "name": "date_month",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": {
-            "name": "date_month^2",
-            "out": false,
-            "date_format": null,
-            "to_timestamp": false,
-            "extract_month": false,
-            "log10": false,
-            "normalized": true,
-            "filter_outliers": true,
-            "mapped": null,
-            "squared": false,
-            "with_extracted_timestamp": null,
-            "with_extracted_month": null,
-            "with_log10": null,
-            "with_normalized": null,
-            "with_squared": null,
-            "used_in_model": true,
-            "is_id": false
-          },
-          "used_in_model": true,
-          "is_id": false
-        },
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": null,
-        "used_in_model": false,
-        "is_id": false
-      },
-      {
-        "name": "price",
+        "name": "lat",
         "out": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
-        "log10": true,
+        "log10": false,
         "normalized": true,
         "filter_outliers": true,
         "mapped": null,
@@ -304,7 +267,7 @@
         "with_log10": null,
         "with_normalized": null,
         "with_squared": {
-          "name": "price^2",
+          "name": "lat^2",
           "out": false,
           "date_format": null,
           "to_timestamp": false,
@@ -326,7 +289,7 @@
         "is_id": false
       },
       {
-        "name": "bedrooms",
+        "name": "long",
         "out": false,
         "date_format": null,
         "to_timestamp": false,
@@ -341,7 +304,7 @@
         "with_log10": null,
         "with_normalized": null,
         "with_squared": {
-          "name": "bedrooms^2",
+          "name": "long^2",
           "out": false,
           "date_format": null,
           "to_timestamp": false,
@@ -363,7 +326,7 @@
         "is_id": false
       },
       {
-        "name": "bathrooms",
+        "name": "yr_built",
         "out": false,
         "date_format": null,
         "to_timestamp": false,
@@ -378,7 +341,55 @@
         "with_log10": null,
         "with_normalized": null,
         "with_squared": {
-          "name": "bathrooms^2",
+          "name": "yr_built^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": true,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "yr_renovated",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": [
+          {
+            "Equal": {
+              "ConstantF64": "0.0"
+            }
+          },
+          {
+            "Replace": {
+              "Feature": "yr_built"
+            }
+          }
+        ],
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "yr_renovated^2",
           "out": false,
           "date_format": null,
           "to_timestamp": false,
@@ -416,228 +427,6 @@
         "with_normalized": null,
         "with_squared": {
           "name": "sqft_living^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "sqft_lot",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "sqft_lot^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "floors",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "floors^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "waterfront",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "waterfront^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "view",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "view^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "condition",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "condition^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "grade",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "grade^2",
           "out": false,
           "date_format": null,
           "to_timestamp": false,
@@ -733,7 +522,7 @@
         "is_id": false
       },
       {
-        "name": "yr_built",
+        "name": "floors",
         "out": false,
         "date_format": null,
         "to_timestamp": false,
@@ -748,7 +537,7 @@
         "with_log10": null,
         "with_normalized": null,
         "with_squared": {
-          "name": "yr_built^2",
+          "name": "floors^2",
           "out": false,
           "date_format": null,
           "to_timestamp": false,
@@ -770,7 +559,7 @@
         "is_id": false
       },
       {
-        "name": "yr_renovated",
+        "name": "sqft_lot",
         "out": false,
         "date_format": null,
         "to_timestamp": false,
@@ -778,52 +567,281 @@
         "log10": false,
         "normalized": true,
         "filter_outliers": true,
-        "mapped": [
-          {
-            "Equal": {
-              "ConstantF64": "0"
-            }
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "sqft_lot^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": true,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "grade",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "grade^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": true,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "bathrooms",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "bathrooms^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": true,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "bedrooms",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "bedrooms^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": false,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "waterfront",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "waterfront^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": false,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "view",
+        "out": false,
+        "date_format": null,
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": true,
+        "filter_outliers": true,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": null,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": {
+          "name": "view^2",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": false,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": null,
+          "used_in_model": true,
+          "is_id": false
+        },
+        "used_in_model": true,
+        "is_id": false
+      },
+      {
+        "name": "date",
+        "out": false,
+        "date_format": "%Y%m%dT%H%M%S",
+        "to_timestamp": false,
+        "extract_month": false,
+        "log10": false,
+        "normalized": false,
+        "filter_outliers": false,
+        "mapped": null,
+        "squared": false,
+        "with_extracted_timestamp": {
+          "name": "timestamp",
+          "out": false,
+          "date_format": null,
+          "to_timestamp": false,
+          "extract_month": false,
+          "log10": false,
+          "normalized": true,
+          "filter_outliers": false,
+          "mapped": null,
+          "squared": false,
+          "with_extracted_timestamp": null,
+          "with_extracted_month": null,
+          "with_log10": null,
+          "with_normalized": null,
+          "with_squared": {
+            "name": "timestamp^2",
+            "out": false,
+            "date_format": null,
+            "to_timestamp": false,
+            "extract_month": false,
+            "log10": false,
+            "normalized": true,
+            "filter_outliers": false,
+            "mapped": null,
+            "squared": false,
+            "with_extracted_timestamp": null,
+            "with_extracted_month": null,
+            "with_log10": null,
+            "with_normalized": null,
+            "with_squared": null,
+            "used_in_model": true,
+            "is_id": false
           },
-          {
-            "ReplaceWith": {
-              "Feature": "yr_built"
-            }
-          }
-        ],
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "yr_renovated^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
           "used_in_model": true,
           "is_id": false
         },
-        "used_in_model": true,
+        "with_extracted_month": null,
+        "with_log10": null,
+        "with_normalized": null,
+        "with_squared": null,
+        "used_in_model": false,
         "is_id": false
       },
       {
-        "name": "lat",
-        "out": false,
+        "name": "price",
+        "out": true,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
-        "log10": false,
+        "log10": true,
         "normalized": true,
         "filter_outliers": true,
         "mapped": null,
@@ -832,62 +850,7 @@
         "with_extracted_month": null,
         "with_log10": null,
         "with_normalized": null,
-        "with_squared": {
-          "name": "lat^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
-        "used_in_model": true,
-        "is_id": false
-      },
-      {
-        "name": "long",
-        "out": false,
-        "date_format": null,
-        "to_timestamp": false,
-        "extract_month": false,
-        "log10": false,
-        "normalized": true,
-        "filter_outliers": true,
-        "mapped": null,
-        "squared": false,
-        "with_extracted_timestamp": null,
-        "with_extracted_month": null,
-        "with_log10": null,
-        "with_normalized": null,
-        "with_squared": {
-          "name": "long^2",
-          "out": false,
-          "date_format": null,
-          "to_timestamp": false,
-          "extract_month": false,
-          "log10": false,
-          "normalized": true,
-          "filter_outliers": true,
-          "mapped": null,
-          "squared": false,
-          "with_extracted_timestamp": null,
-          "with_extracted_month": null,
-          "with_log10": null,
-          "with_normalized": null,
-          "with_squared": null,
-          "used_in_model": true,
-          "is_id": false
-        },
+        "with_squared": null,
         "used_in_model": true,
         "is_id": false
       }

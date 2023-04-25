@@ -9,6 +9,12 @@ pub struct SGD {
 }
 
 impl SGD {
+    pub fn default() -> Self {
+        Self {
+            learning_rate: default_learning_rate(),
+        }
+    }
+
     pub fn with_const_lr(learning_rate: Scalar) -> Self {
         Self {
             learning_rate: LearningRateSchedule::Constant(learning_rate),

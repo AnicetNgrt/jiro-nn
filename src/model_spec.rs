@@ -47,7 +47,7 @@ pub enum ModelOptions<'a> {
     Loss(Losses),
     HiddenLayers(&'a [LayerSpec]),
     FinalLayer(LayerSpec),
-    BatchSize(Option<usize>),
+    BatchSize(usize),
     Folds(usize),
     Dataset(Dataset),
 }
@@ -139,15 +139,18 @@ impl ModelSpec {
 
     /// The `from_options` method is a constructor function for creating a `ModelSpec` object from a list of `ModelOptions`.
     /// 
-    /// The possible options are:
-    /// 
-    /// - `Epochs`: The number of epochs to train for (an integer).
-    /// - `Loss`: The loss function to be used (a variant of the `Losses` enum).
+    /// **Required options**:
+    ///
     /// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
     /// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
-    /// - `BatchSize`: The batch size to be used during training (an optional integer).
-    /// - `Folds`: The number of folds to be used during cross-validation (an integer).
     /// - `Dataset`: The dataset to be used for training (a variant of the `Dataset` enum).
+    ///
+    /// **Optional options**:
+    /// 
+    /// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
+    /// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
+    /// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
+    /// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
 
     pub fn from_options(options: &[ModelOptions]) -> ModelSpec {
         let mut spec = ModelSpec::default();
@@ -157,7 +160,7 @@ impl ModelSpec {
                 ModelOptions::Loss(loss) => spec.loss = loss.clone(),
                 ModelOptions::HiddenLayers(hidden_layers) => spec.hidden_layers = hidden_layers.to_vec(),
                 ModelOptions::FinalLayer(final_layer) => spec.final_layer = final_layer.clone(),
-                ModelOptions::BatchSize(batch_size) => spec.batch_size = batch_size.clone(),
+                ModelOptions::BatchSize(batch_size) => spec.batch_size = Some(batch_size.clone()),
                 ModelOptions::Folds(folds) => spec.folds = folds.clone(),
                 ModelOptions::Dataset(dataset) => spec.dataset = dataset.clone(),
             }
@@ -172,7 +175,7 @@ impl ModelSpec {
             hidden_layers: vec![],
             final_layer: LayerSpec::default(),
             batch_size: None,
-            folds: 5,
+            folds: 10,
             dataset: Dataset::default(),
         }
     }
@@ -184,6 +187,7 @@ pub enum LayerOptions {
     Dropout(Option<Scalar>),
     WeightsOptimizer(Optimizers),
     BiasesOptimizer(Optimizers),
+    Optimizer(Optimizers),
     WeightsInitializer(Initializers),
     BiasesInitializer(Initializers),
 }
@@ -199,6 +203,7 @@ impl LayerSpec {
     /// - `Dropout`: The dropout rate (an optional float).
     /// - `WeightsOptimizer`: The optimizer to be used for updating the weights (a variant of the `Optimizers` enum).
     /// - `BiasesOptimizer`: The optimizer to be used for updating the biases (a variant of the `Optimizers` enum).
+    /// - `Optimizer`: The optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum).
     /// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum).
     /// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum).
 
@@ -213,6 +218,10 @@ impl LayerSpec {
                 LayerOptions::BiasesOptimizer(biases_optimizer) => spec.biases_optimizer = biases_optimizer.clone(),
                 LayerOptions::WeightsInitializer(weights_initializer) => spec.weights_initializer = weights_initializer.clone(),
                 LayerOptions::BiasesInitializer(biases_initializer) => spec.biases_initializer = biases_initializer.clone(),
+                LayerOptions::Optimizer(global_optimizer) => {
+                    spec.weights_optimizer = global_optimizer.clone();
+                    spec.biases_optimizer = global_optimizer.clone();
+                }
             }
         }
         spec

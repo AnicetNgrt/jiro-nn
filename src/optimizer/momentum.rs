@@ -26,6 +26,14 @@ impl Momentum {
         }
     }
 
+    pub fn default() -> Self {
+        Self {
+            v: None,
+            momentum: default_momentum(),
+            learning_rate: default_learning_rate(),
+        }
+    }
+
     pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
         let lr = self.learning_rate.get_learning_rate(epoch);
 

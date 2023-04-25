@@ -3,7 +3,7 @@ use rand_distr::Distribution;
 
 use super::{MatrixTrait, Scalar};
 
-use faer_core::{Mat};
+use faer_core::{Mat, mul::matmul};
 
 #[derive(Debug, Clone)]
 pub struct Matrix {
@@ -149,7 +149,8 @@ impl MatrixTrait for Matrix {
     }
 
     fn dot(&self, other: &Self) -> Self {
-        let result = &self.data * &other.data;
+        let mut result = Mat::with_dims(self.data.nrows(), other.data.ncols(), |_, _| 0.0);
+        matmul(result.as_mut(), self.data.as_ref(), other.data.as_ref(), None, 1.0, faer_core::Parallelism::Rayon(0));
         Self { data: result }
     }
 

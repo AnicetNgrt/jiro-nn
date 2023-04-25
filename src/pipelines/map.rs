@@ -49,7 +49,7 @@ impl MapSelector {
 pub enum MapOp {
     #[default]
     None,
-    Replace(MapValue),
+    ReplaceWith(MapValue),
 }
 
 impl MapOp {
@@ -62,7 +62,7 @@ impl MapOp {
                     values.push(value);
                 }
             }
-            MapOp::Replace(value) => {
+            MapOp::ReplaceWith(value) => {
                 let value = value.find_all_corresponding(data);
                 for (value, corresponding) in value.iter().zip(corresponding_in.iter()) {
                     if corresponding.1 {
@@ -84,6 +84,12 @@ pub enum MapValue {
     Zero,
     ConstantF64(String),
     Feature(String),
+}
+
+impl From<f64> for MapValue {
+    fn from(value: f64) -> Self {
+        Self::ConstantF64(value.to_string())
+    }
 }
 
 impl MapValue {
@@ -109,6 +115,8 @@ impl MapValue {
 
         values
     }
+    
+
 }
 
 pub struct Map {
