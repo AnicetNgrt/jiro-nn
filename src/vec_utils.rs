@@ -6,6 +6,21 @@ pub fn avg_vector(vec: &Vec<Scalar>) -> Scalar {
     vec.iter().sum::<Scalar>() / vec.len() as Scalar
 }
 
+pub fn r2_score(y: &Vec<Scalar>, y_hat: &Vec<Scalar>) -> Scalar {
+    assert!(y.len() == y_hat.len());
+    
+    let y_avg = avg_vector(y);
+    let mut ssr = 0.0;
+    let mut sst = 0.0;
+
+    for i in 0..y.len() {
+        ssr += (y[i] - y_hat[i]).powi(2);
+        sst += (y[i] - y_avg).powi(2);
+    }
+
+    1.0 - (ssr/sst)
+}
+
 pub fn median_vector(vec: &Vec<Scalar>) -> Scalar {
     if vec.len() == 0 {
         return Scalar::NAN

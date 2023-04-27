@@ -42,9 +42,9 @@ fn main() {
         
         axes = axes
             .lines(x.clone(), y1.clone(), &[Color(color), Caption(&format!("{} train loss", model_name.replace("_", " ")))])
-            .lines(x.clone(), y3.clone(), &[Color(color), Caption(&format!("{} test loss", model_name.replace("_", " "))), LineStyle(gnuplot::DashType::Dash)])
-            .fill_between(x.clone(), y1_minus_y2, y1_plus_y2, &[Color(color), FillAlpha(0.1)])
-            .fill_between(x.clone(), y3_minus_y4, y3_plus_y4, &[Color(color), FillAlpha(0.1)]);
+            .lines(x.clone(), y3.clone(), &[Color(color), Caption(&format!("{} test loss", model_name.replace("_", " "))), LineStyle(gnuplot::DashType::Dash)]);
+            //.fill_between(x.clone(), y1_minus_y2, y1_plus_y2, &[Color(color), FillAlpha(0.1)])
+            //.fill_between(x.clone(), y3_minus_y4, y3_plus_y4, &[Color(color), FillAlpha(0.1)]);
     }
     
     fg.save_to_png(format!("visuals/{}_loss.png", model_names.join("_")), 1024, 728).unwrap();

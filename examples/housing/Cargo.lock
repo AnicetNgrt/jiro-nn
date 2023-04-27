@@ -911,7 +911,7 @@ dependencies = [
 
 [[package]]
 name = "neural_networks_rust"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "assert_float_eq",
  "libm",

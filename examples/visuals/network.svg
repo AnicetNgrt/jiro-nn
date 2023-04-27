@@ -1,0 +1,171 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="742pt" height="368pt" viewBox="0.00 0.00 741.81 367.78">
+<g id="graph0" class="graph" transform="translate(55.43161032758945,337.6305518296398) scale(0.8408964152537126)" data-name="NeuralNetwork">
+
+<polygon fill="white" stroke="none" points="-4,4 -4,-363.78 737.81,-363.78 737.81,4 -4,4"/>
+<!-- x1 -->
+<g id="node1" class="node" pointer-events="visible" data-name="x1">
+
+<ellipse fill="none" stroke="black" cx="21.78" cy="-210.89" rx="21.56" ry="21.56"/>
+<text text-anchor="middle" x="21.78" y="-206.69" font-family="Times,serif" font-size="14.00">x1</text>
+</g>
+<!-- x1&#45;&gt;x1 -->
+
+<!-- h1 -->
+<g id="node7" class="node" pointer-events="visible" data-name="h1">
+
+<ellipse fill="rgb(0, 255, 255)" stroke="rgb(0, 0, 0)" cx="133.45" cy="-305.89" rx="53.78" ry="53.78"/>
+<text text-anchor="middle" x="133.45" y="-318.49" font-family="Times,serif" font-size="14.00">y1 =</text>
+<text text-anchor="middle" x="133.45" y="-301.69" font-family="Times,serif" font-size="14.00"> ∑(xi*w1i)</text>
+<text text-anchor="middle" x="133.45" y="-284.89" font-family="Times,serif" font-size="14.00">+b1</text>
+</g><g id="edge1" class="edge" data-name="x1-&gt;h1" data-comment="h1">
+
+<path fill="none" stroke="black" d="M38.49,-224.5C50.39,-234.81 67.43,-249.57 83.73,-263.69"/>
+<polygon fill="black" stroke="black" points="81.17,-266.1 91.02,-270 85.75,-260.81 81.17,-266.1"/>
+</g>
+<!-- x1&#45;&gt;h1 -->
+
+<!-- h2 -->
+<g id="node8" class="node" pointer-events="visible" data-name="h2">
+
+<ellipse fill="rgb(0, 255, 255)" stroke="rgb(0, 0, 0)" cx="133.45" cy="-179.89" rx="53.78" ry="53.78"/>
+<text text-anchor="middle" x="133.45" y="-192.49" font-family="Times,serif" font-size="14.00">y2 =</text>
+<text text-anchor="middle" x="133.45" y="-175.69" font-family="Times,serif" font-size="14.00"> ∑(xi*w2i)</text>
+<text text-anchor="middle" x="133.45" y="-158.89" font-family="Times,serif" font-size="14.00">+b2</text>
+</g><g id="edge2" class="edge" data-name="x1-&gt;h2" data-comment="h2">
+
+<path fill="none" stroke="black" d="M42.89,-205.21C50.89,-202.95 60.55,-200.21 70.53,-197.39"/>
+<polygon fill="black" stroke="black" points="71.3,-200.81 79.97,-194.73 69.4,-194.08 71.3,-200.81"/>
+</g>
+<!-- x1&#45;&gt;h2 -->
+<g id="edge3" class="edge" data-name="x1-&gt;h3" data-comment="x1-&gt;h2">
+
+<path fill="none" stroke="black" d="M34.87,-193.33C37.77,-188.98 40.83,-184.3 43.56,-179.89 60.55,-152.48 61.12,-143.35 79.56,-116.89 82.84,-112.18 86.4,-107.39 90.06,-102.67"/>
+<polygon fill="black" stroke="black" points="92.77,-104.9 96.26,-94.89 87.29,-100.54 92.77,-104.9"/>
+</g>
+<!-- h3 -->
+<!-- h3 -->
+<!-- h3 -->
+<!-- h3 -->
+<g id="node9" class="node" pointer-events="visible" data-name="h3">
+
+<ellipse fill="rgb(0, 255, 255)" stroke="rgb(0, 0, 0)" cx="133.45" cy="-53.89" rx="53.78" ry="53.78"/>
+<text text-anchor="middle" x="133.45" y="-66.49" font-family="Times,serif" font-size="14.00">y3 =</text>
+<text text-anchor="middle" x="133.45" y="-49.69" font-family="Times,serif" font-size="14.00"> ∑(xi*w3i)</text>
+<text text-anchor="middle" x="133.45" y="-32.89" font-family="Times,serif" font-size="14.00">+b3</text>
+</g>
+<!-- x1&#45;&gt;h3 -->
+
+<!-- x2 -->
+<g id="node2" class="node" pointer-events="visible" data-name="x2">
+
+<ellipse fill="none" stroke="black" cx="21.78" cy="-148.89" rx="21.56" ry="21.56"/>
+<text text-anchor="middle" x="21.78" y="-144.69" font-family="Times,serif" font-size="14.00">x2</text>
+</g><g id="edge4" class="edge" data-name="x2-&gt;h1" data-comment="x2">
+
+<path fill="none" stroke="black" d="M34.87,-166.45C37.77,-170.81 40.83,-175.49 43.56,-179.89 60.55,-207.3 61.12,-216.44 79.56,-242.89 82.84,-247.6 86.4,-252.39 90.06,-257.11"/>
+<polygon fill="black" stroke="black" points="87.29,-259.24 96.26,-264.89 92.77,-254.88 87.29,-259.24"/>
+</g>
+<!-- x2&#45;&gt;x2 -->
+<g id="edge5" class="edge" data-name="x2-&gt;h2" data-comment="x2-&gt;x2">
+
+<path fill="none" stroke="black" d="M42.89,-154.58C50.89,-156.84 60.55,-159.57 70.53,-162.39"/>
+<polygon fill="black" stroke="black" points="69.4,-165.71 79.97,-165.06 71.3,-158.97 69.4,-165.71"/>
+</g>
+<!-- x2&#45;&gt;h1 -->
+<g id="edge6" class="edge" data-name="x2-&gt;h3" data-comment="x2-&gt;h1">
+
+<path fill="none" stroke="black" d="M38.49,-135.28C50.39,-124.97 67.43,-110.21 83.73,-96.09"/>
+<polygon fill="black" stroke="black" points="85.75,-98.97 91.02,-89.78 81.17,-93.68 85.75,-98.97"/>
+</g>
+<!-- x2&#45;&gt;h2 -->
+
+<g id="node3" class="node" pointer-events="visible" data-name="t11" data-comment="x2-&gt;h2">
+
+<ellipse fill="yellow" stroke="black" cx="270.07" cy="-297.89" rx="46.97" ry="46.97"/>
+<text text-anchor="middle" x="270.07" y="-302.09" font-family="Times,serif" font-size="14.00">x11 = </text>
+<text text-anchor="middle" x="270.07" y="-285.29" font-family="Times,serif" font-size="14.00">Tanh(y1)</text>
+</g>
+
+<!-- h1&#45;&gt;t11 -->
+<g id="edge7" class="edge" data-name="h1-&gt;t11">
+
+<path fill="none" stroke="black" d="M187.27,-302.75C195.28,-302.28 203.58,-301.78 211.68,-301.3"/>
+<polygon fill="black" stroke="black" points="211.67,-304.81 221.44,-300.72 211.25,-297.82 211.67,-304.81"/>
+</g>
+<!-- y -->
+<!-- y -->
+<g id="edge12" class="edge" data-name="t13-&gt;y" data-comment="y">
+
+<path fill="none" stroke="black" d="M306.09,-92.59C321.62,-106.19 340.14,-122.43 356.99,-137.2"/>
+<polygon fill="black" stroke="black" points="354.65,-139.8 364.48,-143.76 359.26,-134.54 354.65,-139.8"/>
+</g>
+<!-- y -->
+<g id="node10" class="node" pointer-events="visible" data-name="y">
+
+<ellipse fill="rgb(173, 255, 47)" stroke="rgb(0, 0, 0)" cx="406.7" cy="-179.89" rx="53.78" ry="53.78"/>
+<text text-anchor="middle" x="406.7" y="-192.49" font-family="Times,serif" font-size="14.00">y =</text>
+<text text-anchor="middle" x="406.7" y="-175.69" font-family="Times,serif" font-size="14.00"> ∑(x1i*wi)</text>
+<text text-anchor="middle" x="406.7" y="-158.89" font-family="Times,serif" font-size="14.00">+b</text>
+</g><g id="node4" class="node" pointer-events="visible" data-name="t12" data-comment="y">
+
+<ellipse fill="yellow" stroke="black" cx="270.07" cy="-179.89" rx="46.97" ry="46.97"/>
+<text text-anchor="middle" x="270.07" y="-184.09" font-family="Times,serif" font-size="14.00">x12 = </text>
+<text text-anchor="middle" x="270.07" y="-167.29" font-family="Times,serif" font-size="14.00">Tanh(y2)</text>
+</g><g id="node6" class="node" pointer-events="visible" data-name="t21" data-comment="y">
+
+<ellipse fill="yellow" stroke="black" cx="538.37" cy="-179.89" rx="41.57" ry="41.57"/>
+<text text-anchor="middle" x="538.37" y="-184.09" font-family="Times,serif" font-size="14.00">pred = </text>
+<text text-anchor="middle" x="538.37" y="-167.29" font-family="Times,serif" font-size="14.00">Tanh(y)</text>
+</g><g id="node5" class="node" pointer-events="visible" data-name="t13" data-comment="y">
+
+<ellipse fill="yellow" stroke="black" cx="270.07" cy="-61.89" rx="46.97" ry="46.97"/>
+<text text-anchor="middle" x="270.07" y="-66.09" font-family="Times,serif" font-size="14.00">x13 = </text>
+<text text-anchor="middle" x="270.07" y="-49.29" font-family="Times,serif" font-size="14.00">Tanh(y3)</text>
+</g><!-- h2&#45;&gt;t12 -->
+
+<g id="edge8" class="edge" data-name="h2-&gt;t12">
+
+<path fill="none" stroke="black" d="M187.66,-179.89C195.46,-179.89 203.52,-179.89 211.41,-179.89"/>
+<polygon fill="black" stroke="black" points="211.27,-183.39 221.27,-179.89 211.27,-176.39 211.27,-183.39"/>
+</g><g id="edge10" class="edge" data-name="t11-&gt;y" data-comment="h2-&gt;t12">
+
+<path fill="none" stroke="black" d="M306.09,-267.2C321.62,-253.59 340.14,-237.35 356.99,-222.59"/>
+<polygon fill="black" stroke="black" points="359.26,-225.25 364.48,-216.02 354.65,-219.98 359.26,-225.25"/>
+</g>
+<!-- h -->
+
+<!-- h3&#45;&gt;t13 -->
+<g id="edge9" class="edge" data-name="h3-&gt;t13">
+
+<path fill="none" stroke="black" d="M187.27,-57.03C195.28,-57.51 203.58,-58 211.68,-58.48"/>
+<polygon fill="black" stroke="black" points="211.25,-61.96 221.44,-59.06 211.67,-54.97 211.25,-61.96"/>
+</g>
+<g id="edge11" class="edge" data-name="t12-&gt;y" data-comment="h3-&gt;t13">
+
+<path fill="none" stroke="black" d="M317.4,-179.89C325.16,-179.89 333.32,-179.89 341.43,-179.89"/>
+<polygon fill="black" stroke="black" points="341.29,-183.39 351.29,-179.89 341.29,-176.39 341.29,-183.39"/>
+</g>
+<g id="edge14" class="edge" data-name="t21-&gt;e" data-comment="h3-&gt;t13">
+
+<path fill="none" stroke="black" d="M580.12,-179.89C587.89,-179.89 596.22,-179.89 604.59,-179.89"/>
+<polygon fill="black" stroke="black" points="604.47,-183.39 614.47,-179.89 604.47,-176.39 604.47,-183.39"/>
+</g>
+<!-- t -->
+<!-- y&#45;&gt;t21 -->
+<g id="edge13" class="edge" data-name="y-&gt;t21">
+
+<path fill="none" stroke="black" d="M460.81,-179.89C468.8,-179.89 477.04,-179.89 485.01,-179.89"/>
+<polygon fill="black" stroke="black" points="484.93,-183.39 494.93,-179.89 484.93,-176.39 484.93,-183.39"/>
+</g>
+<!-- e -->
+
+<g id="node11" class="node" pointer-events="visible" data-name="e">
+
+<ellipse fill="rgb(255, 182, 193)" stroke="black" cx="674.98" cy="-179.89" rx="58.66" ry="58.66"/>
+<text text-anchor="middle" x="674.98" y="-192.49" font-family="Times,serif" font-size="14.00">loss = </text>
+<text text-anchor="middle" x="674.98" y="-175.69" font-family="Times,serif" font-size="14.00">(pred - true)^2</text>
+<text text-anchor="middle" x="674.98" y="-158.89" font-family="Times,serif" font-size="14.00">/2</text>
+</g>
+</g>
+</svg>

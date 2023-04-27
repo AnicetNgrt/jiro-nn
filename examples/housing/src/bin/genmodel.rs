@@ -3,7 +3,7 @@ use neural_networks_rust::{
     dataset::{Dataset, FeatureOptions::*},
     model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
     optimizer::{adam},
-    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
+    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers, initializers::Initializers,
 };
 
 fn main() {

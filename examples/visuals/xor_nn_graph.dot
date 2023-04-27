@@ -1,0 +1,51 @@
+digraph NeuralNetwork {
+    rankdir=LR;
+
+    // input layer
+    node [shape=circle margin=0.1];
+    x1;
+    x2;
+
+  // tanh layers
+    node [shape=circle style=filled fillcolor=yellow];
+
+    t11 [label="x11 = \nTanh(y1)"];
+    t12 [label="x12 = \nTanh(y2)"];
+    t13 [label="x13 = \nTanh(y3)"];
+
+    t21 [label="pred = \nTanh(y)"];
+
+    // hidden layer
+    node [shape=circle style=filled fillcolor=aqua margin=0.1 width=1.0];
+    h1 [label="y1 =\n ∑(xi*w1i)\n+b1"];
+    h2 [label="y2 =\n ∑(xi*w2i)\n+b2"];
+    h3 [label="y3 =\n ∑(xi*w3i)\n+b3"];
+
+    // output layer
+    node [shape=circle style=filled fillcolor=greenyellow];
+    y [label="y =\n ∑(x1i*wi)\n+b"];
+
+    node [shape=circle style=filled fillcolor=lightpink margin=0.01];
+    e [label="loss = \n(pred - true)^2\n/2"];
+
+    // weights and biases
+    x1 -> h1
+    x1 -> h2
+    x1 -> h3
+
+    x2 -> h1
+    x2 -> h2
+    x2 -> h3
+
+    h1 -> t11
+    h2 -> t12
+    h3 -> t13
+
+    t11 -> y
+    t12 -> y
+    t13 -> y
+    
+    y -> t21
+
+    t21 -> e
+}
