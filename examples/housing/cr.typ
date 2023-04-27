@@ -395,13 +395,13 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
 
 #align(center)[
 #stack(dir: ltr)[
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 6cm)[
         #figure(
             image("../visuals/final_lat.png"),
             caption: [Prices from South to North]
         )
     ]
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 6cm)[
         #figure(
             image("../visuals/final_long.png"),
             caption: [Prices from West to East]
@@ -422,7 +422,7 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     ]
 ]
 
-The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple as I manage to do with Rust in my opinion).
+The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple as I can do with Rust I believe).
 
 Additionnaly to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many Vectors and Matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate.
 
