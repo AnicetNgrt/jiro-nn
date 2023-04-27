@@ -382,7 +382,7 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/final_date_month.png"),
-            caption: [You don't want to buy your house in July it seems.]
+            caption: [Doesn't matter when you buy a house during the year it seems.]
         )
     ]
     #box(width: 45%, height: 7cm)[
