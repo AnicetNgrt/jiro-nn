@@ -37,7 +37,7 @@
             *Abstract*
         ]
 
-        I implemented a Neural Networks (NNs) and data preprocessing mini-framework in Rust using dataframes, linear algebra and data serialization libraries as my only dependencies. My goal was to create a data preprocessing pipeline and a NN model for doing performant supervised learning on the #link("https://www.kaggle.com/datasets/shivachandel/kc-house-data")[King County House dataset]. At first I struggled with the limited features of my framework and my limited intuition for NNs based approaches. Trying around 100 small models with varying success, getting stuck trying irelevant techniques for small models such as Dropouts, too naively initializing the learnable parameters and not preprocessing the data enough. But after reading more related papers, trying many hyperparameters, implementing proper data preprocessing such as squared feature extraction, normalization and outliers filtering, setting up proper k-fold training, model benchmarking and implementing performant techniques such as Adam optimization, ReLU activation and Glorot initialization, I was able to build a better intuition and scale my models up by using more data features. Using my framework configured with almost the same defaults as the Keras Python library, I finally recreated #link("https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook")[an existing performant Python Keras workflow] for King County houses price inference, and obtained a model with $R^2 = 0.83$. Then, I stabilized the framework's API in an easier to use, documented package and shared the library to the Rust community. I obtained great feedback and downloads on the Rust libraries repository. I look forward to learning more about NNs and Machine Learning, and growing my framework over time. 
+        I implemented a Neural Networks (NNs) and data preprocessing mini-framework in Rust using dataframes, linear algebra and data serialization libraries as my only dependencies. My goal was to create a data preprocessing pipeline and a NN model for doing performant supervised learning on the #link("https://www.kaggle.com/datasets/shivachandel/kc-house-data")[King County House dataset]. At first I struggled with the limited features of my framework and my limited intuition for NNs based approaches. Trying around 100 small models with varying success, getting stuck trying irelevant techniques for small models such as Dropouts, too naively initializing the learnable parameters and not preprocessing the data enough. But after reading more related papers, trying many hyperparameters, implementing proper data preprocessing such as squared feature extraction, normalization and outliers filtering, setting up proper k-fold training, model benchmarking and implementing performant techniques such as Adam optimization, ReLU activation and Glorot initialization, I was able to build a better intuition and scale my models up by using more data features. Using my framework configured with almost the same defaults as the Keras Python library, I finally recreated #link("https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook")[an existing performant Python Keras workflow] for King County houses price inference, and obtained a model with $R^2 = 0.86$. Then, I stabilized the framework's API in an easier to use, documented package and shared the library to the Rust community. I obtained great feedback and downloads on the Rust libraries repository. I look forward to learning more about NNs and Machine Learning, and growing my framework over time. 
         ]
     )
 ]
@@ -102,7 +102,7 @@ After the last epoch, hopefully, the loss converged to a local minimum and predi
 ]]
 
 As we can see, the NN which had weights and biases initialized at random in the $[0, 1]$ range,
-tried to generalize based on the limited observations it received, and therefore can predict what the _non-existant_ value of $"xor"$ would be for any input in the $[0, 1]$ range. But since the starting parameters are set at random, it converges to different minimas each time, which leads to different predictions.
+tried to generalize based on the limited observations it received, and therefore can predict what the _non-existant_ value of $"xor"$ would be for any input in the $[0, 1]$ range. But since the starting weights and biases are set at random, it converges to different minimas each time, which leads to different predictions.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -181,13 +181,13 @@ Indeed, this is a possible local minimum of the loss function. If the model is n
 
 #align(center)[
 #stack(dir: ltr)[
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 8cm)[
         #figure(
             image("../visuals/GS2L_price_over_price.png"),
             caption: [It only learned the distribution. The purple predicted values don't follow the true values in green. (log scaled prices)]
         )
     ]
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 8cm)[
         #figure(
             image("../visuals/C_price_over_price.png"),
             caption: [This model learned it even better, it now always predicts the exact same value that statistically makes sense.]
@@ -252,21 +252,21 @@ I also added the possibility to train with _momentum SGD_. Like a ball rolling d
 
 At first I was struggling to make the switch to $"ReLU"$ activation as I had very unstable results using it with previous models. 
 
-But I was initializing the biases with a random value between $0$ and $1$ instead of just initializing them to $0$. In my experiments it did not make the $"tanh"$ activated model significantly less stable, but it made $"ReLU"$ highly unstable. 
+But I was initializing the biases with a random value between $-1$ and $1$ instead of just initializing them to $0$. In my experiments it did not make the $"tanh"$ activated model significantly less stable, but it made $"ReLU"$ highly unstable. 
 
-I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero without any way for the gradient to help the bias to get back to a positive value.
+I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero without any way for the gradient to help the bias to get back to a positive value. In opposition to $tanh$ which is symetric and therefore treats negative values as positive ones.
 
 Also, $"ReLU"$ is linear so it does not learn non-linear relationships well. I added squares of the input features to the input data which helped it learn.
 
 #align(center)[
 #stack(dir: ltr)[
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 6.5cm)[
         #figure(
             image("../visuals/model7_id.png"),
             caption: [With $"ReLU"$ with squared features and biases initialized at $0$]
         )
     ]
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 6.5cm)[
         #figure(
             image("../visuals/model3_id.png"),
             caption: [With $"ReLU"$ with squared features and biases initialized in $[-1, 1]$]
@@ -278,13 +278,13 @@ I also started implementing the _Glorot Uniform_ weights initialization, since i
 
 #align(center)[
 #stack(dir: ltr)[
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 7.5cm)[
         #figure(
             image("../visuals/weights_uniform_tanh_weights_uniform_signed_tanh_weights_glorot_uniform_tanh_loss.png"),
             caption: [Comparing uniform, uniform signed and Glorot uniform weights initialization with $"tanh"$. Glorot outperforms the other two.]
         )
     ]
-    #box(width: 45%, height: 7cm)[
+    #box(width: 45%, height: 7.5cm)[
         #figure(
             image("../visuals/weights_uniform_weights_zeros_weights_glorot_uniform_loss.png"),
             caption: [Comparing uniform, zeros and Glorot uniform weights initialization with $"ReLU"$. Glorot outperforms the other two.] 
@@ -342,17 +342,22 @@ With the King County house price regression problem it does not perform better t
     ]
 ]
 
-After all these tweakings and experiments, I ended up with a model consisting of $8$ hidden layers of as many neurons as inputs (as I figured out during my experiments that it was the best architecture for my data), using $"ReLU"$ activation until the last layer which has linear activation, Glorot uniform weights initialization, and Momentum optimizer with a constant learning rate set to $0.001$. 
+After all these tweakings and experiments, I ended up with a model consisting of $8$ hidden layers of as many neurons as inputs $+1$ (as I figured out during my experiments that it was the best architecture for my data), using $"ReLU"$ activation until the last layer which has linear activation, Glorot uniform weights initialization, and Momentum optimizer with a constant learning rate set to $0.001$. I disabled outliers filtering on the preprocessing pipeline to have better accuracy.
 
-I trained it for $300$ epochs and then computed the $R^2$ score for the model which is a standard regression quality metric (with scores from $0$: worst, to $1$: best) computed as:
+I trained it for $300$ epochs on $8$ folds with mini-batches of size $128$ and then computed the $R^2$ score for the model which is a standard regression quality metric (with scores from $0$: worst, to $1$: best) computed as:
 
 $ R^2 = 1 - (sum (y_i - accent(y, hat)_i ))/(sum (y_i - accent(y, macron))) $
 
 With $y_i$ the $i^("th")$ true price and $accent(y, hat)_i$ the $i^("th")$ predicted price (computed at the final epoch of the fold in charge of the $i^("th")$ row).
 
-This model attains an $R^2 = 0.8304801$.
+This model attains an $R^2 = 0.86$. It is similar to the Python Keras workflow I got inspiration from at $R^2 = 0.88$. 
 
-It is worse than the Python Keras workflow I got inspiration from at $R^2 = 0.88$, and would be even worse if I used the same defaults as it does since it uses Adam, which underperforms on my own case. But this can be explained by the fact that we don't do the exact same preprocessing pipeline. The original one is more advanced and would require more updates to my framework before I could do it the exact same.
+#figure(
+    image("../visuals/final_loss.png", width: 80%),
+    caption: [Loss over epochs]
+)
+
+But I got worse results when I tried using the exact same defaults as the Kaggle workflow, since it uses Adam and does outliers filtering, which underperforms on my own case (although it takes significantly less time to train). Maybe that's because the original's data preprocessing is more advanced and would require more updates to my framework. Therefore it perhaps creates a dataset that benefits from Adam and outliers filtering more than I do. But I'm not that confident. It may just be that my Adam implementation is not the exact same as Keras'.
 
 Here are some charts of the predictions (in blue) and true prices (in green) according to interesting features:
 
@@ -498,8 +503,6 @@ dataset_spec
     // Adding ^2 features of all input features 
     // (including the added ones like the timestamp)
     .add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
-    // Filtering rows according to feature's outliers
-    .add_opt(FilterOutliers.except(&["date"]).incl_added_features())
     // Normalizing everything
     .add_opt(Normalized.except(&["date"]).incl_added_features());
 
@@ -512,13 +515,13 @@ for i in 0..nh {
     layers.push(LayerSpec::from_options(&[
         OutSize(h_size),
         Activation(ReLU),
-        Optimizer(adam()),
+        Optimizer(momentum()),
     ]));
 }
 let final_layer = LayerSpec::from_options(&[
     OutSize(1),
     Activation(Linear),
-    Optimizer(adam()),
+    Optimizer(momentum()),
 ]);
 
 // Putting it all together

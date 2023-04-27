@@ -2,7 +2,7 @@ use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
     model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
-    optimizer::{adam},
+    optimizer::{adam, momentum},
     pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers, initializers::Initializers,
 };
 
@@ -27,7 +27,7 @@ fn main() {
         .add_opt_to("price", Out)
         .add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
         .add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
-        .add_opt(FilterOutliers.except(&["date"]).incl_added_features())
+        //.add_opt(FilterOutliers.except(&["date"]).incl_added_features())
         .add_opt(Normalized.except(&["date"]).incl_added_features());
 
     let h_size = dataset_spec.in_features_names().len() + 1;
@@ -40,7 +40,7 @@ fn main() {
             OutSize(h_size),
             Activation(ReLU),
             Dropout(if i > 0 { dropout } else { None }),
-            Optimizer(adam()),
+            Optimizer(momentum()),
         ]));
     }
 
@@ -48,7 +48,7 @@ fn main() {
         OutSize(1),
         Activation(Linear),
         Dropout(dropout),
-        Optimizer(adam()),
+        Optimizer(momentum()),
     ]);
 
     let model = Model::from_options(&[
