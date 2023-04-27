@@ -254,9 +254,9 @@ At first I was struggling to make the switch to $"ReLU"$ activation as I had ver
 
 But I was initializing the biases with a random value between $-1$ and $1$ instead of just initializing them to $0$. In my experiments it did not make the $"tanh"$ activated model significantly less stable, but it made $"ReLU"$ highly unstable. 
 
-I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero without any way for the gradient to help the bias to get back to a positive value. In opposition to $tanh$ which is symetric and therefore treats negative values as positive ones.
+I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero, without the gradient helping the bias enough to reach a positive value. In opposition to $tanh$ which is symetric and therefore treats negative values as positive ones.
 
-Also, $"ReLU"$ is linear so it does not learn non-linear relationships well. I added squares of the input features to the input data which helped it learn.
+Also, $"ReLU"$ is linear so maybe it did not learn non-linear relationships well. I added squares of the input features to the input data which helped it learn.
 
 #align(center)[
 #stack(dir: ltr)[
@@ -274,7 +274,7 @@ Also, $"ReLU"$ is linear so it does not learn non-linear relationships well. I a
     ]
 ]]
 
-I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper, implemented it, but struggled to really see why it works. But it does improve the models' stability and performance, whether using $"ReLU"$ or $"tanh"$ activation.
+I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper, implemented it, but struggled to really see why it works. It does improve the models' stability and performance, whether using $"ReLU"$ or $"tanh"$ activation.
 
 #align(center)[
 #stack(dir: ltr)[
@@ -300,9 +300,9 @@ The other great advantage of using $"ReLU"$ is that it is a very fast activation
     ]
 ]
 
-One issue I had with the data was its skewed distribution which did not help the model. One fix to that issue was to log scale the features that had distributions skewed towards lower values, such as the _price_ or the _squared feets_ features.
+One issue I had with the data was its skewed distribution which did not help the model. A fix was to log-scale the features biased towards lower values, such as the _price_ or the _squared feets_ features.
 
-Another issue with the data was the high number of _outliers_, e.g. extreme values that are too isolated for the model to learn anything from them. I filtered them out using _Tukey's fence method_ which removes rows with one of their features' value above or below $1.5$ times that feature's _interquartile range (IQC)_.
+Another issue with the data was the high number of _outliers_, e.g. extreme values that are too isolated for the model to learn anything from them. I filtered them out using _Tukey's fence method_, which removes a row if one of it features' is above or below $1.5$ times that feature's _interquartile range (IQC)_.
 
 #figure(
     image("../visuals/full_lt_8ReLU-Adam-Lin-Adam_boxplots.png", width: 95%),
@@ -328,7 +328,7 @@ It uses the momentum and moving average of the gradient to update the parameters
 
 I implemented Adam by following the algorithm found in the original paper. It introduced a few additional hyperparameters that I set to Keras' defaults.
 
-With the King County house price regression problem it does not perform better than SGD nor Momentum with default parameters. It converges faster to a low loss during the $10$ initial epochs, but it gets floored at an higher error than SGD or Momentum in the long run. Maybe with some hyperparameter fine-tuning it would outperform, but I haven't got time to try that yet.
+With the King County house price regression problem it does not perform better than SGD nor Momentum with default parameters. It converges faster to a low loss during the $10$ initial epochs, but it gets floored at an higher error than SGD or Momentum in the long run. After some hyperparameter fine-tuning maybe it would perform better, but I haven't got time to try that yet.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_with_adam_loss.png", width: 80%),
@@ -357,7 +357,7 @@ This model attains an $R^2 = 0.86$. It is similar to the Python Keras workflow I
     caption: [Loss over epochs]
 )
 
-But I got worse results when I tried using the exact same defaults as the Kaggle workflow, since it uses Adam and does outliers filtering, which underperforms on my own case (although it takes significantly less time to train). Maybe that's because the original's data preprocessing is more advanced and would require more updates to my framework. Therefore it perhaps creates a dataset that benefits from Adam and outliers filtering more than I do. But I'm not that confident. It may just be that my Adam implementation is not the exact same as Keras'.
+But I got worse results when I tried using the exact same defaults as the Kaggle workflow, since it uses Adam and does outliers filtering, which underperforms on my own case (although it takes significantly less time to train). Maybe that's because the original's data preprocessing is more advanced and would require more updates to my framework. Therefore it perhaps creates a dataset that benefits from Adam and outliers filtering more than I do. I'm confident it is that since the workflow authors demonstrates that one of his engineered feature, that I lack, is significant for predicting the price.
 
 Here are some charts of the predictions (in blue) and true prices (in green) according to interesting features:
 
@@ -366,7 +366,7 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/final_price.png"),
-            caption: [Predictions grow with actual value as expected. Higher prices seem to be harder to predict. Maybe they are too shallow.]
+            caption: [Predictions grow with actual value as expected. Higher prices seem to be harder to predict. Maybe they are too shallow, and the dataset lacks high price examples.]
         )
     ]
     #box(width: 45%, height: 7cm)[
@@ -388,7 +388,7 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/final_sqft_living.png"),
-            caption: [The living room's squared feets has a significant correlation with price. But is from enough to explain it.]
+            caption: [The living room's squared feets has a significant correlation with price. But is far from enough to explain it.]
         )
     ]
 ]]
@@ -398,13 +398,13 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/final_lat.png"),
-            caption: [Latitude is by far the most impactful feature.]
+            caption: [Prices from South to North]
         )
     ]
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/final_long.png"),
-            caption: [Longitude also has an impact]
+            caption: [Prices from West to East]
         )
     ]
 ]]
@@ -422,9 +422,9 @@ Here are some charts of the predictions (in blue) and true prices (in green) acc
     ]
 ]
 
-The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (as simple as Rust can go in my opinion).
+The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple as I manage to do with Rust in my opinion).
 
-Additionnaly to everything mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many Vectors and Matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate.
+Additionnaly to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many Vectors and Matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate.
 
 The framework is open-sourced on Github with $57$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for Vectors and Matrices using compute shaders and the WebGPU technology, (or at least plugging an existing one if it ends up being too difficult).
 
@@ -440,11 +440,11 @@ After that, I would like next to explore CNNs and RNNs.
 
 Machine Learning (ML) workflows almost always imply dynamic languages and notebooks, such as Matlab, Julia, R and Python. These versatiles and highly dynamic tools allow fast iterations and ease of use, enabling fast cutting-edge research. But they present a compromise over stability, maintainability, and sometimes performance.
 
-In order for a ML workflow to be used at scale, low-level languages and GPU code is often used, such as C, C++, CUDA or OpenCL. These languages are very performant and well established, can interop with high-level tools, but they lack good memory safety, ease of use, universal and/or widely accepted standards for codebase management, documentation, dependency management, and unified testing practices. They also lack easy to use high-level abstractions for concurency, architecture, data structures and functional programming, which are very useful for ML workflows at scale, and would help reduce boilerplate, and further improve code readability and maintainability.
+In order for a ML workflow to be used at scale, low-level languages and GPU code is often used, such as C, C++, CUDA or OpenCL. These languages are very performant and well established, can interop with high-level tools, but they lack good memory safety, ease of use, universal and/or widely accepted standards for codebase management, documentation, dependency management, and unified testing practices. They also lack accessible high-level abstractions for concurency, architecture, data structures and functional programming, which are very useful for ML workflows at scale, and would help reduce boilerplate, and further improve code readability and maintainability.
 
-Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy, rich ecosystem of libraries, unified codebase management practices, and focus on performance, concurrency and memory safety. Rust is a very young language, but it has already gained some traction in the ML community, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda interop, and even Rust as a first-class language for GPU programming.
+Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy, rich ecosystem of libraries, unified codebase management practices, and focus on performance, concurrency and memory safety. Rust is a very young language, but it has already gained some traction in the ML community, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda and OpenCL interops, and even Rust as a first-class language for GPU programming.
 
-Creating performant but still high-level looking APIs in Rust, is absolutely possible and way easier than in C or C++ in my opinion. But still not trivial. It requires Rust-specific architecture skills, as Rust does not ressemble classic Object Oriented languages, and as usual planning, good library design, and a lot of back and forth API changes. This is why I initially struggled to find a good existing library or framework for my ML project in Rust. The existing ones compromising ease of use over extreme rigour and expressiveness, resulting in hairy APIs, that are hard to hack, or just grasp as a ML beginner like I am.
+Creating performant but still high-level looking APIs in Rust, is absolutely possible and way easier than in C or C++ in my opinion. But still not trivial. It requires Rust-specific architecture skills, as Rust does not ressemble classic Object Oriented languages. And as usual with any language: planning, good library design, and a lot of back and forth API changes. This is why I initially struggled to find a good existing library or framework for my ML project in Rust. The existing ones compromising ease of use over extreme rigour and expressiveness, resulting in hairy APIs, that are hard to hack, or just grasp as a ML beginner like I am.
 
 I wanted to create a NNs library that enabled me to create ML worflows looking high-level and still allowing low-level tweaking and average performance on the CPU on the long run. Something that Rust trully enabled me to achieve.
 
@@ -468,7 +468,7 @@ I wanted to create a NNs library that enabled me to create ML worflows looking h
     ]
 ]
 
-Here are some code snippets that you might find useful. They are excerpts from the framework's `0.1.1` version.
+Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.1.1` version.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
