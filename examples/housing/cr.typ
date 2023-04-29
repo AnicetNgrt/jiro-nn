@@ -957,7 +957,7 @@ impl Layer for DenseLayer {
     #box(inset: (top: 20pt, bottom: 10pt, left: 20pt, right: 10pt))[
         - #link("https://github.com/AnicetNgrt/neural_networks_rust")[My framework's source code on Github]
         - #link("https://github.com/AnicetNgrt/neural_networks_rust/tree/main/examples/housing")[My King County House solution source code on Github]
-        - #link("https://docs.rs/neural_networks_rust/0.1.1/neural_networks_rust/index.html")[The online documentation of my framework].
+        - #link("https://docs.rs/neural_networks_rust/latest/neural_networks_rust/index.html")[The online documentation of my framework].
     ]
 ]
 
