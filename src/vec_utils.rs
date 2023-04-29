@@ -100,7 +100,7 @@ pub fn quartiles_vector(vec: &Vec<Scalar>) -> (Scalar, Scalar, Scalar) {
     (q1, q2, q3)
 }
 
-pub fn vector_boxplot(vals: &Vec<Scalar>) -> (Scalar, Scalar, Scalar, Scalar, Scalar) {
+pub fn vector_quartiles_iqr(vals: &Vec<Scalar>) -> (Scalar, Scalar, Scalar, Scalar, Scalar) {
     let (q1, q2, q3) = quartiles_vector(vals);
     let iqr = q3 - q1;
     let min = q1 - 1.5 * iqr;
