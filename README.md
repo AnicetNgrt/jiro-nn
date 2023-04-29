@@ -36,7 +36,9 @@ let model = model.with_new_dataset(updated_dataset_spec);
 // + extracting all predictions made during final epoch
 let kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
 let (validation_preds, model_eval) = kfold
-    .attach_real_time_reporter(|report| println!("Perf report: {:#?}", report))
+    .attach_real_time_reporter(|fold, epoch, report| {
+        println!("Perf report: {} {} {:#?}", fold, epoch, report)
+    })
     .run(&model, &data);
 
 // Reverting the pipeline on the predictions & data to get interpretable values
