@@ -491,11 +491,13 @@ It takes a long time to compute these importance scores (around $15$ minutes on 
 
 The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple as I can do with Rust for most parts of the user-facing code).
 
-Additionally to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many vectors and matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate, both of which are still not as fast as aforementioned libraries.
+Additionally to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many vectors and matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries. 
+
+I also implemented a fully unit-tested custom matrices backend, and a variation of it sped-up by a factor $~2.5$ using CPU parallelism with the `rayon` library. Both of those custom backends are still not as fast as aforementioned libraries. My implementation may be sound time complexity-wise, it is not cache-optimized unlike the two libraries, and it is not building a lazy computation graph like the most optimized C++ libraries on the CPU do. I don't believe it would be worth the effort implementing that as the easiest logical next step for performance improvement would be running on the GPU.
 
 The framework is open-sourced on Github with $60$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML engineers and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for Vectors and Matrices using compute shaders and the WebGPU technology @wgpu, (or at least plugging an existing one if it ends up being too difficult).
 
-After that, I would like to explore CNNs and dimensionality reduction layers for image and pattern recognition, and then RNNs for time series prediction or text translation. But since these problems would require significantly higher dimensions data, I prefer to wait until I make the framework GPU-bound.
+After that, I would like to explore CNNs and dimensionality reduction layers for image and pattern recognition, and then RNNs for time series prediction or text translation. But since these problems would require significantly higher dimensional data, I prefer to wait until I make the framework GPU-bound.
 
 #pagebreak()
 
