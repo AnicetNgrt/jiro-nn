@@ -37,7 +37,7 @@
             *Abstract*
         ]
 
-        I implemented a Neural Networks (NNs) and data preprocessing mini-framework in Rust using dataframes, linear algebra and data serialization libraries as my only dependencies. My goal was to create a data preprocessing pipeline and a NN model for doing performant supervised learning on the #link("https://www.kaggle.com/datasets/shivachandel/kc-house-data")[King County House dataset]. At first I struggled with the limited features of my framework and my limited intuition for NNs based approaches. Trying around 100 small models with varying success, getting stuck trying irrelevant techniques for small models such as Dropouts, too naively initializing the learnable parameters and not preprocessing the data enough. But after reading more related papers, trying many hyperparameters, implementing proper data preprocessing such as squared feature extraction, normalization and outliers filtering, setting up proper k-fold training, model benchmarking and implementing performant techniques such as Adam optimization, ReLU activation and Glorot initialization, I was able to build a better intuition and scale my models up by using more data features. Using my framework configured with almost the same defaults as the Keras Python library, I finally recreated #link("https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook")[an existing performant Python Keras workflow] for King County houses price inference, and then tweaked the author's model, obtaining a better $R^2$ at around $0.9$. Then, I stabilized the framework's API in an easier to use, documented package and shared the library to the Rust community. I obtained great feedback and downloads on the Rust libraries repository. I look forward to learning more about NNs and Machine Learning, and growing my framework over time. 
+        I implemented a Neural Networks (NNs) and data preprocessing mini-framework in Rust using dataframes, linear algebra and data serialization libraries as my only dependencies. My goal was to create a data preprocessing pipeline and a performant NN model trained with supervised learning on the King County House dataset @kchouse. At first I struggled with the limited features of my framework and my limited intuition with NNs based approaches. Trying around 100 small models with varying success, getting stuck trying irrelevant techniques for small models such as Dropouts, too naively initializing the learnable parameters and not preprocessing the data enough. But after reading more related papers, trying many hyperparameters, implementing proper data preprocessing such as squared feature extraction, normalization and outliers filtering, setting up proper k-fold training, model benchmarking and implementing performant techniques such as Adam optimization, ReLU activation and Glorot initialization, I was able to build a better intuition and scale my models up by using more data features. Then, using my framework configured with almost the same defaults as the Keras Python library, I finally recreated an existing performant Python Keras workflow @workflow for King County houses price inference, and then tweaked the author's model, obtaining a better $R^2$ at around $0.9$. Finally, I stabilized the framework's API in an easier to use, documented package and shared the library to the Rust community. I obtained great feedback and some downloads on the Rust libraries repository. I look forward to learning more about NNs and Machine Learning, and growing my framework over time. 
         ]
     )
 ]
@@ -46,7 +46,7 @@
     #box(
         inset: 5pt,
         [
-            _This report will not include source-code snippets throughout for readability reasons, but you will find relevant listings at the end of the report. #link("https://github.com/AnicetNgrt/neural_networks_rust")[Here is a link to the project's source code] and #link("https://docs.rs/neural_networks_rust/0.1.1/neural_networks_rust/index.html")[here is a link to its online documentation]_.
+            _This report will not include source-code snippets throughout for readability reasons, but you will find relevant listings and a link to the source code at the end of the report._
         ]
     )
 ]
@@ -64,14 +64,14 @@
     ]
 ]
 
-Learning the $"xor"$ function is a basic first step when implementing NNs. It helps checking whether the network learns anything at all from the observations. Doing this early-on helped me implement the basic features, learn a few things about how NNs work and make sure I had a solid basis for the next steps.
+Learning the $"xor"$ function is a basic first step when implementing NNs @fromscratch. It helps checking whether the network learns anything at all from the observations. Doing this early-on helped me implement the basic features, learn a few things about how NNs work and make sure I had a solid basis for the next steps.
 
 #figure(
     image("../visuals/neural_network.png", width:60%),
     caption: [Network used to learn the $"xor"$ function. ]
 )
 
-I used a rather standard model for such a problem, consisting of $2$ dense layers with $2$ input neurons, $3$ hidden neurons, $1$ output neuron, and $tanh$ activations for the hidden and output neurons.
+I used a rather standard model for such a problem, consisting of $2$ dense layers with $2$ input neurons, $3$ hidden neurons, $1$ output neuron, and $tanh$ activations for the hidden and output neurons @fromscratch.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -79,9 +79,9 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
     ]
 ]
 
-The network, fed with all the possible _(input, output)_ values for the $"xor"$ function, repeatedly for $1000$ epochs, first executes a _forward pass_, which for each layer from first to last, computes an output by doing the sum of its inputs multiplied by its weights plus its biases. Since the output has a linear relationship to the input, which may not represent how the reality works, we pass it through a non-linear _activation function_, $tanh(x)$ in our case. Then it calculates the _loss_ of the activated prediction relative to the true value, using a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function helping to converge towards both a low variance and bias model. 
+The network, fed with all the possible _(input, output)_ values for the $"xor"$ function, repeatedly for $1000$ epochs, first executes a _forward pass_, which for each layer from first to last, computes an output by doing the sum of its inputs multiplied by its weights plus its biases. Since the output has a linear relationship to the input, which may not represent how the reality works, we pass it through a non-linear _activation function_, $tanh(x)$ in our case. Then it calculates the _loss_ of the activated prediction relative to the true value, using a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. 
 
-Then, in order to converge towards a local minimum of the loss function, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm. This algorithm computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases), and updates the parameters in the opposite direction of the gradient, multiplied by a _learning rate_ hyperparameter. It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_.
+Then, in order to converge towards a local minimum of the loss function, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This algorithm computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases), and updates the parameters in the opposite direction of the gradient, multiplied by a _learning rate_ hyperparameter. It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_.
 
 After the last epoch, hopefully, the loss converged to a local minimum and predictions start looking quite good.
 
@@ -102,7 +102,7 @@ After the last epoch, hopefully, the loss converged to a local minimum and predi
 ]]
 
 As we can see, the NN which had weights and biases initialized at random in the $[0, 1]$ range,
-tried to generalize based on the limited observations it received, and therefore can predict what the _non-existent_ value of $"xor"$ would be for any input in the $[0, 1]$ range. But since the starting weights and biases are set at random, it converges to different minima each time, which leads to different predictions.
+tried to generalize based on the limited observations it received, and therefore can predict what the _non-existent_ value of $"xor"$ would be for any input in the $[0, 1]$ range @fromscratch. But since the starting weights and biases are set at random, it converges to different minima each time, which leads to different predictions.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -110,13 +110,13 @@ tried to generalize based on the limited observations it received, and therefore
     ]
 ]
 
-I then added _learning rate decay_ which introduces two hyperparameters: $r_0$, the _initial learning rate_ and $d$, the _decay rate_. Then, instead of using a constant learning rate during backpropagation, it updates $r_(i+1)$, the learning rate for each iteration $i+1$ as:
+I then added _learning rate decay_ #cite("mit-intro", "lrdecay") which introduces two hyperparameters: $r_0$, the _initial learning rate_ and $d$, the _decay rate_. Then, instead of using a constant learning rate during backpropagation, it updates $r_(i+1)$, the learning rate for each iteration $i+1$ as @inversetimedecay:
 
 $ r_(i+1) = r_i / ( 1 + d dot i ) $
 
-This helps the model converge more precisely as it gradually "slows its descent", enabling fast exploration at the beginning, but preventing over-shooting in the long run. Finding the right value is tricky, as too high values can lead to the model converging too slowly.
+This helps the model converge more precisely as it gradually "slows its descent", enabling fast exploration at the beginning, but preventing over-shooting in the long run @mit-intro. Finding the right value is tricky, as too high values can lead to the model converging too slowly.
 
-I also added _dropouts_ which is a technique used to prevent _overfitting_ by randomly dropping nodes of each layer with a probability $p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features. I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs.
+I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularization_ @regularization technique hence used to prevent _overfitting_ by randomly dropping nodes of each layer with a probability $p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features. @dropouts I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs:
 
 #align(center)[
 #stack(dir: ltr)[
@@ -134,7 +134,7 @@ I also added _dropouts_ which is a technique used to prevent _overfitting_ by ra
     ]
 ]]
 
-I slowly started realizing how over-engineering with fancy features what should be a simple model for a simple problem wouldn't help.
+I slowly started realizing how over-engineering by sticking fancy features together wouldn't help.
 
 #pagebreak()
 
@@ -144,15 +144,17 @@ I slowly started realizing how over-engineering with fancy features what should 
     ]
 ]
 
+During this next segment I will describe how I gradually updated my framework in order to solve the King County House price inference problem @kchouse, with a final score of $R²>0.9$.
+
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
         == *Normalization and trying initial hyperparameters*
     ]
 ]
 
-For problems dealing with real data, we can't just feed it and predict right away, as real-world data can have large range and skewed distributions which does not help the network learn.
+With problems dealing with real data, we can't just feed it and predict right away, as real-world data can have large range and skewed distributions which does not help the network learn @feature-scaling.
 
-So I got started with _feature scaling_ by normalizing the data features using _min-max normalization_: scaling them on a range between the feature's min and max.
+So I got started with _feature scaling_ @feature-scaling by normalizing the data features using _min-max normalization_ @minmax: scaling them on a range between the feature's min and max.
 
 $ x' = ((x - min(x))/(max(x)-min(x))) $
 
@@ -161,7 +163,7 @@ Then I started building small models using a subset of features. I tried many hi
 At some point I was stuck with better models than at the beginning, but still a too high training loss. And a proportional distance between predicted and true values indicating predictions on average $20%$ to $40%$ off.
 
 #figure(
-    image("../visuals/GS2L_prop_dist.png"),
+    image("../visuals/GS2L_prop_dist.png", width: 80%),
     caption: [The $±20%$ average proportional distance, with $±20%$ standard deviation is not great. Is this better than random guessing?]
 )
 
@@ -173,7 +175,7 @@ At some point I was stuck with better models than at the beginning, but still a 
 
 I made it possible to write _JSON_ specifications for the models so that I could easily load them, train them, compare them.
 
-I also started using _k-folds_ training, and saved all predictions made on each fold during the last epoch, so that I could finish my training with a prediction for each row of the dataset.
+I also started using _k-folds_ training @k-fold-mlm, and saved all predictions made on each fold during the last epoch, so that I could finish my training with a prediction for each row of the dataset.
 
 What I realized once I plotted all the predicted prices against the actual prices, is that the model only learned the value's statistical distributions and was guessing at random in that distribution, not being able to use the inputs to scale the output up or down.
 
@@ -203,7 +205,7 @@ After that, I got rid of the average proportional distance metric I was using so
     ]
 ]
 
-I conjectured that the input features I had previously chosen (_grade_, _bedrooms count_, _condition_, and _yr_build_) were not the most significant ones and did not help the model predict. Although they are highly correlated with the price, they may not explain the price well in comparison to other unused features.
+I believed at that point that the input features I had previously chosen (_grade_, _bedrooms count_, _condition_, and _yr_build_) were not the most significant ones and did not help the model predict. Which I ended up demonstrating at the end of the project. Although they seemed highly correlated with the price, they may not explain the price well in comparison to other unused features.
 
 So I added the possibility to specify the features and their preprocessing (normalization, logarithmic scaling...) in the model's configuration file. I also implemented a cached and revertible data pipelining functionality, in order to make it easier to add features, pre-process them, and attach original unprocessed features to the predicted values.
 
@@ -235,9 +237,9 @@ What I realized when training these models is that the models were very unstable
     ]
 ]
 
-I added the possibility to train with _mini-batches_. Instead of training one row at a time, the model trains on a batch of rows at a time. This is much faster as it takes advantage of the linear algebra libraries by doing parallel computations on large matrices instead of single-thread computations on vectors. This was a difficult refactor as it had repercussions on the whole layers-related code.
+I added the possibility to train with _mini-batches_ #cite("minibatch", "batch-size", "gdtechniques"). Instead of training one row at a time, the model trains on a batch of rows at a time. This is much faster as it takes advantage of the linear algebra libraries by doing parallel computations on large matrices instead of single-thread computations on vectors. This was a difficult refactor as it had repercussions on the whole layers-related code.
 
-I also added the possibility to train with _momentum SGD_. Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
+I also added the possibility to train with _momentum SGD_ @gdtechniques. Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_loss.png", width: 80%),
@@ -246,17 +248,17 @@ I also added the possibility to train with _momentum SGD_. Like a ball rolling d
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *ReLU, squared features, Glorot Uniform weights and 0 biases initialization*
+        == *ReLU, squared features, Glorot and reaching stability*
     ]
 ]
 
-At first I was struggling to make the switch to $"ReLU"$ activation as I had very unstable results using it with previous models. 
+I wanted to make the switch to $"ReLU"$ activation @relu-mlm because it had a reputation of converging faster @relu. But I was struggling with it because it was giving very unstable results with my current models at that time.
 
-But I was initializing the biases with a random value between $-1$ and $1$ instead of just initializing them to $0$. In my experiments it did not make the $"tanh"$ activated model significantly less stable, but it made $"ReLU"$ highly unstable. 
+But I discovered I was initializing the biases with a random value between $-1$ and $1$ instead of just initializing them to $0$. In my experiments it did not make the $"tanh"$ activated model significantly less stable, but it made $"ReLU"$ highly unstable. 
 
-I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero, without the gradient helping the bias enough to reach a positive value. In opposition to $tanh$ which is symmetric and therefore treats negative values as positive ones.
+I suspect that having negative biases at the beginning got the model stuck with $"ReLU"$ returning always zero, without the gradient helping the bias enough to reach a positive value. In other words, it made the model way too sparse to be able to densify itself enough ever again. In opposition to $tanh$ which is symmetric and therefore treats negative values as positive ones.
 
-Also, $"ReLU"$ is linear so maybe it did not learn non-linear relationships well. I added squares of the input features to the input data which helped it learn.
+Also, $"ReLU"$ is linear in both negative and positive inputs (but not linear as a whole by definition) so maybe it did not learn non-linear relationships well. I added squares of the input features to the input data at that point. Maybe the squared nature of the input helped it learn.
 
 #align(center)[
 #stack(dir: ltr)[
@@ -274,7 +276,7 @@ Also, $"ReLU"$ is linear so maybe it did not learn non-linear relationships well
     ]
 ]]
 
-I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper, implemented it, but struggled to really see why it works. It does improve the models' stability and performance, whether using $"ReLU"$ or $"tanh"$ activation.
+I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper @glorot, implemented it, but struggled to really see why it works. It does improve the models' stability and performance thought, whether using $"ReLU"$ or $"tanh"$ activation.
 
 #align(center)[
 #stack(dir: ltr)[
@@ -292,7 +294,7 @@ I also started implementing the _Glorot Uniform_ weights initialization, since i
     ]
 ]]
 
-The other great advantage of using $"ReLU"$ is that it is a very fast activation function. And Glorot is the best initialization I found when using $"ReLU"$.
+The other great advantage of using $"ReLU"$ is that it is a very fast activation function @relu. It made my network way faster than with $tanh$. And Glorot is the best initialization I found when using $"ReLU"$. So now I had the best of both worlds.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -302,7 +304,7 @@ The other great advantage of using $"ReLU"$ is that it is a very fast activation
 
 One issue I had with the data was its skewed distribution which did not help the model. A fix was to log-scale the features biased towards lower values, such as the _price_ or the _squared foots_ features.
 
-Another issue with the data was the high number of _outliers_, e.g. extreme values that are too isolated for the model to learn anything from them. I filtered them out using _Tukey's fence method_, which removes a row if one of it features' is above or below $1.5$ times that feature's _interquartile range (IQC)_.
+Another issue with the data was the high number of _outliers_, e.g. extreme values that are too isolated for the model to learn anything from them. I filtered them out using _Tukey's fence method_ @tukeys, which removes a row if one of it features' is above or below $1.5$ times that feature's _interquartile range (IQC)_.
 
 #figure(
     image("../visuals/full_lt_8ReLU-Adam-Lin-Adam_boxplots.png"),
@@ -326,9 +328,9 @@ The final step in having the same defaults as the Keras framework, was using the
 
 It uses the momentum and moving average of the gradient to update the parameters, allowing it to handle sparse gradients and noisy data, like ours, more efficiently.
 
-I implemented Adam by following the algorithm found in the original paper. It introduced a few additional hyperparameters that I set to Keras' defaults.
+I implemented Adam by following the algorithm found in the original paper @adam. It introduced a few additional hyperparameters that I set to Keras' defaults.
 
-With the King County house price regression problem it does not perform better than SGD nor Momentum with default parameters. It converges faster to a low loss during the $10$ initial epochs, but it gets floored at an higher error than SGD or Momentum in the long run. After some hyperparameter fine-tuning maybe it would perform better, but I haven't got time to try that yet.
+With the King County house price regression problem it does not perform better than SGD nor Momentum with default parameters. It converges faster to a low loss during the $10$ initial epochs, but it gets floored at an higher error than SGD or Momentum in the long run. After some hyperparameter fine-tuning maybe it would perform better, or maybe I should try optimized versions of it @betteradam  but I haven't got time to try that yet.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_with_adam_loss.png", width: 80%),
@@ -352,7 +354,7 @@ After all these tweaks and experiments, I ended up with a model consisting of $8
 
 I trained it for $500$ epochs on $8$ folds with mini-batches of size $128$. 
 
-Considering the framework is CPU-bound, it trained on my personal computer for $43$ minutes when also computing $R²$ and validation loss for each epoch, and for $32$ minutes without additional computations. The data preprocessing pipeline took an insignificant amount of time to run prior to the training. 
+Considering the framework is CPU-bound, it trained on my personal computer for $43$ minutes when also computing various performance metrics for each epoch, and for $32$ minutes without additional computations. The data preprocessing pipeline took an insignificant amount of time to run prior to the training. 
 
 Here you can see the average loss over the $8$ folds throughout the training:
 
@@ -367,7 +369,7 @@ Here you can see the average loss over the $8$ folds throughout the training:
     ]
 ]
 
-I computed the $R^2$ score for the model which is a standard regression quality metric (with scores from $0$: worst, to $1$: best) computed as:
+I computed the $R^2$ score for the model which is a standard regression quality metric (with scores from $0$: worst, to $1$: best) computed as @rsquared:
 
 $ R^2 = 1 - (sum (y_i - accent(y, hat)_i ))/(sum (y_i - accent(y, macron))) $
 
@@ -375,7 +377,7 @@ With $y_i$ the $i^("th")$ true price and $accent(y, hat)_i$ the $i^("th")$ predi
 
 The best of the $8$ folds models attains an $R^2 = 0.9$.
 
-It is slightly better than the Python Keras workflow I got inspiration from at $R^2 = 0.88$, which used a similar architecture, trained for $500$ epochs as well with mini-batches of size $128$.
+It is slightly better than the Python Keras workflow I got inspiration from @workflow at $R^2 = 0.88$, which used a similar architecture, trained for $500$ epochs as well with mini-batches of size $128$.
 
 #figure(
     image("../visuals/final_folds_r2.png", width: 80%),
@@ -384,7 +386,7 @@ It is slightly better than the Python Keras workflow I got inspiration from at $
 
 To the workflow's defense: it did not pick the best model out of a k-folds training like I did. It only did one $80%$/$20%$ train/test data split. For comparison's sake, my average $R²$ over the $8$ folds stands at $0.88$.
 
-Also, the workflow used Adam optimization (Keras' default) and outliers filtering, both I found to not benefit the model. And it used $35$ features while I used $34$. Its features included an engineered feature based on the house's grade and year built which I couldn't replicate, which the author found out had a $3%$ importance in predicting the price (so quite significant). But unlike me it didn't use the timestamp not the month of the sale.
+Also, the workflow used Adam optimization (Keras' default) and outliers filtering, both I found to not benefit the model. And it used $35$ features while I used $34$. Its features included an engineered feature based on the house's grade and year built which I couldn't replicate, which the author found out had a $3%$ relative importance in predicting the price (I'll explain that metric later, but $3%$ is quite significant). But unlike me it didn't use the timestamp not the month of the sale, which ended up being relatively very unimportant ($<0.5%$).
 
 Out of curiosity I also tried averaging my $8$ models' weights and biases. It gave me a model predicting always the same statistically average price. I wonder whether merging the folds models can be done in a different way in order to extract the best performing weights and biases from all the models.
 
@@ -455,7 +457,7 @@ Here are some charts of the predictions (in blue) and true prices (in red) accor
     ]
 ]
 
-One way to know which features are the most critical and decisive for the model to predict the true price, I used the technique of _feature importance_. This technique was first introduced for random forests in 2001, but in 2018 a model-agnostic version was proposed, which can be used with regression models.
+One way to know which features are the most critical and decisive for the model to predict the true price is the technique of _feature importance_. This technique was first introduced with random forests in 2001 @randomforests, but in 2018 a model-agnostic version was proposed @importance, which can be used with regression models.
 
 The process is simple: 
 
@@ -475,6 +477,10 @@ The idea is that if your model had no to little accuracy difference while predic
 
 In this chart we can see that the lot's square foots and the living room square foot's are the most important features for the model to get high $R^2$. But the date or whether the house has a view of the bay didn't matter that much relative to all the other features.
 
+Although I computed them on the whole dataset, my model has somewhat differently ordered relative importance scores for each feature than the Keras workflow's author @workflow. Maybe it depends a lot on the minima found, but it would seem odd as I can't imagine models ordering features importance that differently from one another both having a similarly high $R²$ score. Or maybe it depends mostly on the data, as some parts of the dataset may have a price explained abnormally better by certain features, and it is quite possible we haven't done that computation on the same data. 
+
+It takes a long time to compute these importance scores (around $15$ minutes on my machine), but I'll try to investigate.
+
 #pagebreak()
 
 #align(center)[
@@ -483,13 +489,13 @@ In this chart we can see that the lot's square foots and the living room square 
     ]
 ]
 
-The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple for many user-facing APIs as I can do with Rust I believe).
+The framework has many useful features for basic Neural Networks and data preprocessing at that point, with a decent architecture and a simple API (almost as simple as I can do with Rust for most parts of the user-facing code).
 
-Additionally to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many Vectors and Matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate.
+Additionally to every feature mentioned throughout this report, it can switch at compile-time between $32 "bits"$ and $64 "bits"$ floating point numbers, and between many vectors and matrices backends which are all CPU-bound. Such as the very fast `nalgebra` and `faer-rs` Rust libraries, and also a fully unit-tested custom implementation with another backend being the same implementation sped-up by a factor $~2.5$ using parallelism with the `rayon` crate, both of which are still not as fast as aforementioned libraries.
 
-The framework is open-sourced on Github with $60$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for Vectors and Matrices using compute shaders and the WebGPU technology, (or at least plugging an existing one if it ends up being too difficult).
+The framework is open-sourced on Github with $60$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML engineers and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for Vectors and Matrices using compute shaders and the WebGPU technology @wgpu, (or at least plugging an existing one if it ends up being too difficult).
 
-After that, I would like to explore CNNs and dimensionality reduction layers for image and pattern recognition, and then RNNs for time series prediction or translation. But since these problems would require significantly higher dimensions data, I prefer to wait until I make the framework GPU-bound.
+After that, I would like to explore CNNs and dimensionality reduction layers for image and pattern recognition, and then RNNs for time series prediction or text translation. But since these problems would require significantly higher dimensions data, I prefer to wait until I make the framework GPU-bound.
 
 #pagebreak()
 
@@ -503,11 +509,11 @@ Machine Learning (ML) workflows almost always imply dynamic languages and notebo
 
 In order for a ML workflow to be used at scale, low-level languages and GPU code is often used to make SDKs or libraries, such as C, C++, CUDA or OpenCL. These languages are very performant and well established, can interop with high-level tools, but they lack good memory safety, ease of use, universal and/or widely accepted standards for codebase management, documentation, dependency management, and unified testing practices. They also lack accessible high-level abstractions for concurrency, architecture, data structures and functional programming, which may very well be useful for building and maintaining large SDKs in the ML industry.
 
-Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy, rich ecosystem of libraries, unified codebase management practices, and focus on performance, concurrency and memory safety. Rust is a very young language, but it has already gained some traction in the ML community, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda and OpenCL interoperability, and even Rust as a first-class language for GPU programming.
+Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy @zerocost, rich ecosystem of libraries @cratesio, unified codebase management practices, and focus on performance, concurrency and memory safety. Rust is a very young language, but it has already gained some traction in the ML community @arewelearning, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda and OpenCL interoperability, and even Rust as a first-class language for GPU programming.
 
 Creating performant but still high-level looking APIs in Rust, is absolutely possible and way easier than in C or C++ in my opinion. But still not trivial. It requires Rust-specific architecture skills as Rust's best practices do not resemble classic Object Oriented programming ones. It is considered by many as a language with a steep learning curve. And it is absolutely the language that took me the most work to become somewhat confident with. Other skills are required for building an ML library in Rust, such as good codebase planning, thoughtful library design, and a lot of back and forth API changes. In my opinion, this is why I initially struggled to find a polished, well documented and easy to use existing tool in Rust: It is just hard and slow to build.  
 
-So, even thought I made a footstep in the Rust ML ecosystem, it is still very tiny, and we may be years apart from a tool as ergonomic as Pytorch or Tensorflow in Rust. But I believe the quest is well worth the effort, and others are working on it too at that time with a rich ecosystem of ML tools in Rust currently in the making.
+So, even thought I made a footstep in the Rust ML ecosystem with this project, it is still very tiny, and we may be years apart from a tool as ergonomic as Pytorch or TF in Rust. But I believe the quest is well worth the effort, and others are working on it with a rich ecosystem of ML tools in Rust currently in the making @arewelearning.
 
 But most importantly perhaps, I got to hack, experiment and build my own understanding.
 
@@ -938,3 +944,31 @@ impl Layer for DenseLayer {
     }
 }
 ```
+
+#pagebreak()
+
+#align(center)[
+    #box(inset: (top: 20pt, bottom: 10pt, left: 10pt, right: 10pt))[
+        = *Appendix B: Project's links*
+    ]
+]
+
+#align(left)[
+    #box(inset: (top: 20pt, bottom: 10pt, left: 20pt, right: 10pt))[
+        - #link("https://github.com/AnicetNgrt/neural_networks_rust")[My framework's source code on Github]
+        - #link("https://github.com/AnicetNgrt/neural_networks_rust/tree/main/examples/housing")[My King County House solution source code on Github]
+        - #link("https://docs.rs/neural_networks_rust/0.1.1/neural_networks_rust/index.html")[The online documentation of my framework].
+    ]
+]
+
+#pagebreak()
+
+#align(center)[
+    #box(inset: (top: 20pt, bottom: 10pt, left: 10pt, right: 10pt))[
+        = *Bibliography*
+    ]
+]
+
+Here are some insightful videos, articles and papers I've read or cherry-picked information from:
+
+#bibliography("cr.bib", title: none)

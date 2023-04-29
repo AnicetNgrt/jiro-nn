@@ -51,7 +51,7 @@ let best_model_params = kfold.take_best_model();
 
 // Saving the weights & biases to a JSON file
 // You can load them later in a network which would have the same architecture
-best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
+best_model_params.to_json("my_model_params.csv");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
 let validation_preds = pipeline.revert_columnswise(&validation_preds);
