@@ -26,20 +26,32 @@ let mut model = Model::from_json_file("my_model_spec.json");
 // Applying a data pipeline on it according to its dataset specification
 let mut pipeline = Pipeline::basic_single_pass();
 let (updated_dataset_spec, data) = pipeline
-    .add(AttachIds::new("id"))
+    // adding a step at the beginning of the pipeline
+    .prepend(Sample::new(10_000, true))
+    // adding another one at the end
+    .push(AttachIds::new("id"))
+    // running and caching to ./dataset/
     .run("./dataset", &model.dataset);
 
 let model = model.with_new_dataset(updated_dataset_spec);
 
-// Training it using k-fold cross validation
+// Training the model using k-fold cross validation
 // + extracting test & training metrics per folds & per epochs
 // + extracting all predictions made during final epoch
-let kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
+let mut kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
 let (validation_preds, model_eval) = kfold
     .attach_real_time_reporter(|fold, epoch, report| {
         println!("Perf report: {} {} {:#?}", fold, epoch, report)
     })
+    .compute_best()
     .run(&model, &data);
+
+// Taking k-fold's best trained model's weights & biases
+let best_model_params = kfold.take_best_model();
+
+// Saving the weights & biases to a JSON file
+// You can load them later in a network which would have the same architecture
+best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
 
 // Reverting the pipeline on the predictions & data to get interpretable values
 let validation_preds = pipeline.revert_columnswise(&validation_preds);
@@ -53,7 +65,7 @@ data_and_preds.to_file("my_model_preds.csv");
 model_eval.to_json_file("my_model_evals.json");
 ```
 
-You can then plot the results using a third-party crate like `gnuplot` *(recommended)*, `plotly` or even `plotters`.
+You can then plot the results using a third-party crate like `gnuplot` *(recommended)*, `plotly` *(also recommended)* or even `plotters`.
 
 But first you would need to write or generate your model's specification.
 

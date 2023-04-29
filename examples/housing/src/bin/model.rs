@@ -11,20 +11,29 @@ pub fn main() {
 
     let mut pipeline = Pipeline::basic_single_pass();
     let (updated_dataset_spec, data) = pipeline
-        .add(AttachIds::new("id"))
+        .push(AttachIds::new("id"))
         .run("./dataset", &model.dataset);
 
     println!("data: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_spec);
     
-    let kfold = model.trainer.maybe_kfold().expect("Only KFolds trainer is supported");
+    let mut kfold = model.trainer.maybe_kfold().expect("Only KFolds trainer is supported");
     let (validation_preds, model_eval) = kfold
-        .attach_real_time_reporter(|report| {
-            println!("Fold {:3} Epoch {:4} Train avg loss: {:.6} Pred avg loss: {:.6}",
-            report.fold, report.epoch, report.train_loss, report.validation_loss);
+        .attach_real_time_reporter(|fold, epoch, report| {
+            println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
         })
+        .all_epochs_validation()
+        .all_epochs_r2()
+        .compute_best_model()
+        .compute_avg_model()
         .run(&model, &data);
+
+    let best_model_params = kfold.take_best_model();
+    let avg_model_params = kfold.take_avg_model();
+
+    best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
+    avg_model_params.to_json(format!("models_stats/{}_avg_params.json", config_name));
 
     let validation_preds = pipeline.revert_columnswise(&validation_preds);
     let data = pipeline.revert_columnswise(&data);
@@ -34,5 +43,5 @@ pub fn main() {
 
     println!("{:#?}", data_and_preds);
 
-    model_eval.to_json_file(format!("models_stats/{}.json", config_name));
+    model_eval.to_json_file(format!("models_weights/{}.json", config_name));
 }

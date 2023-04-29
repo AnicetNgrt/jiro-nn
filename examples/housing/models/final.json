@@ -1,5 +1,5 @@
 {
-  "epochs": 300,
+  "epochs": 500,
   "loss": "MSE",
   "hidden_layers": [
     {

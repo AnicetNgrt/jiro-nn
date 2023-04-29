@@ -1,8 +1,0 @@
-{
-    "name": "B",
-    "learning_rate": 0.5,
-    "epochs": 30,
-    "decay_rate": 1.0,
-    "activation": "tanh",
-    "layers": [30, 10]
-}

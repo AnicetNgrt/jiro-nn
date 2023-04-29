@@ -9,7 +9,7 @@ use neural_networks_rust::{
     pipelines::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, normalize::Normalize, Pipeline,
     },
-    vec_utils::{vector_boxplot},
+    vec_utils::{vector_quartiles_iqr},
 };
 
 fn main() {
@@ -21,9 +21,9 @@ fn main() {
 
     let mut pipeline = Pipeline::new();
     let (_, data_before) = pipeline
-        .add(ExtractMonths)
-        .add(ExtractTimestamps)
-        .add(Normalize::new())
+        .push(ExtractMonths)
+        .push(ExtractTimestamps)
+        .push(Normalize::new())
         .run("./dataset", &model.dataset);
 
     let mut pipeline = Pipeline::basic_single_pass();
@@ -47,7 +47,7 @@ fn main() {
                 continue;
             }
             let vals = data.column_to_vector(&feature_name);
-            let (q1, q2, q3, min, max) = vector_boxplot(&vals);
+            let (q1, q2, q3, min, max) = vector_quartiles_iqr(&vals);
             let outliers = vals.into_iter()
                 .filter(|x| *x < min || *x > max)
                 .collect::<Vec<_>>();

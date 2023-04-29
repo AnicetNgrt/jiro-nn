@@ -2,8 +2,8 @@ use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
     model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
-    optimizer::{adam, momentum},
-    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers, initializers::Initializers,
+    optimizer::{momentum},
+    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
 };
 
 fn main() {
@@ -57,7 +57,7 @@ fn main() {
         FinalLayer(final_layer),
         BatchSize(128),
         Trainer(Trainers::KFolds(8)),
-        Epochs(300),
+        Epochs(500),
     ]);
 
     //println!("{:#?}", model);
