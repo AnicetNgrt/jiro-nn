@@ -1,9 +1,52 @@
 use crate::linalg::Scalar;
 
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, Rng};
 
 pub fn avg_vector(vec: &Vec<Scalar>) -> Scalar {
     vec.iter().sum::<Scalar>() / vec.len() as Scalar
+}
+
+pub fn std_vector(vec: &Vec<Scalar>) -> Scalar {
+    let avg = avg_vector(vec);
+    let mut sum = 0.0;
+    for i in 0..vec.len() {
+        sum += (vec[i] - avg).powi(2);
+    }
+    (sum / vec.len() as Scalar).sqrt()
+}
+
+pub fn shuffle_vec<T>(vec: &mut Vec<T>) {
+    let mut rng = rand::thread_rng();
+    vec.shuffle(&mut rng);
+}
+
+pub fn shuffle_column<T: Clone>(vec: &mut Vec<Vec<T>>, col: usize) {
+    let mut rng = rand::thread_rng();
+    
+    for i in 0..vec.len() {
+        let j = rng.gen_range(0..vec.len());
+        let swap = vec[j][col].clone();
+        vec[j][col] = vec[i][col].clone();
+        vec[i][col] = swap;
+    }
+}
+
+pub fn r2_score_matrix(y: &Vec<Vec<Scalar>>, y_hat: &Vec<Vec<Scalar>>) -> Scalar {
+    assert!(y.len() == y_hat.len());
+    assert!(y[0].len() == y_hat[0].len());
+    
+    let y_avg = avg_vector(&y.iter().map(|x| avg_vector(x)).collect());
+    let mut ssr = 0.0;
+    let mut sst = 0.0;
+
+    for i in 0..y.len() {
+        for j in 0..y[0].len() {
+            ssr += (y[i][j] - y_hat[i][j]).powi(2);
+            sst += (y[i][j] - y_avg).powi(2);
+        }
+    }
+
+    1.0 - (ssr/sst)
 }
 
 pub fn r2_score(y: &Vec<Scalar>, y_hat: &Vec<Scalar>) -> Scalar {

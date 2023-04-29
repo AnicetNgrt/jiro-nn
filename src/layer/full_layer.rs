@@ -6,6 +6,7 @@ use rand::{Rng, SeedableRng};
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
+#[derive(Debug)]
 pub struct FullLayer {
     dense: DenseLayer,
     activation: ActivationLayer,
@@ -24,6 +25,21 @@ impl FullLayer {
             dropout_enabled: false,
             mask: None
         }
+    }
+
+    // returns a matrix of the (jxi) weights and the final column being the (j) biases
+    pub fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
+        let mut params = self.dense.weights.get_data();
+        params.push(self.dense.biases.get_column(0));
+        params
+    }
+
+    // takes a matrix of the (jxi) weights and the final column being the (j) biases
+    pub fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
+        let mut weights = params_matrix.clone();
+        let biases = weights.pop().unwrap();
+        self.dense.weights = Matrix::from_column_leading_matrix(&weights);
+        self.dense.biases = Matrix::from_column_vector(&biases);
     }
 
     pub fn enable_dropout(&mut self) {

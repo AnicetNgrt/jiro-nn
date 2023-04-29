@@ -52,7 +52,6 @@ impl DataTransformation for Normalize {
         for feature in spec.features.iter() {
             if feature.normalized {
                 let min_max = data.min_max_column(&feature.name);
-                println!("{}: {:?}", feature.name, min_max);
                 features_min_max.insert(feature.name.clone(), min_max);
             }
         }

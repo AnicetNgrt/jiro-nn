@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::linalg::MatrixTrait;
 use crate::{
     initializers::Initializers,
@@ -10,9 +12,9 @@ pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
     input: Option<Matrix>,
     // j x i connection weights
-    weights: Matrix,
+    pub weights: Matrix,
     // j output biases (single column)
-    biases: Matrix,
+    pub biases: Matrix,
     weights_optimizer: Optimizers,
     biases_optimizer: Optimizers,
 }
@@ -110,4 +112,10 @@ pub fn default_biases_optimizer() -> Optimizers {
 
 pub fn default_weights_optimizer() -> Optimizers {
     sgd()
+}
+
+impl fmt::Debug for DenseLayer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Dense Layer")
+    }
 }

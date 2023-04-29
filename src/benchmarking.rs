@@ -19,6 +19,7 @@ pub struct EpochEvaluation {
     pub train_loss: Scalar,
     pub test_loss_avg: Scalar,
     pub test_loss_std: Scalar,
+    pub r2: Scalar,
 }
 
 impl ModelEvaluation {
@@ -128,14 +129,19 @@ impl FoldEvaluation {
     pub fn get_final_test_loss_std(&self) -> Scalar {
         self.get_final_epoch().test_loss_std
     }
+
+    pub fn get_final_r2(&self) -> Scalar {
+        self.get_final_epoch().r2
+    }
 }
 
 impl EpochEvaluation {
-    pub fn new(train_loss: Scalar, test_loss_avg: Scalar, test_loss_std: Scalar) -> Self {
+    pub fn new(train_loss: Scalar, test_loss_avg: Scalar, test_loss_std: Scalar, r2: Scalar) -> Self {
         Self {
             train_loss,
             test_loss_avg,
             test_loss_std,
+            r2
         }
     }
 }

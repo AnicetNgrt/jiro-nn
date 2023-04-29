@@ -20,5 +20,5 @@ impl Trainers {
 }
 
 pub trait Trainer {
-    fn run(self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation);
+    fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation);
 }

@@ -1,9 +1,12 @@
+use std::{fs::File, io::Write, path::{PathBuf}};
+
 use crate::{
     layer::{full_layer::FullLayer, Layer},
-    linalg::{Matrix, Scalar, MatrixTrait},
+    linalg::{Matrix, MatrixTrait, Scalar},
     loss::Loss,
 };
 
+#[derive(Debug)]
 pub struct Network {
     // May be one or more layers inside
     // A layer is a layer as long as it implements the Layer trait
@@ -15,6 +18,20 @@ pub struct Network {
 impl Network {
     pub fn new(layers: Vec<FullLayer>, i: usize, j: usize) -> Self {
         Self { layers, i, j }
+    }
+
+    pub fn get_params(&self) -> NetworkParams {
+        let mut params = Vec::new();
+        for layer in self.layers.iter() {
+            params.push(layer.get_learnable_parameters());
+        }
+        NetworkParams(params)
+    }
+
+    pub fn load_params(&mut self, params: &NetworkParams) {
+        for (layer, params) in self.layers.iter_mut().zip(params.0.iter()) {
+            layer.set_learnable_parameters(params);
+        }
     }
 
     /// `input` has shape `(i,)` where `i` is the number of inputs.
@@ -39,6 +56,21 @@ impl Network {
         let loss = loss.loss_vec(&vec![y], &vec![preds.clone()]);
 
         (preds, loss)
+    }
+
+    /// `inputs` has shape `(n, i)` where `n` is the number of samples and `i` is the number of inputs.
+    ///
+    /// Returns `preds` which has shape `(n, j)` where `n` is the number of samples and `j` is the number of outputs.
+    pub fn predict_many(
+        &mut self,
+        inputs: &Vec<Vec<Scalar>>
+    ) -> Vec<Vec<Scalar>> {
+        let preds: Vec<_> = inputs
+            .into_iter()
+            .map(|x| self.predict(x))
+            .collect();
+
+        preds
     }
 
     /// `inputs` has shape `(n, i)` where `n` is the number of samples and `i` is the number of inputs.
@@ -125,5 +157,59 @@ impl<L: Layer> Layer for Vec<L> {
             error_gradient = layer.backward(epoch, error_gradient);
         }
         error_gradient
+    }
+}
+
+pub struct NetworkParams(pub Vec<Vec<Vec<Scalar>>>);
+
+impl NetworkParams {
+    pub fn average(networks: &Vec<Self>) -> Self {
+        let mut params = Vec::new();
+        
+        let layer_count = networks[0].0.len();
+
+        for layer_index in 0..layer_count {
+            let mut layer_params = Matrix::from_column_leading_matrix(&networks[0].0[layer_index]);
+
+            for network in networks.iter().skip(1) {
+                let other_params = Matrix::from_column_leading_matrix(&network.0[layer_index]);
+                layer_params =  layer_params.component_add(&other_params).scalar_div(2.0);
+            }
+
+            params.push(layer_params.get_data());
+        }
+    
+        NetworkParams(params)
+    }
+
+    pub fn to_json<P: Into<PathBuf>>(&self, path: P) {
+        let json = serde_json::json!({ "params": self.0 });
+        let mut file = File::create(path.into()).unwrap();
+        file.write_all(json.to_string().as_bytes()).unwrap();
+    }
+
+    pub fn from_json<P: Into<PathBuf>>(path: P) -> Self {
+        let file = File::open(path.into()).unwrap();
+        let json: serde_json::Value = serde_json::from_reader(file).unwrap();
+        let params = json["params"].as_array().unwrap();
+
+        NetworkParams(
+            params
+                .iter()
+                .map(|x| {
+                    x.as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|x| {
+                            x.as_array()
+                                .unwrap()
+                                .iter()
+                                .map(|x| x.as_f64().unwrap() as Scalar)
+                                .collect()
+                        })
+                        .collect()
+                })
+                .collect(),
+        )
     }
 }

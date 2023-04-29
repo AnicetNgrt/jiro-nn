@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::linalg::MatrixTrait;
 use serde::{Serialize, Deserialize};
 
@@ -65,5 +67,11 @@ impl Activation {
             Self::ReLU => relu::new(),
             Self::HyperbolicTangent => hbt::new(),
         }
+    }
+}
+
+impl fmt::Debug for ActivationLayer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Activation Layer")
     }
 }

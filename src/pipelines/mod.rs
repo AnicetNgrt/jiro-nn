@@ -13,6 +13,7 @@ pub mod attach_ids;
 pub mod square;
 pub mod filter_outliers;
 pub mod map;
+pub mod sample;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
@@ -41,13 +42,13 @@ impl Pipeline {
     pub fn basic_single_pass() -> Pipeline {
         let mut pipeline = Pipeline::new();
         pipeline
-            .add(ExtractMonths)
-            .add(ExtractTimestamps)
-            .add(Map::new())
-            .add(LogScale10::new())
-            .add(Square::new())
-            .add(FilterOutliers)
-            .add(Normalize::new());
+            .push(ExtractMonths)
+            .push(ExtractTimestamps)
+            .push(Map::new())
+            .push(LogScale10::new())
+            .push(Square::new())
+            .push(FilterOutliers)
+            .push(Normalize::new());
         
         pipeline
     }
@@ -57,8 +58,13 @@ impl Pipeline {
         self
     }
 
-    pub fn add<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
+    pub fn push<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
         self.transformations.push(Rc::new(RefCell::new(transformation)));
+        self
+    }
+
+    pub fn prepend<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
+        self.transformations.insert(0, Rc::new(RefCell::new(transformation)));
         self
     }
 
