@@ -716,99 +716,94 @@ importance_rel.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
 ]
 
 ```rs
-impl Trainer for KFolds {
-    /// Runs the k-fold cross validation
-    /// 
-    /// Assumes the data has all the columns corresponding to the model's dataset.
-    /// 
-    /// Assumes both the data and the model's dataset include an id feature.
-    
-    fn run(self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
-        // Running each fold in parallel requires Rust's compiler to satisfy
-        // rigorous requirements
-        // Which is why we create Mutexes (shared mutability across threads) and 
-        // Arcs (shared variable lifetime guarantees across threads).
-        let validation_preds = Arc::new(Mutex::new(DataTable::new_empty()));
-        let model_eval = Arc::new(Mutex::new(ModelEvaluation::new_empty()));
-        let reporter = Arc::new(Mutex::new(self.real_time_reporter));
-        let mut handles = Vec::new();
+/// Running one fold in parallel
+fn parallel_k_fold(
+    &mut self,
+    i: usize,
+    model: &Model,
+    data: &DataTable,
+    // Mutexes in order to guarantee thread-safe
+    // mutability
+    // Arcs are thread-safe reference counted pointers
+    // for the compiler to have memory safety guarantees
+    validation_preds: &Arc<Mutex<DataTable>>,
+    model_eval: &Arc<Mutex<ModelEvaluation>>,
+    trained_models: &Arc<Mutex<Vec<Network>>>,
+    k: usize,
+) -> thread::JoinHandle<()> {
+    let i = i.clone();
+    let model = model.clone();
+    let data = data.clone();
+    let validation_preds = validation_preds.clone();
+    let model_eval = model_eval.clone();
+    let all_epochs_r2 = self.all_epochs_r2;
+    let reporter = self.real_time_reporter.clone();
+    let trained_models = trained_models.clone();
 
-        for i in 0..self.k {
-            // Cloning the shared pointers before moving them
-            // inside the thread closure to satisfy compiler's requirements
-            let i = i.clone();
-            let model = model.clone();
-            let data = data.clone();
-            let validation_preds = validation_preds.clone();
-            let model_eval = model_eval.clone();
-            let reporter = reporter.clone();
+    let handle = thread::spawn(move || {
+        let out_features = model.dataset.out_features_names();
+        let id_column = model.dataset.get_id_column().unwrap();
+        let mut network = model.to_network();
 
-            let handle = thread::spawn(move || {
-                let out_features = model.dataset.out_features_names();
-                let id_column = model.dataset.get_id_column().unwrap();
-                let mut network = model.to_network();
+        // Split the data between validation and training
+        let (train_table, validation) = data.split_k_folds(k, i);
 
-                let (train_table, validation) = data.split_k_folds(self.k, i);
+        // Shuffle the validation and training set and split it between x and y
+        let (validation_x_table, validation_y_table) =
+            validation.random_order_in_out(&out_features);
 
-                let (validation_x_table, validation_y_table) =
-                    validation.random_order_in_out(&out_features);
-        
-                let validation_x = validation_x_table.drop_column(id_column).to_vectors();
-                let validation_y = validation_y_table.to_vectors();
+        // Convert the validation set to vectors
+        let validation_x = validation_x_table.drop_column(id_column).to_vectors();
+        let validation_y = validation_y_table.to_vectors();
 
-                let mut fold_eval = FoldEvaluation::new_empty();
-                let epochs = model.epochs;
-                for e in 0..epochs {
-                    let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
+        let mut fold_eval = FoldEvaluation::new_empty();
+        let epochs = model.epochs;
+        for e in 0..epochs {
+            // Train the model with the k-th folds except the i-th
+            let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
-                    let loss_fn = model.loss.to_loss();
-                    let (preds, loss_avg, loss_std) =
-                        network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn);
+            // Predict all values in the i-th fold
+            // It is costly and should be done only during the last epoch
+            // and made optional for all the others in the future
+            let loss_fn = model.loss.to_loss();
+            let (preds, loss_avg, loss_std) = if e == model.epochs - 1 {
+                network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
+            } else {
+                (vec![], -1.0, -1.0)
+            };
 
-                    if let Some(reporter) = reporter.lock().unwrap().as_mut() {
-                        reporter(KFoldsReport {
-                            fold: i,
-                            epoch: e,
-                            train_loss,
-                            validation_loss: loss_avg
-                        });
-                    }
+            // Compute the R2 score	if it is the last epoch
+            // (it would be very costly to do it every time)
+            let r2 = if e == model.epochs - 1 || all_epochs_r2 {
+                r2_score_matrix(&validation_y, &preds)
+            } else {
+                -1.0
+            };
 
-                    let eval = EpochEvaluation::new(train_loss, loss_avg, loss_std);
+            // Build the benchmork of the model for that epoch
+            // Useful for plotting the learning curve
+            let eval = EpochEvaluation::new(train_loss, loss_avg, loss_std, r2);
 
-                    // Save predictions from the final epoch
-                    if e == model.epochs - 1 {
-                        let mut vp = validation_preds.lock().unwrap();
-                        *vp = vp.apppend(
-                            &DataTable::from_vectors(&out_features, &preds)
-                                .add_column_from(&validation_x_table, id_column),
-                        )
-                    };
+            // Report the benchmark in real time if expected
+            if let Some(reporter) = reporter.as_ref() {
+                reporter.lock().unwrap()(i, e, eval.clone());
+            }
 
-                    fold_eval.add_epoch(eval);
-                }
-                model_eval.lock().unwrap().add_fold(fold_eval);
-            });
+            // Save the predictions if it is the last epoch
+            if e == model.epochs - 1 {
+                let mut vp = validation_preds.lock().unwrap();
+                *vp = vp.apppend(
+                    &DataTable::from_vectors(&out_features, &preds)
+                        .add_column_from(&validation_x_table, id_column),
+                );
+            };
 
-            handles.push(handle);
+            fold_eval.add_epoch(eval);
         }
-
-        for handle in handles.into_iter() {
-            handle.join().unwrap();
-        }
-
-        // Destroy the now useless smart pointers for parallel computing
-        let validation_preds = Arc::try_unwrap(validation_preds).unwrap().into_inner().unwrap();
-        let model_eval = Arc::try_unwrap(model_eval).unwrap().into_inner().unwrap();
-        let trained_models = Arc::try_unwrap(trained_models).unwrap().into_inner().unwrap();
-
-        // Compute the best and average models 
-        // and store them internally if necessary
-        self.compute_best(&model_eval, &trained_models);
-        self.compute_avg(&trained_models);
-
-        (validation_preds, model_eval)
-    }
+        trained_models.lock().unwrap().push(network);
+        model_eval.lock().unwrap().add_fold(fold_eval);
+    });
+    handle
 }
 ```
 
