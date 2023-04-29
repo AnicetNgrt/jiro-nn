@@ -140,6 +140,8 @@ model.to_json_file("my_model_spec.json");
 ### Neural Networks
 
 - Neural Network abstraction
+    - Build from a JSON specification
+    - Save and load weights and biases as/from JSON
 - Layers
     - Shared abstraction
         - Forward/Backward passes
@@ -211,6 +213,7 @@ model.to_json_file("my_model_spec.json");
 - `Vector<f64>` statistics & manipulation utils
     - Stats (mean, std dev, correlation, quartiles...)
     - Normalization
+    - Compute R²
 
 ### Linear algebra
 
