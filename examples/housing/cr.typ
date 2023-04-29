@@ -441,7 +441,7 @@ Here are some charts of the predictions (in blue) and true prices (in red) accor
     #box(width: 45%, height: 6cm)[
         #figure(
             image("../visuals/final_best/final_best_long.png"),
-            caption: [Prices from East to West]
+            caption: [Prices from West to East]
         )
     ]
 ]]
