@@ -159,7 +159,7 @@ $ "MSE"_N(limits(Y_0)_(j times 1)...limits(Y_(N-1))_(j times 1), limits(accent(Y
 
 Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
 
-SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times ((delta B)/(delta E))$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_ @mit-intro. In order for the intermediary layers to compute their gradients with respect to the error, which was computed at the very end of the _forward pass_, we use the derivation chain rule. Since one layer's inputs are the previous layer's outputs, we can express the final error as a function of all the layers computations. Roughly:
+SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta E)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta B)/(delta E)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_ @mit-intro. In order for the intermediary layers to compute their gradients with respect to the error, which was computed at the very end of the _forward pass_, we use the derivation chain rule. Since one layer's inputs are the previous layer's outputs, we can express the final error as a function of all the layers computations. Roughly:
 
 #align(center)[
     #box(inset: 10pt)[
@@ -337,13 +337,23 @@ What I realized when training these models is that the models were very unstable
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *Adding mini-batches and momentum SGD*
+        == *Adding mini-batches*
     ]
 ]
 
-I added the possibility to train with _mini-batches_ #cite("minibatch", "batch-size", "gdtechniques"). Instead of training one row at a time, the model trains on a batch of rows at a time. This is much faster as it takes advantage of the linear algebra libraries by doing parallel computations on large matrices instead of single-thread computations on vectors. This was a difficult refactor as it had repercussions on the whole layers-related code.
+I added the possibility to train with _mini-batches_ #cite("minibatch", "batch-size", "gdtechniques"). Instead of training one row at a time, the model trains on a batch of rows at a time. This is much faster as it takes advantage of the linear algebra libraries by doing parallel computations on large matrices instead of single-thread computations on vectors. 
 
-I also added the possibility to train with _momentum SGD_ @gdtechniques. Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
+This was a very difficult refactor as it had repercussions on the whole layers-related code, transformed inputs and outputs column vectors into matrices to reflect the many samples of the batch, and also transformed the gradients' shape in the same way. It made the math seen in the previous sections trickier and the matrices sizes more error-prone. But it indeed made the training significantly faster.
+
+I also realized during my experiments that the higher the batch size, the more I had to decrease the learning rate. I haven't found literature on that yet. My intuition is that since we now used the sum of the samples gradients during backpropagation, it made the extreme gradients more extreme.
+
+#align(left)[
+    #box(inset: (top: 10pt, bottom: 5pt))[
+        == *Adding Momentum SGD*
+    ]
+]
+
+Then, I added the possibility to train with _momentum SGD_ @gdtechniques. Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_loss.png", width: 80%),
