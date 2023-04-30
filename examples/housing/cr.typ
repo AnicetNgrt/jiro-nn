@@ -46,7 +46,7 @@
     #box(
         inset: 5pt,
         [
-            _This report will not include source-code snippets throughout for readability reasons, but you will find relevant listings and a link to the source code at the end of the report._
+            _This report will not include source-code snippets throughout for readability reasons, but you will find relevant listings and a link to the source code in the appendix._
         ]
     )
 ]
@@ -224,7 +224,34 @@ $ r_(i+1) = r_i / ( 1 + d dot i ) $
 
 This helps the model converge more precisely as it gradually "slows its descent", enabling fast exploration at the beginning, but preventing over-shooting in the long run @mit-intro. Finding the right value is tricky, as too high values can lead to the model converging too slowly.
 
-I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularization_ @regularization technique hence used to prevent overfitting by randomly dropping nodes of each layer with a probability $p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features. @dropouts I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs:
+I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularization_ @regularization technique hence used to prevent overfitting by randomly dropping nodes of each layer with a probability $1-p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. 
+
+In order to apply dropouts during the forward pass for a layer with inputs $limits(X)_(I times 1)$ we generate a mask $limits(M)_(I times 1)$:
+
+#grid(columns: (0.2fr, 1fr, 1fr, 0.2fr,),
+    [],
+    align(center + horizon)[
+        $ limits(M)_(I times 1) = vec(d_0, d_1, dots.v, d_I) $
+    ],
+    align(center + horizon)[
+        with $forall i in {0, ..., I}: d_i ~ "Bernouilli"(p)$
+    ],
+    []
+)
+
+Then we compute the partially dropped input matrix using element-wise product:
+
+$ limits(accent(X, tilde))_(I times 1) = limits(X)_(I times 1) dot.circle limits(M)_(I times 1) $
+
+To compute the predictions during the test phase, we attenuate the weights by temporally doing $W_("test") = p W$.
+
+After the backward pass on the layer using Dropouts, we compute a correction of $(delta E)/(delta X)$:
+
+$ limits((delta E)/(delta accent(X, tilde)))_(I times 1) = limits((delta E)/(delta X))_(I times 1) dot.circle limits(M)_(I times 1) $
+
+Before sending it to the previous layer for it to use it as its $(delta E)/(delta Y)$.
+
+In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features @dropouts. I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs:
 
 #align(center)[
 #stack(dir: ltr)[
@@ -347,7 +374,27 @@ What I realized when training these models is that the models were very unstable
 
 I added the possibility to train with _mini-batches_ #cite("minibatch", "batch-size", "gdtechniques"). Instead of training one row at a time, the model trains on a batch of rows at a time. This is much faster as it takes advantage of the linear algebra libraries by doing parallel computations on large matrices instead of single-thread computations on vectors. 
 
-This was a very difficult refactor as it had repercussions on the whole layers-related code, transformed inputs and outputs column vectors into matrices to reflect the many samples of the batch, and also transformed the gradients' shape in the same way. It made the math seen in the previous sections trickier and the matrices sizes more error-prone. But it indeed made the training significantly faster.
+Therefore with mini-batches of size $S$ I now had this forward pass formula (notice how the sizes changed):
+
+$
+scripts(limits(Y)_(i^((n+1)) times S))^((n)) = scripts(limits(W)_(i^((n+1)) times i^((n))))^((n)) dot scripts(limits(Y)_(i^((n)) times S))^((n-1)) + scripts(limits(B)_(i^((n+1)) times 1))^((n)) dot limits(mat(1, ...;))_(1 times S)
+$
+
+This MSE formula (omitting the derivative which changed in a similar manner):
+
+$ "MSE"(limits(Y)_(J times S), limits(accent(Y, hat))_(J times S)) = 1/(J times S) limits(sum)_(s=0)^(S-1) limits(sum)_(j=0)^(J-1) (y_(j,s) - accent(y, hat)_(j,s))^2 $
+
+And these backward pass formulas:
+
+$ limits((delta E)/(delta W))_(j times i) = limits((delta E)/(delta Y))_(j times S) dot limits((scripts(limits(X)_(i times S)))^t)_(S times i) $ 
+
+$ limits((delta E)/(delta B))_(j times 1) = limits((delta E)/(delta Y))_(j times S) dot limits(vec(1, dots.v, 1))_(S times 1) $ 
+
+$ limits((delta E)/(delta X))_(i times S) = limits((scripts(limits(W)_(j times i)))^t)_(i times j) dot limits((delta E)/(delta Y))_(j times S) $ 
+
+Activations are easier since they just map every cell of a matrix, nothing had to change.
+
+This was a difficult refactor as it had repercussions on almost the whole code. It made the math seen in the previous sections trickier and the matrices sizes more error-prone. But it indeed made the training significantly faster.
 
 I also realized during my experiments that the higher the batch size, the more I had to decrease the learning rate. I haven't found literature on that yet. My intuition is that since we now used the sum of the samples gradients during backpropagation, it made the extreme gradients more extreme.
 
@@ -357,7 +404,19 @@ I also realized during my experiments that the higher the batch size, the more I
     ]
 ]
 
-Then, I added the possibility to train with _momentum SGD_ @gdtechniques. Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
+Then, I added the possibility to train with _momentum SGD_ @gdtechniques. It changes how we update learnable parameters. Instead of subtracting the gradient, we keep a learning rate $r$ and its decay parameters if decay is enabled, and we introduce an hyperparameter $v$ that weights how much we also consider the previous gradient in the next update of our parameters. Let's show the formulas for updating the weights, but it is similar for the biases:
+
+So first at epoch $e = 0$ we define an initial momentum $M$:
+
+$ M^((0)) = limits(((delta E)/(delta W))^((e-1)))_(j times i) = mat(0, 0, ..., 0; dots.v, dots.v, dots.down, dots.v; 0, 0, ..., 0;) $
+
+And then for each epoch $e$ we do:
+
+$ M^((e)) = v M^((e-1)) + r ((delta E)/(delta W))^((e)) $
+
+$ W^((e)) = W^((e-1)) - M^((e)) $
+
+Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_loss.png", width: 80%),
@@ -394,7 +453,20 @@ Also, $"ReLU"$ is linear in both negative and positive inputs (but not linear as
     ]
 ]]
 
-I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper @glorot, implemented it, but struggled to really see why it works. It does improve the models' stability and performance thought, whether using $"ReLU"$ or $"tanh"$ activation.
+I also started implementing the _Glorot Uniform_ weights initialization, since it was Keras' default weights initializer. I read the original paper @glorot, implemented it: 
+
+#box(inset: (left: 120pt, right: 120pt))[
+    #grid(columns: (1fr, 1fr),
+        align(center + horizon)[
+            $ limits(W^((0)))_(j times i) ~ cal(U)^(j times i)_([-l, l]) $
+        ],
+        align(center + horizon)[
+            With $l = sqrt(6 / (j + i))$
+        ]
+    )
+]
+
+But I struggled to really see why it works. It does improve the models' stability and performance thought, whether using $"ReLU"$ or $"tanh"$ activation.
 
 #align(center)[
 #stack(dir: ltr)[
