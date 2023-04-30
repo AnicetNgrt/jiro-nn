@@ -69,7 +69,7 @@ Learning the $"xor"$ function is a basic first step when implementing NNs @froms
 #figure(
     image("../visuals/neural_network.png", width:60%),
     caption: [Network used to learn the $"xor"$ function. ]
-)
+) <xorneuralnet>
 
 I used a rather standard model for such a problem, consisting of $2$ dense layers with $2$ input neurons, $3$ hidden neurons, $1$ output neuron, and $tanh$ activations for the hidden and output neurons @fromscratch.
 
@@ -79,18 +79,116 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
     ]
 ]
 
-The network, fed with all the possible _(input, output)_ values for the $"xor"$ function, repeatedly for $1000$ epochs, first executes a _forward pass_, which for each layer from first to last, computes an output by doing the sum of its inputs multiplied by its weights plus its biases. Since the output has a linear relationship to the input, which may not represent how the reality works, we pass it through a non-linear _activation function_, $tanh(x)$ in our case. Then it calculates the _loss_ of the activated prediction relative to the true value, using a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. 
+#align(left)[
+    #box(inset: (top: 7.5pt, bottom: 3pt))[
+        === *Explaining the forward pass*
+    ]
+]
 
-Then, in order to converge towards a local minimum of the loss function, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This algorithm computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases), and updates the parameters in the opposite direction of the gradient, multiplied by a _learning rate_ hyperparameter. It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_.
+The network, fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
 
-After the last epoch, hopefully, the loss converged to a local minimum and predictions start looking quite good.
+$
+scripts(limits(Y)_(j^((n)) times 1))^((n)) = scripts(limits(W)_(j^((n)) times i^((n))))^((n)) dot scripts(limits(X)_(i^((n)) times 1))^((n)) + scripts(limits(B)_(j^((n)) times 1))^((n))
+$
+
+But since the input of the $n^"th"$ layer is the output of the $(n+1)^"th"$ layer, the input size $i^((n))$ of the layer is the output size $j^((n-1))$ of the previous layer, and we can define that whole forward pass in a recurrent manner and remove $X$ and $j$ in the process:
+
+$
+scripts(limits(Y)_(i^((n+1)) times 1))^((n)) = scripts(limits(W)_(i^((n+1)) times i^((n))))^((n)) dot scripts(limits(Y)_(i^((n)) times 1))^((n-1)) + scripts(limits(B)_(i^((n+1)) times 1))^((n))
+$
+
+Obtaining after the $N^"th"$ layer:
+
+$
+scripts(limits(Y)_(i^((N)) times 1))^((N)) = scripts(limits(W)_(i^((N)) times i^((N-1))))^((N-1)) dot scripts(limits(Y)_(i^((N-1)) times 1))^((N-2)) + scripts(limits(B)_(i^((N)) times 1))^((N-1))
+$
+
+Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $j$ predictions $accent(y, hat)$ with regard to the $i$ observations $limits(X)_(i times 1)$. 
+
+This is fairly straight-forward to implement using a linked list or an array of some datastructure storing the weights and biases, and an overarching datastructure feeding the outputs to the inputs one after the others @fromscratch.
+
+#align(left)[
+    #box(inset: (top: 7.5pt, bottom: 3pt))[
+        === *Intuition on why NNs work for complex regression problems*
+    ]
+]
+
+If we decompose the matrix operations and try to reason about individual $y$ and $x$ we see that the $i^((n+1))$ outputs $y^((n))$ of the $n^"th"$ layer's $i^((n+1))$ neurons are given as a linear combination of the layer's $i^((n))$ inputs $x^((n))$ (which are the outputs $y^((n-1))$ of the previous layer), multiplied by its $i^((n+1)) times i^((n))$ weights $w^((n))$ plus its $i^((n+1))$ biases $b^((n))$. Which after substitution of the $x^((n))$ by the equivalent $y^((n-1))$ gives:
+
+#align(center)[
+    #block(inset: 10pt)[
+        $ 
+        y^((n))_0 = y^((n-1))_0 dot w^((n))_(0,0) + y^((n-1))_1 dot w^((n))_(1,0) + ... + y^((n-1))_(i^((n))) dot w^((n))_(i^((n)),0) + b^((n))_0
+        $
+
+        $
+        y^((n))_1 = y^((n-1))_0 dot w^((n))_(0,1) + y^((n-1))_1 dot w^((n))_(0,1) + ... + y^((n-1))_(i^((n))) dot w^((n))_(i^((n)),0) + b^((n))_1
+        $
+
+        $
+        ...
+        $
+
+        $
+        y^((n))_(i^((n+1))) = y^((n-1))_0 dot w^((n))_(0,i^((n+1))) + y^((n-1))_1 dot w^((n))_(0,i^((n+1))) + ... + y^((n-1))_(i^((n))) dot w^((n))_(i^((n)),i^((n+1))) + b^((n))_i^((n+1))
+        $
+    ]
+]
+
+As we can see, a Neural Network is just a chain of regression models. Instead of using a simple regression model computing the output as a linear combination of weighted inputs (because not all the inputs are as important), plus some bias (because the ideal regression line may not cross $(0, 0)$), we stack regression models one after the other to build progressively a more and more complex model. We can see them as intermediary patterns in the data that would be more useful than the initial inputs in order to guess the final output using some linear equation. 
+
+Intuitively, you know you can't guess the result of the $"xor"$ function by just weighting the $a$ and $b$ inputs and that's all. You have to make a table of truth where you look at both $a$ and $b$ together. You look at three intermediary patterns essentially: $(1)$ whether $a$ and $b$ are both $1$, $(2)$ whether $a$ and $b$ are both $0$, and $(3)$ whether $a$ and $b$ are different. So from two inputs $a$ and $b$ you have to construct mentally 3 intermediary facts $(1), (2), (3)$ which you then combine logically to guess the final result. If $(1) = 1$ then the result is $0$, if $(2) = 1$ then the result is also $0$ and if $(3) = 1$ then the result is $1$. 
+
+The Network just weights three internal facts computed by the hidden layer. More complex problems may require more intermediary patterns and may require to stack more layers of successive pattern extractions to find the answer. Training the model is just tweaking the biases and weights that react to these patterns in order to maximize our network's ability to guess the result.
+
+But as we've seen, the output has a linear relationship to the input, which may not represent how the reality works. So once we have the $y^((n))$ we pass it through a non-linear _activation function_, $tanh$ in our case, which will make the model non-linear. Many activation functions exist and have different properties, relevant to certain models.
+
+#align(left)[
+    #box(inset: (top: 7.5pt, bottom: 3pt))[
+        === *Backward pass*
+    ]
+]
+
+We wish to minimize the prediction error $|| limits(accent(Y, hat))_(j times 1) - limits(Y)_(j times 1) ||$, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model.
+
+Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
+
+SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times ((delta B)/(delta E))$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_ @mit-intro. In order for the intermediary layers to compute their gradients with respect to the error, which was computed at the very end of the _forward pass_, we use the derivation chain rule. Since one layer's inputs are the previous layer's outputs, we can express the final error as a function of all the layers computations. Roughly:
+
+#align(center)[
+    #box(inset: 10pt)[
+        $ E = Y^((N)) $
+
+        $ Y^((N)) = Y^((N-1)) $
+
+        $...$
+
+        $ Y^((1)) = Y^((0)) $
+    ]
+]
+
+If we consider that $Y^((N)) = L^((n))(Y^((n-1)))$ whe can write:
+
+$ E(X^((0))) = L^((N))(L^((N-1))(... L^((1))(L^((0))(X^((0)))))))) $
+
+Or:
+
+$ E = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
+
+Hence:
+
+$ E(X^((N))) = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
+
+Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of our error with respect to any layer's input, weights and biases, and apply SGD on the learnable parameters. 
+
+We repeat both the forward and the backward pass for $e$ _epochs_. After the last epoch, hopefully, the loss converged to a local minimum and predictions start looking quite good.
 
 #align(center)[
 #stack(dir: ltr)[
     #box(width: 45%, height: 7cm)[
         #figure(
             image("../visuals/xor-example-predictions.png"),
-            caption: [Predictions for inputs ranging from $(0.0, 0.0)$ to $(0.1, 0.1)$]
+            caption: [Predictions for inputs ranging from $(0.0, 0.0)$ to $(1., 1.)$]
         )
     ]
     #box(width: 45%, height: 7cm)[
@@ -101,8 +199,8 @@ After the last epoch, hopefully, the loss converged to a local minimum and predi
     ]
 ]]
 
-As we can see, the NN which had weights and biases initialized at random in the $[0, 1]$ range,
-tried to generalize based on the limited observations it received, and therefore can predict what the _non-existent_ value of $"xor"$ would be for any input in the $[0, 1]$ range @fromscratch. But since the starting weights and biases are set at random, it converges to different minima each time, which leads to different predictions.
+As we can see, the NN which had weights and biases initialized at random following $cal(U)_([-1, 1])$,
+tried to generalize based on the limited observations it received, and therefore can predict what the _non-existent_ value of $"xor"$ would be for any input tuple in the $[0, 1]^2$ interval @fromscratch. But since the starting weights and biases are set at random, it converges to different minima each time, which leads to different predictions.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -448,7 +546,7 @@ Here are some charts of the predictions (in blue) and true prices (in red) accor
 
 #figure(
     image("../visuals/final_best/final_best_latlong.png", width: 80%),
-    caption: [Latitude and longitude together. We can better see the most expensive neighbors. in the North-West region.]
+    caption: [Latitude and longitude together. We can better see the most expensive neighbors in the North-West region.]
 )
 
 #align(left)[
@@ -539,7 +637,7 @@ But most importantly perhaps, I got to hack, experiment and build my own underst
     ]
 ]
 
-Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.1.1` version.
+Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.2.0` version.
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
