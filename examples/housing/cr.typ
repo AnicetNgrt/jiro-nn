@@ -100,7 +100,7 @@ $
 Obtaining after the last $(N-1)^"th"$ layer:
 
 $
-scripts(limits(Y)_(i^((N+1)) times 1))^((N)) = scripts(limits(W)_(i^((N+1)) times i^((N))))^((N)) dot scripts(limits(Y)_(i^((N)) times 1))^((N-1)) + scripts(limits(B)_(i^((N+1)) times 1))^((N))
+scripts(limits(Y)_(j times 1))^((N-1)) = scripts(limits(W)_(j times i^((N-1))))^((N-1)) dot scripts(limits(Y)_(i^((N-1)) times 1))^((N-2)) + scripts(limits(B)_(i^((N-1)) times 1))^((N-1))
 $
 
 Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. 
@@ -135,7 +135,7 @@ If we decompose the matrix operations and try to reason about individual $y$ and
     ]
 ]
 
-As we can see, a Neural Network is just a chain of regression models. Instead of using a simple regression model computing the output as a linear combination of weighted inputs (because not all the inputs are as important), plus some bias (because the ideal regression line may not cross $(0, 0)$), we stack regression models one after the other to build progressively a more and more complex model. We can see them as intermediary patterns in the data that would be more useful than the initial inputs in order to guess the final output using some linear equation. 
+As we can see, a Neural Network is just a chain of regression models. Instead of using a simple regression model computing the output as a linear combination of weighted inputs (weighted because not all the inputs are correlated the same to the output), plus some bias (the ideal regression line may not cross $(0, 0)$ so we need some bias), we stack regression models one after the other to build progressively a more and more complex model. We can see them as intermediary patterns in the data that would be more useful than the initial inputs in order to guess the final output using some linear equation. 
 
 Intuitively, you know you can't guess the result of the $"xor"$ function by just weighting the $a$ and $b$ inputs and that's all. You have to make a table of truth where you look at both $a$ and $b$ together. You look at three intermediary patterns essentially: $(1)$ whether $a$ and $b$ are both $1$, $(2)$ whether $a$ and $b$ are both $0$, and $(3)$ whether $a$ and $b$ are different. So from two inputs $a$ and $b$ you have to construct mentally 3 intermediary facts $(1), (2), (3)$ which you then combine logically to guess the final result. If $(1) = 1$ then the result is $0$, if $(2) = 1$ then the result is also $0$ and if $(3) = 1$ then the result is $1$. 
 
@@ -149,7 +149,13 @@ But as we've seen, the output has a linear relationship to the input, which may 
     ]
 ]
 
-We wish to minimize the prediction error $|| limits(accent(Y, hat))_(j times 1) - limits(Y)_(j times 1) ||$, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model.
+We wish to minimize the prediction error, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. Many formulas for MSE exist, but the one that describes the implementation well is @fromscratch:
+
+$ "MSE"(limits(Y)_(j times 1), limits(accent(Y, hat))_(j times 1)) = EE[(y_j - accent(y, hat)_j)^2] $
+
+And for $N$ samples:
+
+$ "MSE"_N(limits(Y_0)_(j times 1)...limits(Y_(N-1))_(j times 1), limits(accent(Y, hat)_0)_(j times 1)...limits(accent(Y, hat)_(N-1))_(j times 1)) = EE["MSE"(limits(Y_n)_(j times 1), limits(accent(Y_n, hat))_(j times 1))] $
 
 Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
 
@@ -177,7 +183,7 @@ $ E = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
 
 Hence:
 
-$ E(X^((N))) = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
+$ E(X^((n))) = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
 
 Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of our error with respect to any layer's input, weights and biases, and apply SGD on the learnable parameters. 
 
