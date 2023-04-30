@@ -161,7 +161,7 @@ $ "MSE"_N(limits(Y_0)_(J times 1)...limits(Y_(N-1))_(J times 1), limits(accent(Y
 
 Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
 
-SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta E)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta B)/(delta E)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
+SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta E)/(delta W)$ and $(delta E)/(delta B)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta E)/(delta B)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta E)/(delta X)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
 
 If we consider that $Y^((N)) = L^((n))(Y^((n-1)))$ whe can write:
 
@@ -183,11 +183,11 @@ Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of our
 
 This can be implemented as the mirror of the forward pass' implementation. A structure feeds the gradient of the next layer's input with respect to the loss to the previous layer, which becomes the previous layer's gradient with respect to its output, from which it can compute the other gradients using these formulas which can be proved using the chain rule @fromscratch:
 
-$ limits((delta W)/(delta E))_(j times i) = limits((delta Y)/(delta E))_(j times 1) dot limits((scripts(limits(X)_(i times 1)))^t)_(1 times i) $ 
+$ limits((delta E)/(delta W))_(j times i) = limits((delta E)/(delta Y))_(j times 1) dot limits((scripts(limits(X)_(i times 1)))^t)_(1 times i) $ 
 
-$ limits((delta B)/(delta E))_(j times 1) = limits((delta Y)/(delta E))_(j times 1) $ 
+$ limits((delta E)/(delta B))_(j times 1) = limits((delta E)/(delta Y))_(j times 1) $ 
 
-$ limits((delta X)/(delta E))_(i times 1) = limits((scripts(limits(W)_(j times i)))^t)_(i times j) dot limits((delta Y)/(delta E))_(j times 1) $ 
+$ limits((delta E)/(delta X))_(i times 1) = limits((scripts(limits(W)_(j times i)))^t)_(i times j) dot limits((delta E)/(delta Y))_(j times 1) $ 
 
 We repeat both the forward and the backward passes for $e$ _epochs_. After the last epoch, hopefully, the loss converged to a local minimum and predictions start looking quite good.
 
