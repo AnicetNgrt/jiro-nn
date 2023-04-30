@@ -97,15 +97,15 @@ $
 scripts(limits(Y)_(i^((n+1)) times 1))^((n)) = scripts(limits(W)_(i^((n+1)) times i^((n))))^((n)) dot scripts(limits(Y)_(i^((n)) times 1))^((n-1)) + scripts(limits(B)_(i^((n+1)) times 1))^((n))
 $
 
-Obtaining after the $N^"th"$ layer:
+Obtaining after the last $(N-1)^"th"$ layer:
 
 $
-scripts(limits(Y)_(i^((N)) times 1))^((N)) = scripts(limits(W)_(i^((N)) times i^((N-1))))^((N-1)) dot scripts(limits(Y)_(i^((N-1)) times 1))^((N-2)) + scripts(limits(B)_(i^((N)) times 1))^((N-1))
+scripts(limits(Y)_(i^((N+1)) times 1))^((N)) = scripts(limits(W)_(i^((N+1)) times i^((N))))^((N)) dot scripts(limits(Y)_(i^((N)) times 1))^((N-1)) + scripts(limits(B)_(i^((N+1)) times 1))^((N))
 $
 
-Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $j$ predictions $accent(y, hat)$ with regard to the $i$ observations $limits(X)_(i times 1)$. 
+Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. 
 
-This is fairly straight-forward to implement using a linked list or an array of some datastructure storing the weights and biases, and an overarching datastructure feeding the outputs to the inputs one after the others @fromscratch.
+This is fairly straight-forward to implement using a linked list or an array of some datastructure storing the weights and biases, and an overarching datastructure feeding the outputs to the inputs one after the others @fromscratch. What is trickier and can lead to hard to debug runtime issues, is messing up matrices sizes and getting lost between matrices, vectors, column vectors, row-leading matrices, not knowing anymore what the rows and columns even are. You can get lost easily in all these different matrix implementation details. Which is why I write the sizes below the matrices in the formulas.
 
 #align(left)[
     #box(inset: (top: 7.5pt, bottom: 3pt))[
