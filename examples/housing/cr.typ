@@ -87,7 +87,9 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
 
 Imagine solving a regression problem for a dataset composed of many observations. Each observation comprise $i$ values (in the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$), and we want to predict $j$ values (in the case of $"xor"$ one value: $a "xor" b$, but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
 
-The network, fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, in order to produce $j$ predictions values $limits(accent(Y, hat))_(j times 1) = vec(accent(y, hat)_0, accent(y, hat)_1, ..., accent(y, hat)_j)$, executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
+We can first look at it like a black box: The network's first layer is fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, and the network's last layer produces $j$ predictions values $limits(accent(Y, hat))_(j times 1) = vec(accent(y, hat)_0, accent(y, hat)_1, ..., accent(y, hat)_j)$.
+
+What happens under the hood is that the network executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
 
 $
 scripts(limits(Y)_(j^((n)) times 1))^((n)) = scripts(limits(W)_(j^((n)) times i^((n))))^((n)) dot scripts(limits(X)_(i^((n)) times 1))^((n)) + scripts(limits(B)_(j^((n)) times 1))^((n))
@@ -228,15 +230,13 @@ I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularizatio
 
 In order to apply dropouts during the forward pass for a layer with inputs $limits(X)_(I times 1)$ we generate a mask $limits(M)_(I times 1)$:
 
-#grid(columns: (0.2fr, 1fr, 1fr, 0.2fr,),
-    [],
+#grid(columns: (1fr, 1fr,),
     align(center + horizon)[
-        $ limits(M)_(I times 1) = vec(d_0, d_1, dots.v, d_I) $
+        $ limits(M)_(I times 1) = vec(d_0, d_1, dots.v, d_(I-1)) $
     ],
     align(center + horizon)[
-        with $forall i in {0, ..., I}: d_i ~ "Bernouilli"(p)$
-    ],
-    []
+        with $forall i in {0, 1, ..., (I-1)}: d_i ~ "Bernouilli"(p)$
+    ]
 )
 
 Then we compute the partially dropped input matrix using element-wise product:
@@ -416,7 +416,7 @@ $ M^((e)) = v M^((e-1)) + r ((delta E)/(delta W))^((e)) $
 
 $ W^((e)) = W^((e-1)) - M^((e)) $
 
-Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better global minimum.
+Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better local or global minimum.
 
 #figure(
     image("../visuals/with_sgd_with_momentum_loss.png", width: 80%),
