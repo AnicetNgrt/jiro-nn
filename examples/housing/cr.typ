@@ -85,7 +85,7 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
     ]
 ]
 
-Imagine solving a regression problem for a dataset composed of many observations. Each observation comprise $i$ values (in the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$), and we want to predict $j$ values (in the case of $"xor"$ one value: $a "xor" b$, but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
+Imagine solving a regression problem for a dataset composed of many observations. Each observation comprises $i$ values (in the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$), and we want to predict $j$ values (in the case of $"xor"$ one value: $a "xor" b$, but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
 
 We can first look at it like a black box: The network's first layer is fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, and the network's last layer produces $j$ predictions values $limits(accent(Y, hat))_(j times 1) = vec(accent(y, hat)_0, accent(y, hat)_1, ..., accent(y, hat)_j)$.
 
