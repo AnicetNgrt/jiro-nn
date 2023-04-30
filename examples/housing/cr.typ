@@ -89,7 +89,7 @@ Imagine solving a regression problem for a dataset composed of many observations
 
 We can first look at it like a black box: The network's first layer is fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, and the network's last layer produces $j$ predictions values $limits(accent(Y, hat))_(j times 1) = vec(accent(y, hat)_0, accent(y, hat)_1, ..., accent(y, hat)_j)$.
 
-What happens under the hood is that the network executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
+What happens under the hood is that the network executes a _forward pass_, which for each layer $n$ from first $0$ to last $(N-1)$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
 
 $
 scripts(limits(Y)_(j^((n)) times 1))^((n)) = scripts(limits(W)_(j^((n)) times i^((n))))^((n)) dot scripts(limits(X)_(i^((n)) times 1))^((n)) + scripts(limits(B)_(j^((n)) times 1))^((n))
@@ -167,13 +167,13 @@ In order to progress towards that goal, we execute a _backward pass_ using the _
 
 SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta E)/(delta W)$ and $(delta E)/(delta B)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta E)/(delta B)$ . It then passes the gradient of the loss with respect to its inputs (e.g. the previous layer's output) $(delta E)/(delta X)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
 
-If we consider that $Y^((N)) = L^((n))(Y^((n-1)))$ whe can write:
+If we consider that $X^((n+1)) = Y^((n)) = L^((n))(X^((n))) = L^((n))(Y^((n-1)))$ whe can write:
 
-$ E(X^((0))) = "MSE"(L^((N))(L^((N-1))(... L^((1))(L^((0))(X^((0))))))))) $
+$ E(X^((0))) = "MSE"(L^((N-1))(... L^((1))(L^((0))(X^((0)))))))) $
 
 Or:
 
-$ E(X^((0))) = "MSE" ⚬ L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
+$ E(X^((0))) = "MSE" ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
 
 And:
 
@@ -181,9 +181,9 @@ $ L^((n)) = L^((n-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0))  $
  
 Hence:
 
-$ E(X^((n))) = "MSE" ⚬ L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
+$ E(X^((n))) = "MSE" ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
 
-Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of the loss function with respect to any layer's input, weights and biases, and apply SGD on the learnable parameters. We can also consider our activation as an intermediary layer between two $L^((N))$, and therefore add it to the gradient's formula.
+Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of the error $E$ with respect to any layer's input $X^((n))$, therefore output $Y^((n-1))$, but also weights and biases since they intervened in computing $Y^((n-1))$, and apply SGD on the learnable parameters. We can also put our activation like any other layer $L^((n))$ in the formulas, and therefore use its derivative when computing the gradients.
 
 This can be implemented as the mirror of the forward pass' implementation. A structure feeds $(delta E)/(delta X^((n)))$, to the previous $n-1$ layer, which becomes its $(delta E)/(delta Y)$, from which it can compute the other gradients using these formulas which can be proved using the chain rule @fromscratch:
 
