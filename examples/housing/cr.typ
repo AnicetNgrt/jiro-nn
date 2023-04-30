@@ -85,6 +85,8 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
     ]
 ]
 
+Imagine solving a regression problem for a dataset composed of many observations. Each observation comprise $i$ values. (In the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$). 
+
 The network, fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
 
 $
@@ -103,7 +105,7 @@ $
 scripts(limits(Y)_(j times 1))^((N-1)) = scripts(limits(W)_(j times i^((N-1))))^((N-1)) dot scripts(limits(Y)_(i^((N-1)) times 1))^((N-2)) + scripts(limits(B)_(i^((N-1)) times 1))^((N-1))
 $
 
-Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. 
+Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. (In the case of $"xor"$ there is only one $accent(y, hat)$ predicting the $c$ in $c = a "xor" b$ but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
 
 This is fairly straight-forward to implement using a linked list or an array of some datastructure storing the weights and biases, and an overarching datastructure feeding the outputs to the inputs one after the others @fromscratch. What is trickier and can lead to hard to debug runtime issues, is messing up matrices sizes and getting lost between matrices, vectors, column vectors, row-leading matrices, not knowing anymore what the rows and columns even are. You can get lost easily in all these different matrix implementation details. Which is why I write the sizes below the matrices in the formulas.
 
