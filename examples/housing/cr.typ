@@ -153,43 +153,41 @@ But as we've seen, the output has a linear relationship to the input, which may 
 
 We wish to minimize the prediction error, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. Many formulas for MSE exist, but the one that describes the implementation well is @fromscratch:
 
-$ "MSE"(limits(Y)_(j times 1), limits(accent(Y, hat))_(j times 1)) = EE[(y_j - accent(y, hat)_j)^2] $
+$ "MSE"(limits(Y)_(J times 1), limits(accent(Y, hat))_(J times 1)) = 1/J limits(sum)_(j=0)^(J-1) (y_j - accent(y, hat)_j)^2 $
 
 And for $N$ samples:
 
-$ "MSE"_N(limits(Y_0)_(j times 1)...limits(Y_(N-1))_(j times 1), limits(accent(Y, hat)_0)_(j times 1)...limits(accent(Y, hat)_(N-1))_(j times 1)) = EE["MSE"(limits(Y_n)_(j times 1), limits(accent(Y_n, hat))_(j times 1))] $
+$ "MSE"_N(limits(Y_0)_(J times 1)...limits(Y_(N-1))_(J times 1), limits(accent(Y, hat)_0)_(J times 1)...limits(accent(Y, hat)_(N-1))_(J times 1)) = 1/N limits(sum)_(n=0)^(N-1) "MSE"(limits(Y_n)_(J times 1), limits(accent(Y_n, hat))_(J times 1)) $
 
 Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
 
-SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta E)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta B)/(delta E)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This step is called _backpropagation_ @mit-intro. In order for the intermediary layers to compute their gradients with respect to the error, which was computed at the very end of the _forward pass_:
-
-#align(center)[
-    #box(inset: 10pt)[
-        $ E = Y^((N)) $
-
-        $ Y^((N)) = Y^((N-1)) $
-
-        $...$
-
-        $ Y^((1)) = Y^((0)) $
-    ]
-]
+SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta W)/(delta E)$ and $(delta B)/(delta E)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta B)/(delta E)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta X)/(delta E)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
 
 If we consider that $Y^((N)) = L^((n))(Y^((n-1)))$ whe can write:
 
-$ E(X^((0))) = L^((N))(L^((N-1))(... L^((1))(L^((0))(X^((0)))))))) $
+$ E(X^((0))) = "MSE"(L^((N))(L^((N-1))(... L^((1))(L^((0))(X^((0))))))))) $
 
 Or:
 
-$ E = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
+$ E(X^((0))) = "MSE" ⚬ L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
 
+And:
+
+$ L^((n)) = L^((n-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0))  $
+ 
 Hence:
 
-$ E(X^((n))) = L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
+$ E(X^((n))) = "MSE" ⚬ L^((N)) ⚬ L^((N-1)) ⚬ ... ⚬ L^((n)) $
 
 Using the chain rule to compute $(f ⚬ g)'$ whe can compute the gradient of our error with respect to any layer's input, weights and biases, and apply SGD on the learnable parameters. We can also consider our activation as an intermediary layer between two $L^((N))$, and therefore add it to the gradient's formula.
 
-This can be implemented as the mirror of the forward pass' implementation. A structure feeds the gradient of the next layer's input with respect to the loss to the previous layer, which becomes the previous layer's gradient with respect to its output, from which it can compute the other gradients using the chain rule.
+This can be implemented as the mirror of the forward pass' implementation. A structure feeds the gradient of the next layer's input with respect to the loss to the previous layer, which becomes the previous layer's gradient with respect to its output, from which it can compute the other gradients using these formulas which can be proved using the chain rule @fromscratch:
+
+$ limits((delta W)/(delta E))_(j times i) = limits((delta Y)/(delta E))_(j times 1) dot limits((scripts(limits(X)_(i times 1)))^t)_(1 times i) $ 
+
+$ limits((delta B)/(delta E))_(j times 1) = limits((delta Y)/(delta E))_(j times 1) $ 
+
+$ limits((delta X)/(delta E))_(i times 1) = limits((scripts(limits(W)_(j times i)))^t)_(i times j) dot limits((delta Y)/(delta E))_(j times 1) $ 
 
 We repeat both the forward and the backward passes for $e$ _epochs_. After the last epoch, hopefully, the loss converged to a local minimum and predictions start looking quite good.
 
