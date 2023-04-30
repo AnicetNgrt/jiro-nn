@@ -91,7 +91,7 @@ $
 scripts(limits(Y)_(j^((n)) times 1))^((n)) = scripts(limits(W)_(j^((n)) times i^((n))))^((n)) dot scripts(limits(X)_(i^((n)) times 1))^((n)) + scripts(limits(B)_(j^((n)) times 1))^((n))
 $
 
-But since the input of the $n^"th"$ layer is the output of the $(n+1)^"th"$ layer, the input size $i^((n))$ of the layer is the output size $j^((n-1))$ of the previous layer, and we can define that whole forward pass in a recurrent manner and remove $X$ and $j$ in the process:
+But since the input of the $n^"th"$ layer is the output of the $(n-1)^"th"$ layer, the input size $i^((n))$ of the layer is the output size $j^((n-1))$ of the previous layer, and we can define that whole forward pass in a recurrent manner and remove $X$ and $j$ in the process:
 
 $
 scripts(limits(Y)_(i^((n+1)) times 1))^((n)) = scripts(limits(W)_(i^((n+1)) times i^((n))))^((n)) dot scripts(limits(Y)_(i^((n)) times 1))^((n-1)) + scripts(limits(B)_(i^((n+1)) times 1))^((n))
