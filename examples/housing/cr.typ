@@ -85,9 +85,9 @@ I used a rather standard model for such a problem, consisting of $2$ dense layer
     ]
 ]
 
-Imagine solving a regression problem for a dataset composed of many observations. Each observation comprise $i$ values. (In the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$). 
+Imagine solving a regression problem for a dataset composed of many observations. Each observation comprise $i$ values (in the case of $"xor"$ the observations would be the four different cases in its truth table, and the values $a$ and $b$), and we want to predict $j$ values (in the case of $"xor"$ one value: $a "xor" b$, but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
 
-The network, fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
+The network, fed with an observation's $i$ values, or _features_ $scripts(limits(X)_(i^((0)) times 1))^((0)) = vec(x_0, x_1, ..., x_(i^((0))))$, in order to produce $j$ predictions values $limits(accent(Y, hat))_(j times 1) = vec(accent(y, hat)_0, accent(y, hat)_1, ..., accent(y, hat)_j)$, executes a _forward pass_, which for each layer $n$ from first $0$ to last $N$, computes an intermediary output matrix $scripts(limits(Y)_(j^((n)) times 1))^((n))$ by doing the sum of its weights $scripts(limits(W)_(j^((n)) times i^((n))))^((n))$ matrix-multiplied by its intermediary input matrix $scripts(limits(X)_(i^((n)) times 1))^((n))$ plus its biases $scripts(limits(B)_(j^((n)) times 1))^((n))$ @mit-intro.
 
 $
 scripts(limits(Y)_(j^((n)) times 1))^((n)) = scripts(limits(W)_(j^((n)) times i^((n))))^((n)) dot scripts(limits(X)_(i^((n)) times 1))^((n)) + scripts(limits(B)_(j^((n)) times 1))^((n))
@@ -105,7 +105,7 @@ $
 scripts(limits(Y)_(j times 1))^((N-1)) = scripts(limits(W)_(j times i^((N-1))))^((N-1)) dot scripts(limits(Y)_(i^((N-1)) times 1))^((N-2)) + scripts(limits(B)_(i^((N-1)) times 1))^((N-1))
 $
 
-Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. (In the case of $"xor"$ there is only one $accent(y, hat)$ predicting the $c$ in $c = a "xor" b$ but we need to generalize to problems with more than one output, such as classification problems that use _one-hot encoding_). 
+Which is our prediction vector $limits(accent(Y, hat))_(j times 1)$ containing all our $accent(y, hat)_j$ predictions deduced from the $limits(X)_(i times 1)$ observation and its $x_i$ features. 
 
 This is fairly straight-forward to implement using a linked list or an array of some datastructure storing the weights and biases, and an overarching datastructure feeding the outputs to the inputs one after the others @fromscratch. What is trickier and can lead to hard to debug runtime issues, is messing up matrices sizes and getting lost between matrices, vectors, column vectors, row-leading matrices, not knowing anymore what the rows and columns even are. You can get lost easily in all these different matrix implementation details. Which is why I write the sizes below the matrices in the formulas.
 
@@ -151,15 +151,17 @@ But as we've seen, the output has a linear relationship to the input, which may 
     ]
 ]
 
-We wish to minimize the prediction error, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. Many formulas for MSE exist, but the one that describes the implementation well is @fromscratch:
+We wish to minimize the prediction error, both with the current observations and the future observations, and this without _overfitting_ to our current observations. So we compute the _loss_ of the activated prediction relative to the true value, using for example a _Mean Squared Errors (MSE)_ _loss function_, which is a common loss function @mit-intro helping to converge towards both a low variance and bias model. Simpler formulas for MSE exist, but the one that describes the implementation details well is @fromscratch:
 
 $ "MSE"(limits(Y)_(J times 1), limits(accent(Y, hat))_(J times 1)) = 1/J limits(sum)_(j=0)^(J-1) (y_j - accent(y, hat)_j)^2 $
 
-And for $N$ samples:
+And for $N$ samples in order to know how the model performs over the whole training and validation dataset:
 
-$ "MSE"_N(limits(Y_0)_(J times 1)...limits(Y_(N-1))_(J times 1), limits(accent(Y, hat)_0)_(J times 1)...limits(accent(Y, hat)_(N-1))_(J times 1)) = 1/N limits(sum)_(n=0)^(N-1) "MSE"(limits(Y_n)_(J times 1), limits(accent(Y_n, hat))_(J times 1)) $
+$ "MSE"_N({limits(Y_0)_(J times 1)...limits(Y_(N-1))_(J times 1)}, {limits(accent(Y, hat)_0)_(J times 1)...limits(accent(Y, hat)_(N-1))_(J times 1)}) = 1/N limits(sum)_(n=0)^(N-1) "MSE"(limits(Y_n)_(J times 1), limits(accent(Y_n, hat))_(J times 1)) $
 
-Then, in order to minimize the loss function, hence in order to find weights and biases that react to appropriate patterns in the different layers of our network in order to guess the most fitting result possible relative to our data, it executes a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the error of the model.
+We want to minimize the loss function, hence find weights and biases that react to appropriate patterns in the different layers of our network in such a way that it outputs a result resulting in a low MSE. 
+
+In order to progress towards that goal, we execute a _backward pass_ using the _Stochastic Gradient Descent (SGD)_ algorithm @mit-intro. This optimization algorithm will make the model converge towards weights and biases that minimize the loss function.
 
 SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta E)/(delta W)$ and $(delta E)/(delta B)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta E)/(delta B)$ . It then passes the gradient of its input (e.g. the previous layer's output) with respect to the loss function $(delta E)/(delta X)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
 
@@ -222,7 +224,7 @@ $ r_(i+1) = r_i / ( 1 + d dot i ) $
 
 This helps the model converge more precisely as it gradually "slows its descent", enabling fast exploration at the beginning, but preventing over-shooting in the long run @mit-intro. Finding the right value is tricky, as too high values can lead to the model converging too slowly.
 
-I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularization_ @regularization technique hence used to prevent _overfitting_ by randomly dropping nodes of each layer with a probability $p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features. @dropouts I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs:
+I also added _dropouts_ #cite("dropouts", "dropouts2") which is a _regularization_ @regularization technique hence used to prevent overfitting by randomly dropping nodes of each layer with a probability $p$ during the forward pass (by setting their input or activation to $0$), and adapting the backward pass accordingly. In a way it simulates learning from a different, simpler model at each epoch, building more varied and robust features. @dropouts I think this helps the model generalize better for large problems with a lot of inputs of similar importance, inputs resistant to compression, dimensionality reduction, such as pictures. But here it drops too much information as it is a very small model with a high dependency on both inputs:
 
 #align(center)[
 #stack(dir: ltr)[
