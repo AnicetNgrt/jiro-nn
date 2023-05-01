@@ -167,17 +167,29 @@ In order to progress towards that goal, we execute a _backward pass_ using the _
 
 SGD computes for each layer from last to first the gradient of the loss function with respect to each _learnable parameter_ (e.g. weights and biases) $(delta E)/(delta W)$ and $(delta E)/(delta B)$, and updates the parameters in the opposite direction of their gradient, multiplied by a _learning rate_ $r$ hyperparameter. As an example with the biases: $B = B - r times (delta E)/(delta B)$ . It then passes the gradient of the loss with respect to its inputs (e.g. the previous layer's output) $(delta E)/(delta X)$, so that the previous layers can repeat the same process for themselves. This algorithm is called _backpropagation_ @mit-intro.
 
-If we consider that $X^((n+1)) = Y^((n)) = L^((n))(X^((n))) = L^((n))(Y^((n-1)))$ whe can write:
+Now consider that a layer is just a function $L^((n))$ of its inputs:
+
+$ Y^((n)) = L^((n))(X^((n))) $
+
+But remember that:
+
+$ X^((n+1)) = Y^((n)) $
+
+So now we have:
+
+$ L^((n))(X^((n))) = L^((n))(Y^((n-1))) $
+ 
+And finally:
 
 $ E(X^((0))) = "MSE"(L^((N-1))(... L^((1))(L^((0))(X^((0)))))))) $
 
-Or:
+Or like this which is more readable:
 
 $ E(X^((0))) = "MSE" ⚬ L^((N-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)) $
 
-And:
+So $L^((n))$'s input results from previous $n-1$ layers, and its output is some added transformation on top of that, let's call that transformation $f(Y^((n-1))) ↦ Y^((n))$. For example multiplying by the weights and adding the biases, but for activation layers it could be $"tanh"(Y^((n-1)))$:
 
-$ L^((n)) = L^((n-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0))  $
+$ L^((n)) = f(L^((n-1)) ⚬ ... ⚬ L^((1)) ⚬ L^((0)))  $
  
 Hence:
 
@@ -404,17 +416,19 @@ I also realized during my experiments that the higher the batch size, the more I
     ]
 ]
 
-Then, I added the possibility to train with _momentum SGD_ @gdtechniques. It changes how we update learnable parameters. Instead of subtracting the gradient, we keep a learning rate $r$ and its decay parameters if decay is enabled, and we introduce an hyperparameter $v$ that weights how much we also consider the previous gradient in the next update of our parameters. Let's show the formulas for updating the weights, but it is similar for the biases:
+Then, I added the possibility to train with _Momentum SGD_ @gdtechniques. It changes how we update learnable parameters. Instead of subtracting the gradient, we keep a learning rate $r$ and its decay parameters if decay is enabled, and we introduce an hyperparameter $m$ called momentum that weights how much we also consider some combination of the previous gradients in the next update of our parameters, which we call velocity. I set $m$ to $0.9$ most of the time as it is the recommended default. 
 
-So first at epoch $e = 0$ we define an initial momentum $M$:
+Let's look at the formulas for updating the weights with Momentum. Note that it is the same for the biases:
 
-$ M^((0)) = limits(((delta E)/(delta W))^((e-1)))_(j times i) = mat(0, 0, ..., 0; dots.v, dots.v, dots.down, dots.v; 0, 0, ..., 0;) $
+So first at epoch $e = 0$ we define an initial velocity $V$:
+
+$ V^((0)) = limits(((delta E)/(delta W))^((e-1)))_(j times i) = mat(0, 0, ..., 0; dots.v, dots.v, dots.down, dots.v; 0, 0, ..., 0;) $
 
 And then for each epoch $e$ we do:
 
-$ M^((e)) = v M^((e-1)) + r ((delta E)/(delta W))^((e)) $
+$ V^((e)) = m V^((e-1)) + r ((delta E)/(delta W))^((e)) $
 
-$ W^((e)) = W^((e-1)) - M^((e)) $
+$ W^((e)) = W^((e-1)) - V^((e)) $
 
 Like a ball rolling down a hill, the momentum helps the model get out of local minima and reach a better local or global minimum.
 
@@ -516,9 +530,9 @@ I found out that filtering outliers makes the model faster by almost dividing th
 
 The final step in having the same defaults as the Keras framework, was using the _Adam_ optimizer instead of Momentum. 
 
-It uses the momentum and moving average of the gradient to update the parameters, allowing it to handle sparse gradients and noisy data, like ours, more efficiently.
+I won't get into the details of its implementation, but it uses a combination of past gradients like Momentum SGD, and also a combination of past squared gradients, both weighted by two momentum-like hyperparameters $alpha$ and $beta$, allowing it to converge even faster to the global minimum in theory.
 
-I implemented Adam by following the algorithm found in the original paper @adam. It introduced a few additional hyperparameters that I set to Keras' defaults.
+I implemented Adam by following the algorithm found in the original paper @adam. I then set $alpha$ and $beta$ to Keras' defaults, $0.9$ and $0.999$.
 
 With the King County house price regression problem it does not perform better than SGD nor Momentum with default parameters. It converges faster to a low loss during the $10$ initial epochs, but it gets floored at an higher error than SGD or Momentum in the long run. After some hyperparameter fine-tuning maybe it would perform better, or maybe I should try optimized versions of it @betteradam  but I haven't got time to try that yet.
 
@@ -685,7 +699,7 @@ Additionally to every feature mentioned throughout this report, it can switch at
 
 I also implemented a fully unit-tested custom matrices backend, and a variation of it sped-up by a factor $~2.5$ using CPU parallelism with the `rayon` library. Both of those custom backends are still not as fast as aforementioned libraries. My implementation may be sound time complexity-wise, it is not cache-optimized unlike the two libraries, and it is not building a lazy computation graph like the most optimized C++ libraries on the CPU do. I don't believe it would be worth the effort implementing that as the easiest logical next step for performance improvement would be running on the GPU.
 
-The framework is open-sourced on Github with $60$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML engineers and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for Vectors and Matrices using compute shaders and the WebGPU technology @wgpu, (or at least plugging an existing one if it ends up being too difficult).
+The framework is open-sourced on Github with $60$ stars at the time of writing thanks to its mention in the Rust community's _subreddit_ and also in a community weekly newsletter. I got feedback from experienced ML engineers and Rust developers helping me pave the way towards my future goal: implementing a Rust-native GPU-bound backend for vectors and matrices operations using compute shaders and the WebGPU technology @wgpu, (or at least plugging an existing one if it ends up being too difficult).
 
 After that, I would like to explore CNNs and dimensionality reduction layers for image and pattern recognition, and then RNNs for time series prediction or text translation. But since these problems would require significantly higher dimensional data, I prefer to wait until I make the framework GPU-bound.
 
@@ -697,15 +711,15 @@ After that, I would like to explore CNNs and dimensionality reduction layers for
     ]
 ]
 
-Machine Learning (ML) workflows almost always imply dynamic languages and notebooks, such as Matlab, Julia, R and Python. These versatile and highly dynamic tools allow small iterations and greater ease of use, making cutting-edge research faster. But they present a compromise over stability, maintainability, and raw performance.
+Machine Learning (ML) workflows almost always imply dynamic languages and notebooks, such as Matlab, Julia, R and Python. These versatile and highly dynamic tools allow small iterations and greater ease of use, making cutting-edge research faster.
 
-In order for a ML workflow to be used at scale, low-level languages and GPU code is often used to make SDKs or libraries, such as C, C++, CUDA or OpenCL. These languages are very performant and well established, can interop with high-level tools, but they lack good memory safety, ease of use, universal and/or widely accepted standards for codebase management, documentation, dependency management, and unified testing practices. They also lack accessible high-level abstractions for concurrency, architecture, data structures and functional programming, which may very well be useful for building and maintaining large SDKs in the ML industry.
+But in order for a ML workflow to be used at scale, low-level languages and GPU code is often used to make SDKs or libraries, such as C, C++, CUDA or OpenCL. These languages are very performant and well established, can interop with high-level tools, but they lack compile-time memory safety guarantees, ease of use, widely accepted standards for codebase management, documentation, dependency management and testing. They also lack accessible high-level abstractions for concurrency, architecture, data structures and functional programming, which may very well be useful for building and maintaining large SDKs in the ML industry.
 
-Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy @zerocost, rich ecosystem of libraries @cratesio, unified codebase management practices, and focus on performance, concurrency and memory safety. Rust is a very young language, but it has already gained some traction in the ML community @arewelearning, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda and OpenCL interoperability, and even Rust as a first-class language for GPU programming.
+Rust aims to fill this niche for a low-level language feeling high-level, with its "Zero-Cost abstractions" philosophy @zerocost, rich ecosystem of libraries @cratesio, unified codebase management practices, and focus on performance, concurrency and memory safety @rustinaction. Rust is a very young language, but it has already gained some traction in the ML community @arewelearning, and even more in the graphics programming community, which gave birth to fast libraries for linear algebra, Cuda and OpenCL interoperability, and even Rust as a first-class language for GPU programming @wgpu.
 
-Creating performant but still high-level looking APIs in Rust, is absolutely possible and way easier than in C or C++ in my opinion. But still not trivial. It requires Rust-specific architecture skills as Rust's best practices do not resemble classic Object Oriented programming ones. It is considered by many as a language with a steep learning curve. And it is absolutely the language that took me the most work to become somewhat confident with. Other skills are required for building an ML library in Rust, such as good codebase planning, thoughtful library design, and a lot of back and forth API changes. In my opinion, this is why I initially struggled to find a polished, well documented and easy to use existing tool in Rust: It is just hard and slow to build.  
+Creating performant but still high-level looking APIs in Rust, is absolutely possible and way easier than in C or C++ in my opinion. But still not trivial. It requires Rust-specific architecture skills as Rust's best practices do not resemble classic Object Oriented programming ones. It is considered by many as a language with a steep learning curve. And it is absolutely the language that took me the most work to become somewhat confident with. Other skills are required for building an ML library in Rust, such as good codebase planning, thoughtful library design, and a lot of back and forth API changes. In my opinion, this is why I initially struggled to find a polished, well documented and easy to use existing tool in Rust: It is just hard and slow to build. But even though I have coded more C and C++ than Rust in the past, I would not feel confident even translating that project to C or C++ at all.
 
-So, even thought I made a footstep in the Rust ML ecosystem with this project, it is still very tiny, and we may be years apart from a tool as ergonomic as Pytorch or TF in Rust. But I believe the quest is well worth the effort, and others are working on it with a rich ecosystem of ML tools in Rust currently in the making @arewelearning.
+I may have made a footstep in the Rust ML ecosystem with this project, it is still very small, and we may be years apart from a tool as ergonomic as Pytorch or TF in Rust. But I believe the quest is well worth the effort, and others are working on it with a rich ecosystem of ML tools in Rust currently in the making @arewelearning.
 
 But most importantly perhaps, I got to hack, experiment and build my own understanding.
 
@@ -729,7 +743,7 @@ But most importantly perhaps, I got to hack, experiment and build my own underst
     ]
 ]
 
-Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.2.0` version.
+Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.2.0` version, which can be installed on any Rust project by adding: `neural_networks_rust = "0.2.0"` below `[dependencies]` in the project's `Cargo.toml` file. 
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -739,7 +753,7 @@ Here are some code snippets that you might find useful. They are excerpts from, 
 
 ```rs
 // Including all features from some CSV dataset
-let mut dataset_spec = Dataset::from_csv("dataset/kc_house_data.csv");
+let mut dataset_spec = Dataset::from_csv("kc_house_data.csv");
 dataset_spec
     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
     // Add descriptive properties to the data features
@@ -832,7 +846,7 @@ let (validation_preds, model_eval) = kfold
 
 // Saving the weights and biases of the best model
 let best_model_params = kfold.take_best_model();
-best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
+best_model_params.to_json("my_model_best_params.json");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
 let validation_preds = pipeline.revert_columnswise(&validation_preds);
@@ -903,7 +917,7 @@ importance_rel.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *K-folds detailed code*
+        == *Internal: K-folds detailed code*
     ]
 ]
 
@@ -1001,7 +1015,7 @@ fn parallel_k_fold(
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *SGD, Momentum and Adam*
+        == *Internal: SGD, Momentum and Adam*
     ]
 ]
 
@@ -1086,7 +1100,7 @@ impl Adam {
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *Dense layer and backpropagation*
+        == *Internal: Dense layer and backpropagation*
     ]
 ]
 
