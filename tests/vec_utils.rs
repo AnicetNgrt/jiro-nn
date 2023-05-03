@@ -98,9 +98,9 @@ fn test_quartiles_vector_duplicate_values() {
 }
 
 #[test]
-fn test_vector_boxplot_odd() {
+fn test_vector_quartiles_iqr_odd() {
     let vals = vec![1.0, 3.0, 5.0, 7.0, 9.0];
-    let (q1, q2, q3, min, max) = vector_boxplot(&vals);
+    let (q1, q2, q3, min, max) = vector_quartiles_iqr(&vals);
     assert_float_relative_eq!(q1, 2.0, 0.00001);
     assert_float_relative_eq!(q2, 5.0, 0.00001);
     assert_float_relative_eq!(q3, 6.0, 0.00001);
@@ -109,9 +109,9 @@ fn test_vector_boxplot_odd() {
 }
 
 #[test]
-fn test_vector_boxplot_even() {
+fn test_vector_quartiles_iqr_even() {
     let vals = vec![1.0, 3.0, 5.0, 7.0];
-    let (q1, q2, q3, min, max) = vector_boxplot(&vals);
+    let (q1, q2, q3, min, max) = vector_quartiles_iqr(&vals);
     println!("{} {} {}", q1, q2, q3);
     assert_float_relative_eq!(q1, 2.0, 0.00001);
     assert_float_relative_eq!(q2, 4.0, 0.00001);
