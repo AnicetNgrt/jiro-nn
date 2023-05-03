@@ -165,6 +165,7 @@ impl KFolds {
         let validation_preds = validation_preds.clone();
         let model_eval = model_eval.clone();
         let all_epochs_r2 = self.all_epochs_r2;
+        let all_epochs_validation = self.all_epochs_validation;
         let reporter = self.real_time_reporter.clone();
         let trained_models = trained_models.clone();
 
@@ -194,7 +195,7 @@ impl KFolds {
                 // It is costly and should be done only during the last epoch
                 // and made optional for all the others in the future
                 let loss_fn = model.loss.to_loss();
-                let (preds, loss_avg, loss_std) = if e == model.epochs - 1 {
+                let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || all_epochs_validation {
                     network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
                 } else {
                     (vec![], -1.0, -1.0)
