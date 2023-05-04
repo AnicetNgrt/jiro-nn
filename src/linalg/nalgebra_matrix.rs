@@ -210,7 +210,7 @@ impl MatrixTrait for Matrix {
         self.0.index_mut((row, col))
     }
 
-    fn pow2(&self) -> Self {
+    fn square(&self) -> Self {
         Self(self.0.clone().map(|x| x.powi(2)))
     }
 
@@ -240,5 +240,11 @@ impl MatrixTrait for Matrix {
 
     fn sqrt(&self) -> Self {
         Self(self.0.clone().map(|x| x.sqrt()))
+    }
+}
+
+impl Matrix {
+    pub fn print(&self) {
+        println!("{:?}", self.0);
     }
 }

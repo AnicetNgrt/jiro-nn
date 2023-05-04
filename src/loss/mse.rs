@@ -11,7 +11,7 @@ pub fn mse_vec(y_pred: &Vec<Scalar>, y_true: &Vec<Scalar>) -> Scalar {
 }
 
 fn mse(y_pred: &Matrix, y_true: &Matrix) -> Scalar {
-    ((y_pred.component_sub(&y_true)).pow2()).mean()
+    ((y_pred.component_sub(&y_true)).square()).mean()
 }
 
 fn mse_prime(y_pred: &Matrix, y_true: &Matrix) -> Matrix {

@@ -4,7 +4,7 @@ use crate::linalg::MatrixTrait;
 use crate::{
     initializers::Initializers,
     layer::Layer,
-    linalg::{Matrix},
+    linalg::Matrix,
     optimizer::{sgd, Optimizers},
 };
 
@@ -49,6 +49,11 @@ impl Layer for DenseLayer {
     /// Returns output which has shape `(j, n)` where `j` is the number of outputs and `n` is the number of samples.
     fn forward(&mut self, input: Matrix) -> Matrix {
         // Y = W . X + B * (1...1)
+
+        // println!("WEIGHTS");
+        // self
+        //     .weights.print();
+
         let res = self
             .weights
             .dot(&input)

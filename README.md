@@ -248,8 +248,9 @@ Once you installed Arrayfire, you:
     - Linux: `LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$AF_PATH/lib64`
     - OSX: `DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$AF_PATH/lib`
     - Windows: Add `%AF_PATH%\lib` to PATH
-3. Run `cargo clean`
-4. Disable default features and activate the `arrayfire` feature
+3. Run `sudo ldconfig` if on Linux
+4. Run `cargo clean`
+5. Disable default features and activate the `arrayfire` feature
 
 ```toml
 [dependencies]

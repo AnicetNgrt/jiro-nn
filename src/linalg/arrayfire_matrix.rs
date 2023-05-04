@@ -1,7 +1,11 @@
 use core::fmt;
-use std::ops::{Div};
 
-use arrayfire::{constant, random_normal, MatProp, random_uniform, Array, Dim4, RandomEngine, index, Seq, matmul, transpose, mul, add, sub, div, pow2, sum_all, mean_all, exp, maxof, sign, minof, sqrt};
+use arrayfire::{
+    add, constant, div, exp, index, matmul, maxof, mean_all, minof, mul, pow, print,
+    random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
+    RandomEngine, Seq,
+};
+use rand::Rng;
 
 use super::{MatrixTrait, Scalar};
 
@@ -21,21 +25,29 @@ impl MatrixTrait for Matrix {
 
     /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self {
+        let mut rng = rand::thread_rng();
         Self(
             random_uniform::<Scalar>(
                 Dim4::new(&[nrow.try_into().unwrap(), ncol.try_into().unwrap(), 1, 1]),
-                &RandomEngine::new(arrayfire::RandomEngineType::MERSENNE_GP11213, None),
+                &RandomEngine::new(
+                    arrayfire::RandomEngineType::MERSENNE_GP11213,
+                    Some(rng.gen()),
+                ),
             ) * (max - min)
-                - constant!(min; nrow.try_into().unwrap(), ncol.try_into().unwrap()),
+                + constant!(min; nrow.try_into().unwrap(), ncol.try_into().unwrap()),
         )
     }
 
     /// Creates a matrix with random values following a normal distribution.
     fn random_normal(nrow: usize, ncol: usize, mean: Scalar, std_dev: Scalar) -> Self {
+        let mut rng = rand::thread_rng();
         Self(
             random_normal::<Scalar>(
                 Dim4::new(&[nrow.try_into().unwrap(), ncol.try_into().unwrap(), 1, 1]),
-                &RandomEngine::new(arrayfire::RandomEngineType::MERSENNE_GP11213, None),
+                &RandomEngine::new(
+                    arrayfire::RandomEngineType::MERSENNE_GP11213,
+                    Some(rng.gen()),
+                ),
             ) * std_dev
                 + constant!(mean; nrow.try_into().unwrap(), ncol.try_into().unwrap()),
         )
@@ -48,7 +60,7 @@ impl MatrixTrait for Matrix {
     fn from_iter(nrow: usize, ncol: usize, data: impl Iterator<Item = Scalar>) -> Self {
         let data: Vec<Scalar> = data.collect();
         assert_eq!(data.len(), nrow * ncol);
-        
+
         Self(Array::new_strided(
             data.as_slice(),
             0,
@@ -62,7 +74,10 @@ impl MatrixTrait for Matrix {
         F: FnMut(usize, usize) -> Scalar,
     {
         Self(Array::new_strided(
-            (0..nrows * ncols).map(|i| f(i % nrows, i / nrows)).collect::<Vec<_>>().as_slice(),
+            (0..nrows * ncols)
+                .map(|i| f(i % nrows, i / nrows))
+                .collect::<Vec<_>>()
+                .as_slice(),
             0,
             Dim4::new(&[nrows.try_into().unwrap(), ncols.try_into().unwrap(), 1, 1]),
             Dim4::new(&[1, nrows.try_into().unwrap(), u64::MAX, u64::MAX]),
@@ -78,9 +93,9 @@ impl MatrixTrait for Matrix {
     ///    [rowNrow: col0 col1 ... colNcol],
     /// ]
     /// ```
-    fn from_row_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {  
+    fn from_row_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
         let mat = Self::from_column_leading_matrix(m);
-        mat.transpose() 
+        mat.transpose()
     }
 
     fn from_column_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
@@ -96,30 +111,29 @@ impl MatrixTrait for Matrix {
 
     /// fills a column vector row by row with values of index 0 to v.len()
     fn from_column_vector(v: &Vec<Scalar>) -> Self {
-        Self(
-            Array::new_strided(
-                v.as_slice(),
-                0,
-                Dim4::new(&[v.len().try_into().unwrap(), 1, 1, 1]),
-                Dim4::new(&[1, v.len().try_into().unwrap(), u64::MAX, u64::MAX]),
-            ),
-        )
+        Self(Array::new_strided(
+            v.as_slice(),
+            0,
+            Dim4::new(&[v.len().try_into().unwrap(), 1, 1, 1]),
+            Dim4::new(&[1, v.len().try_into().unwrap(), u64::MAX, u64::MAX]),
+        ))
     }
 
     /// fills a row vector column by column with values of index 0 to v.len()
     fn from_row_vector(v: &Vec<Scalar>) -> Self {
-        Self(
-            Array::new_strided(
-                v.as_slice(),
-                0,
-                Dim4::new(&[1, v.len().try_into().unwrap(), 1, 1]),
-                Dim4::new(&[v.len().try_into().unwrap(), 1, u64::MAX, u64::MAX]),
-            ),
-        )
+        Self(Array::new_strided(
+            v.as_slice(),
+            0,
+            Dim4::new(&[1, v.len().try_into().unwrap(), 1, 1]),
+            Dim4::new(&[v.len().try_into().unwrap(), 1, u64::MAX, u64::MAX]),
+        ))
     }
 
     fn get_column(&self, idx: usize) -> Vec<Scalar> {
-        let res = index(&self.0, &[Seq::default(), Seq::new(idx as u32, idx as u32, 1)]);
+        let res = index(
+            &self.0,
+            &[Seq::default(), Seq::new(idx as u32, idx as u32, 1)],
+        );
         let mut buffer = Vec::<Scalar>::new();
         buffer.resize(self.dim().0, 0.0);
         res.host(&mut buffer);
@@ -127,7 +141,10 @@ impl MatrixTrait for Matrix {
     }
 
     fn get_row(&self, idx: usize) -> Vec<Scalar> {
-        let res = index(&self.0, &[Seq::new(idx as u32, idx as u32, 1), Seq::default()]);
+        let res = index(
+            &self.0,
+            &[Seq::new(idx as u32, idx as u32, 1), Seq::default()],
+        );
         let mut buffer = Vec::<Scalar>::new();
         buffer.resize(self.dim().1, 0.0);
         res.host(&mut buffer);
@@ -152,12 +169,17 @@ impl MatrixTrait for Matrix {
     }
 
     fn columns_sum(&self) -> Self {
-        let res = matmul(&self.0, &constant!(1.0; self.0.dims()[1]), MatProp::NONE, MatProp::NONE);
+        let res = matmul(
+            &self.0,
+            &constant!(1.0; self.0.dims()[1]),
+            MatProp::NONE,
+            MatProp::NONE,
+        );
         Self(res)
     }
 
     fn component_mul(&self, other: &Self) -> Self {
-        Self(mul(&self.0,&other.0, false))
+        Self(mul(&self.0, &other.0, false))
     }
 
     fn component_add(&self, other: &Self) -> Self {
@@ -210,7 +232,7 @@ impl MatrixTrait for Matrix {
     }
 
     fn scalar_div(&self, scalar: Scalar) -> Self {
-        Self(self.0.clone().div(scalar))
+        Self(&self.0 / scalar)
     }
 
     fn index(&self, _row: usize, _col: usize) -> Scalar {
@@ -221,8 +243,12 @@ impl MatrixTrait for Matrix {
         unimplemented!("Deprecated")
     }
 
-    fn pow2(&self) -> Self {
-        Self(pow2(&self.0))
+    fn square(&self) -> Self {
+        Self(pow(
+            &self.0,
+            &constant!(2.0 as Scalar; self.dim().0.try_into().unwrap(), self.dim().1.try_into().unwrap(), 1, 1),
+            false,
+        ))
     }
 
     fn sum(&self) -> Scalar {
@@ -242,7 +268,7 @@ impl MatrixTrait for Matrix {
     }
 
     fn sign(&self) -> Self {
-        Self(sign(&self.0))
+        Self(sign(&self.0)).scalar_mul(-2.0).scalar_add(1.0)
     }
 
     fn minof(&self, other: &Self) -> Self {
@@ -254,12 +280,19 @@ impl MatrixTrait for Matrix {
     }
 }
 
+impl Matrix {
+    pub fn print(&self) {
+        print(&self.0)
+    }
+}
+
 impl fmt::Debug for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = String::new();
         for row in self.get_data() {
             result.push_str(&format!("{:?}\n", row));
         }
+
         write!(f, "{}", result)
     }
 }

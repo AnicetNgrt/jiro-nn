@@ -3,5 +3,5 @@
         "./Cargo.toml"
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
-    "rust-analyzer.check.features": ["nalgebra"]
+    "rust-analyzer.check.features": ["arrayfire"]
 }

@@ -129,8 +129,10 @@ impl Network {
         {
             let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
             let pred = self.layers.forward(input_batch_matrix);
+
             let y_true_batch_matrix = Matrix::from_column_leading_matrix(&y_true_batch);
             let e = loss.loss(&y_true_batch_matrix, &pred);
+
             error += e;
 
             let error_gradient = loss.loss_prime(&y_true_batch_matrix, &pred);

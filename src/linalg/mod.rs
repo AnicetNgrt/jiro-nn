@@ -1,3 +1,11 @@
+pub enum Backends {
+    ArrayFire,
+    Nalgebra,
+    // Rayon,
+    // Faer,
+    // Linalg,
+}
+
 #[cfg(feature = "Scalar")]
 pub type Scalar = Scalar;
 
@@ -9,12 +17,16 @@ pub mod arrayfire_matrix;
 
 #[cfg(feature = "arrayfire")]
 pub use arrayfire_matrix::Matrix;
+#[cfg(feature = "arrayfire")]
+pub const BACKEND: Backends = Backends::ArrayFire;
 
 #[cfg(feature = "nalgebra")]
 pub mod nalgebra_matrix;
 
 #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
 pub use nalgebra_matrix::Matrix;
+#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
+pub const BACKEND: Backends = Backends::Nalgebra;
 
 // #[cfg(feature = "linalg-rayon")]
 // pub mod rayon_matrix;
@@ -129,7 +141,7 @@ pub trait MatrixTrait: Clone {
 
     fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar;
 
-    fn pow2(&self) -> Self;
+    fn square(&self) -> Self;
 
     fn sum(&self) -> Scalar;
 
