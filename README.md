@@ -257,7 +257,7 @@ Once you installed Arrayfire, you:
 neural_networks_rust = { 
     version = "*", 
     default_features = false, 
-    features = ["arrayfire", "f32"] 
+    features = ["arrayfire"] 
 }
 ```
 
