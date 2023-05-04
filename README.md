@@ -1,6 +1,6 @@
 # Neural Networks in Rust
 
-Implementing Neural Networks in Rust from scratch + utils for data manipulation.
+Implementing GPU-bound Neural Networks in Rust from scratch + utils for data manipulation.
 
 This was made for the purpose of my own learning. It is obviously not a production-ready library by any means. 
 
