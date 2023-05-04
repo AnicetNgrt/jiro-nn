@@ -1,14 +1,6 @@
-use crate::linalg::{MatrixTrait, Scalar};
+use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
 
-fn linear(x: Scalar) -> Scalar {
-    x
-}
-
-fn linear_prime(_: Scalar) -> Scalar {
-    1.0
-}
-
 pub fn new() -> ActivationLayer {
-    ActivationLayer::new(|m| m.map(linear), |m| m.map(linear_prime))
+    ActivationLayer::new(|m| m.clone(), |m| Matrix::constant(m.dim().0, m.dim().1, 1.0))
 }

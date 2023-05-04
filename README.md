@@ -6,15 +6,6 @@ This was made for the purpose of my own learning. It is obviously not a producti
 
 Feel free to give feedback.
 
-## Include
-
-Add this in your project's `Cargo.toml` file:
-
-```toml
-[dependencies]
-neural_networks_rust = "*"
-```
-
 ## Code example
 
 Simple regression workflow example:
@@ -151,7 +142,6 @@ model.to_json_file("my_model_spec.json");
         - Biases optimizer/initializer (no regularization yet)
     - Activation layers
         - Linear
-        - Hyperbolic Tangent
         - ReLU
         - Sigmoid
         - Tanh
@@ -221,16 +211,55 @@ model.to_json_file("my_model_spec.json");
     - Feature `nalgebra` (enabled by default)
         - Fast
         - CPU-bound
-    - Feature `linalg`
+    - Feature `arrayfire`
+        - Super fast
+        - GPU-bound
+    - *[DEPRECATED since `0.3.0`]* Feature `linalg`
         - 100% custom Vec-based
         - Slow
         - CPU-bound
-    - Feature `linalg-rayon`
+    - *[DEPRECATED since `0.3.0`]* Feature `linalg-rayon`
         - linalg parallelized with rayon
         - Way faster than linalg but slower than nalgebra
         - CPU-bound
-    - Feature `faer`
+    - *[DEPRECATED since `0.3.0`]* Feature `faer`
         - WIP
         - Should be fast but for now it's on par with linalg-rayon
         - CPU-bound
 - Switching from `f32` (default) to `f64`-backed `Scalar` type with the `f64` feature
+
+## Include
+
+Add this in your project's `Cargo.toml` file:
+
+```toml
+[dependencies]
+neural_networks_rust = "*"
+```
+
+### Using Arrayfire
+
+You need to first [install Arrayfire](https://arrayfire.org/docs/installing.htm#gsc.tab=0) in order to use the `arrayfire` feature for fast compute on the CPU or the GPU using Arrayfire's C++/CUDA/OpenCL backends (it will first try OpenCL if installed, then CUDA, then C++). Make sure all the steps of the installation work 100% with no weird warning, as they may fail in quite subtle ways.
+
+Once you installed Arrayfire, you:
+
+1. Set the `AF_PATH` to your Arrayfire installation directory (for example: `/opt/Arrayfire`).
+2. Add the path to lib files to the environement variables:
+    - Linux: `LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$AF_PATH/lib64`
+    - OSX: `DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$AF_PATH/lib`
+    - Windows: Add `%AF_PATH%\lib` to PATH
+3. Run `cargo clean`
+4. Disable default features and activate the `arrayfire` feature
+
+```toml
+[dependencies]
+neural_networks_rust = { 
+    version = "*", 
+    default_features = false, 
+    features = ["arrayfire", "f32"] 
+}
+```
+
+If you want to use the CUDA capabilities of Arrayfire on Linux (was tested on Windows 11 WSL2 with Ubuntu and a RTX 3060), [check out this guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation).
+
+If you install none of the above, the default `nalgebra` feature is still available for a pure Rust CPU-bound backend.

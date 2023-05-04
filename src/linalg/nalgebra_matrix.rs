@@ -17,6 +17,10 @@ impl MatrixTrait for Matrix {
         Self(DMatrix::zeros(nrow, ncol))
     }
 
+    fn constant(nrow: usize, ncol: usize, value: Scalar) -> Self {
+        Self(DMatrix::from_element(nrow, ncol, value))
+    }
+
     /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self {
         let mut rng = rand::thread_rng();
@@ -133,8 +137,8 @@ impl MatrixTrait for Matrix {
         Self(self.0.clone() * other.0.clone())
     }
 
-    fn columns_sum(&self) -> Vec<Scalar> {
-        self.0.column_sum().iter().map(|x| *x).collect()
+    fn columns_sum(&self) -> Self {
+        self.dot(&Self::constant(self.dim().1, 1, 1.0))
     }
 
     fn component_mul(&self, other: &Self) -> Self {
@@ -204,5 +208,37 @@ impl MatrixTrait for Matrix {
 
     fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar {
         self.0.index_mut((row, col))
+    }
+
+    fn pow2(&self) -> Self {
+        Self(self.0.clone().map(|x| x.powi(2)))
+    }
+
+    fn sum(&self) -> Scalar {
+        self.0.sum()
+    }
+
+    fn mean(&self) -> Scalar {
+        self.0.mean()
+    }
+
+    fn exp(&self) -> Self {
+        Self(self.0.clone().map(|x| x.exp()))
+    }
+
+    fn maxof(&self, other: &Self) -> Self {
+        Self(self.0.clone().map(|x| x.max(other.0[(0, 0)])))
+    }
+
+    fn sign(&self) -> Self {
+        Self(self.0.clone().map(|x| x.signum()))
+    }
+
+    fn minof(&self, other: &Self) -> Self {
+        Self(self.0.clone().map(|x| x.min(other.0[(0, 0)])))
+    }
+
+    fn sqrt(&self) -> Self {
+        Self(self.0.clone().map(|x| x.sqrt()))
     }
 }

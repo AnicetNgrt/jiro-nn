@@ -1,15 +1,18 @@
-use crate::linalg::{MatrixTrait, Scalar};
+use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
 
-fn sigmoid(x: Scalar) -> Scalar {
-    1. / (1. + libm::exp(-x as f64) as Scalar)
+fn sigmoid(m: &Matrix) -> Matrix {
+    let exp_neg = m.scalar_mul(-1.).exp();
+    let ones = Matrix::constant(m.dim().0, m.dim().1, 1.0);
+    ones.component_div(&(ones.component_add(&exp_neg)))
 }
 
-fn sigmoid_prime(x: Scalar) -> Scalar {
-    let sigofx = sigmoid(x);
-    sigofx * (1. - sigofx)
+fn sigmoid_prime(m: &Matrix) -> Matrix {
+    let sig = sigmoid(m);
+    let ones = Matrix::constant(sig.dim().0, sig.dim().1, 1.0);
+    sig.component_mul(&(ones.component_sub(&sig)))
 }
 
 pub fn new() -> ActivationLayer {
-    ActivationLayer::new(|m| m.map(sigmoid), |m| m.map(sigmoid_prime))
+    ActivationLayer::new(sigmoid, sigmoid_prime)
 }

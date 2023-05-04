@@ -1,18 +1,10 @@
-use crate::linalg::{MatrixTrait, Scalar};
+use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
 
-fn relu(x: Scalar) -> Scalar {
-    x.max(0.)
-}
-
-fn relu_prime(x: Scalar) -> Scalar {
-    if x > 0. {
-        1.
-    } else {
-        0.
-    }
-}
-
 pub fn new() -> ActivationLayer {
-    ActivationLayer::new(|m| m.map(relu), |m| m.map(relu_prime))
+    ActivationLayer::new(|m| {
+        m.maxof(&Matrix::constant(m.dim().0, m.dim().1, 0.))
+    }, |m| {
+        m.sign().maxof(&Matrix::constant(m.dim().0, m.dim().1, 0.))
+    })
 }

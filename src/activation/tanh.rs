@@ -1,16 +1,19 @@
-use crate::linalg::{MatrixTrait, Scalar};
+use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
 
-pub fn hyperbolic_tangent(x: Scalar) -> Scalar {
-    let exp = libm::exp(x as f64) as Scalar;
-    let exp_neg = libm::exp(-x as f64) as Scalar;
-    (exp - exp_neg) / (exp + exp_neg)
+fn tanh(m: &Matrix) -> Matrix {
+    let exp = m.exp();
+    let exp_neg = m.scalar_mul(-1.).exp();
+    (exp.component_sub(&exp_neg)).component_div(&(exp.component_add(&exp_neg)))
 }
 
-pub fn hyperbolic_tangent_prime(x: Scalar) -> Scalar {
-    1. - libm::pow(hyperbolic_tangent(x) as f64, 2.) as Scalar
+fn tanh_prime(m: &Matrix) -> Matrix {
+    let hbt = tanh(m);
+    let hbt2 = &hbt.pow2();
+    let ones = Matrix::constant(hbt.dim().0, hbt.dim().1, 1.0);
+    ones.component_sub(&hbt2)
 }
 
 pub fn new() -> ActivationLayer {
-    ActivationLayer::new(|m| m.map(hyperbolic_tangent), |m| m.map(hyperbolic_tangent_prime))
+    ActivationLayer::new(tanh, tanh_prime)
 }

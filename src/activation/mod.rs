@@ -5,7 +5,6 @@ use serde::{Serialize, Deserialize};
 
 use crate::{layer::Layer, linalg::Matrix};
 
-pub mod hbt;
 pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
@@ -54,7 +53,6 @@ pub enum Activation {
     Tanh,
     Sigmoid,
     ReLU,
-    HyperbolicTangent,
     Linear
 }
 
@@ -65,7 +63,6 @@ impl Activation {
             Self::Tanh => tanh::new(),
             Self::Sigmoid => sigmoid::new(),
             Self::ReLU => relu::new(),
-            Self::HyperbolicTangent => hbt::new(),
         }
     }
 }

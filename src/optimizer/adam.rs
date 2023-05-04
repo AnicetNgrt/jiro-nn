@@ -73,20 +73,22 @@ impl Adam {
         if self.v.is_none() {
             self.v = Some(Matrix::zeros(nrow, ncol));
         }
-        let mut m = self.m.clone().unwrap();
-        let mut v = self.v.clone().unwrap();
+        let m = self.m.as_ref().unwrap();
+        let v = self.v.as_ref().unwrap();
 
         let g = parameters_gradient;
         let g2 = parameters_gradient.component_mul(&parameters_gradient);
 
-        m = (m.scalar_mul(self.beta1)).component_add(&g.scalar_mul(1.0 - self.beta1));
-        v = (v.scalar_mul(self.beta2)).component_add(&g2.scalar_mul(1.0 - self.beta2));
-
+        let m = &(m.scalar_mul(self.beta1)).component_add(&g.scalar_mul(1.0 - self.beta1));
+        let v = &(v.scalar_mul(self.beta2)).component_add(&g2.scalar_mul(1.0 - self.beta2));
+        
         let m_bias_corrected = m.scalar_div(1.0 - self.beta1);
         let v_bias_corrected = v.scalar_div(1.0 - self.beta2);
-
-        let v_bias_corrected = v_bias_corrected.map(Scalar::sqrt);
-
+        
+        let v_bias_corrected = v_bias_corrected.sqrt();
+        
+        self.m = Some(m.clone());
+        self.v = Some(v.clone());
         parameters.component_sub(
             &(m_bias_corrected.scalar_mul(alpha))
                 .component_div(&v_bias_corrected.scalar_add(self.epsilon)),

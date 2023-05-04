@@ -149,6 +149,81 @@ impl KFolds {
         }
     }
 
+    #[allow(dead_code)]
+    fn sequential_k_fold(
+        &mut self,
+        i: usize,
+        model: &Model,
+        data: &DataTable,
+        validation_preds: &Arc<Mutex<DataTable>>,
+        model_eval: &Arc<Mutex<ModelEvaluation>>,
+        trained_models: &Arc<Mutex<Vec<Network>>>,
+        k: usize,
+    ) {
+        let out_features = model.dataset.out_features_names();
+        let id_column = model.dataset.get_id_column().unwrap();
+        let mut network = model.to_network();
+
+        // Split the data between validation and training
+        let (train_table, validation) = data.split_k_folds(k, i);
+
+        // Shuffle the validation and training set and split it between x and y
+        let (validation_x_table, validation_y_table) =
+            validation.random_order_in_out(&out_features);
+
+        // Convert the validation set to vectors
+        let validation_x = validation_x_table.drop_column(id_column).to_vectors();
+        let validation_y = validation_y_table.to_vectors();
+
+        let mut fold_eval = FoldEvaluation::new_empty();
+        let epochs = model.epochs;
+        for e in 0..epochs {
+            // Train the model with the k-th folds except the i-th
+            let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
+
+            // Predict all values in the i-th fold
+            // It is costly and should be done only during the last epoch
+            // and made optional for all the others in the future
+            let loss_fn = model.loss.to_loss();
+            let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation {
+                network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
+            } else {
+                (vec![], -1.0, -1.0)
+            };
+
+            // Compute the R2 score	if it is the last epoch
+            // (it would be very costly to do it every time)
+            let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
+                r2_score_matrix(&validation_y, &preds)
+            } else {
+                -1.0
+            };
+
+            // Build the benchmork of the model for that epoch
+            // Useful for plotting the learning curve
+            let eval = EpochEvaluation::new(train_loss, loss_avg, loss_std, r2);
+
+            // Report the benchmark in real time if expected
+            if let Some(reporter) = self.real_time_reporter.as_ref() {
+                reporter.lock().unwrap()(i, e, eval.clone());
+            }
+
+            // Save the predictions if it is the last epoch
+            if e == model.epochs - 1 {
+                let mut vp = validation_preds.lock().unwrap();
+                *vp = vp.apppend(
+                    &DataTable::from_vectors(&out_features, &preds)
+                        .add_column_from(&validation_x_table, id_column),
+                );
+            };
+
+            fold_eval.add_epoch(eval);
+        }
+        trained_models.lock().unwrap().push(network);
+        model_eval.lock().unwrap().add_fold(fold_eval);
+    }
+
+    #[allow(dead_code)]
     fn parallel_k_fold(
         &mut self,
         i: usize,
@@ -248,10 +323,12 @@ impl Trainer for KFolds {
         let validation_preds = Arc::new(Mutex::new(DataTable::new_empty()));
         let model_eval = Arc::new(Mutex::new(ModelEvaluation::new_empty()));
         let trained_models = Arc::new(Mutex::new(Vec::new()));
+        #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
         let mut handles = Vec::new();
         let k = self.k;
 
         for i in 0..k {
+            #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
             let handle = self.parallel_k_fold(
                 i,
                 model,
@@ -262,9 +339,22 @@ impl Trainer for KFolds {
                 k,
             );
 
+            #[cfg(feature = "arrayfire")]
+            self.sequential_k_fold(
+                i,
+                model,
+                data,
+                &validation_preds,
+                &model_eval,
+                &trained_models,
+                k,
+            );
+
+            #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
             handles.push(handle);
         }
 
+        #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
         for handle in handles.into_iter() {
             handle.join().unwrap();
         }

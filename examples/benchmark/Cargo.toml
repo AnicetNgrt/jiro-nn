@@ -10,7 +10,8 @@ neural_networks_rust = { path = "../../", default-features = false }
 
 [features]
 nalgebra = ["neural_networks_rust/nalgebra"]
-linalg = ["neural_networks_rust/linalg"]
-linalg-rayon = ["neural_networks_rust/linalg-rayon"]
-faer = ["neural_networks_rust/faer"]
+arrayfire = ["neural_networks_rust/arrayfire"]
+# linalg = ["neural_networks_rust/linalg"]
+# linalg-rayon = ["neural_networks_rust/linalg-rayon"]
+# faer = ["neural_networks_rust/faer"]
 f64 = ["neural_networks_rust/f64"]

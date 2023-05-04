@@ -4,29 +4,37 @@ pub type Scalar = Scalar;
 #[cfg(not(feature = "Scalar"))]
 pub type Scalar = f32;
 
+#[cfg(feature = "arrayfire")]
+pub mod arrayfire_matrix;
+
+#[cfg(feature = "arrayfire")]
+pub use arrayfire_matrix::Matrix;
+
 #[cfg(feature = "nalgebra")]
 pub mod nalgebra_matrix;
 
-#[cfg(feature = "nalgebra")]
+#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
 pub use nalgebra_matrix::Matrix;
 
-#[cfg(feature = "linalg-rayon")]
-pub mod rayon_matrix;
-#[cfg(all(feature = "linalg-rayon", not(feature = "nalgebra")))]
-pub use rayon_matrix::Matrix;
+// #[cfg(feature = "linalg-rayon")]
+// pub mod rayon_matrix;
+// #[cfg(all(feature = "linalg-rayon", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+// pub use rayon_matrix::Matrix;
 
-#[cfg(feature = "linalg")]
-pub mod matrix;
-#[cfg(all(feature = "linalg", not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
-pub use matrix::Matrix;
+// #[cfg(feature = "linalg")]
+// pub mod matrix;
+// #[cfg(all(feature = "linalg", not(feature = "arrayfire"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
+// pub use matrix::Matrix;
 
-#[cfg(feature = "faer")]
-pub mod faer_matrix;
-#[cfg(all(feature = "faer", not(feature = "linalg"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
-pub use faer_matrix::Matrix;
+// #[cfg(feature = "faer")]
+// pub mod faer_matrix;
+// #[cfg(all(feature = "faer", not(feature = "arrayfire"), not(feature = "linalg"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
+// pub use faer_matrix::Matrix;
 
 pub trait MatrixTrait: Clone {
     fn zeros(nrow: usize, ncol: usize) -> Self;
+
+    fn constant(nrow: usize, ncol: usize, value: Scalar) -> Self;
 
     /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self;
@@ -90,7 +98,7 @@ pub trait MatrixTrait: Clone {
 
     fn dot(&self, other: &Self) -> Self;
 
-    fn columns_sum(&self) -> Vec<Scalar>;
+    fn columns_sum(&self) -> Self;
 
     fn component_mul(&self, other: &Self) -> Self;
 
@@ -120,4 +128,20 @@ pub trait MatrixTrait: Clone {
     fn index(&self, row: usize, col: usize) -> Scalar;
 
     fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar;
+
+    fn pow2(&self) -> Self;
+
+    fn sum(&self) -> Scalar;
+
+    fn mean(&self) -> Scalar;
+
+    fn exp(&self) -> Self;
+
+    fn maxof(&self, other: &Self) -> Self;
+
+    fn sign(&self) -> Self;
+
+    fn minof(&self, other: &Self) -> Self;
+
+    fn sqrt(&self) -> Self;
 }

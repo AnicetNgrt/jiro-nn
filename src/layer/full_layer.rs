@@ -84,9 +84,9 @@ impl Layer for FullLayer {
             self.dense.forward(input)
         } else {
             if let Some(dropout_rate) = self.dropout_rate {
-                self.dense.map_weights(|w| w*(1.0-dropout_rate));
+                self.dense.weights = self.dense.weights.scalar_mul(1.0 - dropout_rate);
                 let output = self.dense.forward(input);
-                self.dense.map_weights(|w| w/(1.0-dropout_rate));
+                self.dense.weights = self.dense.weights.scalar_div(1.0 - dropout_rate);
                 output
             } else {
                 self.dense.forward(input)

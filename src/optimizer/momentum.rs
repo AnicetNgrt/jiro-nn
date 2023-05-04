@@ -37,12 +37,12 @@ impl Momentum {
     pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
         let lr = self.learning_rate.get_learning_rate(epoch);
 
-        let v = if let Some(v) = self.v.clone() {
-            v
-        } else {
+        if let None = &self.v {
             let (nrow, ncol) = parameters_gradient.dim();
-            Matrix::zeros(nrow, ncol)
+            self.v = Some(Matrix::zeros(nrow, ncol));
         };
+
+        let v = self.v.as_ref().unwrap();
 
         let v = v.scalar_mul(self.momentum).component_add(&parameters_gradient.scalar_mul(lr));
         

@@ -4,7 +4,7 @@ use crate::linalg::MatrixTrait;
 use crate::{
     initializers::Initializers,
     layer::Layer,
-    linalg::{Matrix, Scalar},
+    linalg::{Matrix},
     optimizer::{sgd, Optimizers},
 };
 
@@ -41,10 +41,6 @@ impl DenseLayer {
             biases_optimizer,
         }
     }
-
-    pub fn map_weights(&mut self, f: impl Fn(Scalar) -> Scalar + Sync) {
-        self.weights = self.weights.map(f);
-    }
 }
 
 impl Layer for DenseLayer {
@@ -52,24 +48,11 @@ impl Layer for DenseLayer {
     ///
     /// Returns output which has shape `(j, n)` where `j` is the number of outputs and `n` is the number of samples.
     fn forward(&mut self, input: Matrix) -> Matrix {
-        // Y = W . X + B
-        let mut res = self.weights.dot(&input);
-
-        let biases = self.biases.get_column(0);
-
-        res.map_indexed_mut(|i, _, v| v + biases[i]);
-
-        // Old code for fixing & comparison purposes
-        //
-        // let res = res.columns_map(|i, col| {
-        //     col.iter().map(|x| x + biases[i]).collect()
-        // });
-        //
-        // res.column_iter_mut()
-        //     .zip(self.biases.iter())
-        //     .for_each(|(mut col, bias)| {
-        //         col.add_scalar_mut(*bias);
-        //     });
+        // Y = W . X + B * (1...1)
+        let res = self
+            .weights
+            .dot(&input)
+            .component_add(&self.biases.dot(&Matrix::constant(1, input.dim().1, 1.0)));
 
         self.input = Some(input);
         res
@@ -83,7 +66,7 @@ impl Layer for DenseLayer {
 
         let weights_gradient = &output_gradient.dot(&input.transpose());
 
-        let biases_gradient = Matrix::from_column_vector(&output_gradient.columns_sum());
+        let biases_gradient = output_gradient.columns_sum();
 
         let input_gradient = self.weights.transpose().dot(&output_gradient);
 
