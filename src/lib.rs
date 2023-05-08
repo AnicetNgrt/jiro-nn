@@ -18,3 +18,4 @@ pub mod pipelines;
 pub mod vec_utils;
 pub mod linalg;
 pub mod trainers;
+pub mod vision;
