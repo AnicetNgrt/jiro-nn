@@ -16,7 +16,8 @@ use crate::trainers::Trainers;
 use self::conv_network_spec::ConvNetworkSpec;
 use self::full_layer_spec::FullLayerSpec;
 
-pub mod conv_layer_spec;
+pub mod dense_conv_layer_spec;
+pub mod direct_conv_layer_spec;
 pub mod conv_network_spec;
 pub mod full_conv_layer_spec;
 pub mod full_layer_spec;
