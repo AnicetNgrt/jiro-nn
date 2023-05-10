@@ -1,8 +1,9 @@
 use std::fmt;
 
 use arrayfire::{
-    constant, convolve3, exp, flip, index, join_many, maxof, mean_all, minof, pow, random_normal,
-    random_uniform, sign, sqrt, sum_all, Array, Dim4, RandomEngine, Seq, sum,
+    constant, convolve3, exp, flip, index, join_many, maxof, mean, mean_all, minof, pow,
+    random_normal, random_uniform, sign, sqrt, sum, sum_all, unwrap, wrap, Array, Dim4,
+    RandomEngine, Seq, tile,
 };
 use rand::Rng;
 
@@ -152,6 +153,62 @@ impl ImageTrait for Image {
         ))
     }
 
+    fn wrap(
+        &self,
+        ox: usize,
+        oy: usize,
+        wx: usize,
+        wy: usize,
+        sx: usize,
+        sy: usize,
+        px: usize,
+        py: usize,
+    ) -> Self {
+        Self(wrap(
+            &self.0,
+            ox.try_into().unwrap(),
+            oy.try_into().unwrap(),
+            wx.try_into().unwrap(),
+            wy.try_into().unwrap(),
+            sx.try_into().unwrap(),
+            sy.try_into().unwrap(),
+            px.try_into().unwrap(),
+            py.try_into().unwrap(),
+            true,
+        ))
+    }
+
+    fn unwrap(&self, wx: usize, wy: usize, sx: usize, sy: usize, px: usize, py: usize) -> Self {
+        Self(unwrap(
+            &self.0,
+            wx.try_into().unwrap(),
+            wy.try_into().unwrap(),
+            sx.try_into().unwrap(),
+            sy.try_into().unwrap(),
+            px.try_into().unwrap(),
+            py.try_into().unwrap(),
+            true,
+        ))
+    }
+
+    fn tile(
+        &self,
+        repetitions_row: usize,
+        repetitions_col: usize,
+        repetitions_chan: usize,
+        repetition_sample: usize,
+    ) -> Self {
+        Self(tile(
+            &self.0,
+            Dim4::new(&[
+                repetitions_row.try_into().unwrap(),
+                repetitions_col.try_into().unwrap(),
+                repetitions_chan.try_into().unwrap(),
+                repetition_sample.try_into().unwrap(),
+            ])
+        ))
+    }
+
     fn component_add(&self, other: &Self) -> Self {
         let samples = self.samples();
         let other_samples = other.samples();
@@ -238,6 +295,7 @@ impl ImageTrait for Image {
 
     fn cross_correlate(&self, kernels: &Self) -> Self {
         let rot_kern = flip(&flip(&kernels.0, 0), 1);
+
         let res = convolve3(
             &self.0,
             &rot_kern,
@@ -371,6 +429,10 @@ impl ImageTrait for Image {
 
     fn mean(&self) -> Scalar {
         mean_all(&self.0).0 as Scalar
+    }
+
+    fn mean_along(&self, dim: usize) -> Self {
+        Self(mean(&self.0, dim.try_into().unwrap()))
     }
 
     fn exp(&self) -> Self {

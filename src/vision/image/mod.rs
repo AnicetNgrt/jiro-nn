@@ -99,11 +99,19 @@ pub trait ImageTrait {
     where
         Self: Sized;
 
+    fn wrap(&self, ox: usize, oy: usize, wx: usize, wy: usize, sx: usize, sy: usize, px: usize, py: usize) -> Self;
+    
+    fn unwrap(&self, wx: usize, wy: usize, sx: usize, sy: usize, px: usize, py: usize) -> Self;
+
+    fn tile(&self, repetitions_row: usize, repetitions_col: usize, repetitions_chan: usize, repetition_sample: usize) -> Self;
+
     fn square(&self) -> Self;
 
     fn sum(&self) -> Scalar;
 
     fn mean(&self) -> Scalar;
+
+    fn mean_along(&self, dim: usize) -> Self;
 
     fn exp(&self) -> Self;
 

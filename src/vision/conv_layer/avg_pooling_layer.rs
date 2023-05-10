@@ -1,110 +1,70 @@
 use crate::{
-    layer::LearnableLayer,
-    linalg::{Matrix, MatrixTrait, Scalar},
+    layer::{LearnableLayer, ParameterableLayer},
+    linalg::{Scalar},
     vision::{
-        conv_initializers::ConvInitializers, conv_optimizer::ConvOptimizers, image::Image,
-        image::ImageTrait,
+        image::Image,
+        image::ImageTrait, conv_network::ConvNetworkLayer,
     },
 };
 
 use crate::vision::image_layer::ImageLayer;
 
-use super::ConvLayer;
-
 #[derive(Debug)]
 pub struct AvgPoolingLayer {
-    pub kernels: Image,
-    input: Option<Image>,
+    pub div: usize,
 }
 
 impl AvgPoolingLayer {
     pub fn new(
         div: usize,
-        nchan: usize,
     ) -> Self {
         Self {
-            kernels: Image::constant(div, div, nchan, 1, 1.0 / ((div * div) as Scalar)),
-            input: None,
+            div,
         }
     }
 }
 
 impl ImageLayer for AvgPoolingLayer {
     fn forward(&mut self, input: Image) -> Image {
-        let mut channels = vec![];
-        for c in 0..input.channels() {
-            let channel = input.get_channel_across_samples(c);
-            let kernel = self.kernels.get_channel(c);
-            let pooled = channel.cross_correlate(&kernel);
-            channels.push(pooled);
-        }
-        let res = Image::join_channels(channels);
-        self.input = Some(input);
-        res
+        let unwrapped = input.unwrap(self.div, self.div, self.div, self.div, 0, 0);
+        let meaned = unwrapped.mean_along(0);
+        let result = meaned.wrap(input.image_dims().0/self.div, input.image_dims().1/self.div, 1, 1, 1, 1, 0, 0);
+        result
     }
 
-    fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
-        let input = self.input.as_ref().unwrap();
+    fn backward(&mut self, _epoch: usize, output_gradient: Image) -> Image {
+        let input_grad = output_gradient
+            .scalar_div((self.div * self.div) as Scalar)
+            .unwrap(1, 1, 1, 1, 0, 0)
+            .tile(self.div * self.div, 1, 1, 1)
+            .wrap(
+                output_gradient.image_dims().0 * self.div,
+                output_gradient.image_dims().1 * self.div,
+                self.div,
+                self.div,
+                self.div,
+                self.div,
+                0,
+                0,
+            );
         
-        let mut input_grad_channels = vec![];
-        for i in 0..input.channels() {
-            let kernel = self.kernels.get_channel(i);
-            let output_grad_i = output_gradient.get_channel_across_samples(i);
-            let correlated = output_grad_i.convolve_full(&kernel);
-            input_grad_channels.push(correlated);
-        }
-        let input_grad = Image::join_channels(input_grad_channels);
-
-        let mut kern_grad_channels = vec![];
-        for i in 0..input.channels() {
-            let output_grad_i = output_gradient.get_channel_across_samples(i);
-            let input_i = input.get_channel_across_samples(i);
-            let correlated = input_i.cross_correlate(&output_grad_i);
-            kern_grad_channels.push(correlated);
-        }
-        let kern_grad = Image::join_channels(kern_grad_channels);
-
-        let mut biases_grad_channels = vec![];
-        for c in 0..self.biases.channels() {
-            let channel = output_gradient.get_channel_across_samples(c);
-            let channel = channel.sum_samples();
-            biases_grad_channels.push(channel);
-        }
-        let biases_grad = Image::join_channels(biases_grad_channels);
-
-        self.kernels = self
-            .kernels_optimizer
-            .update_parameters(epoch, &self.kernels, &kern_grad);
-        self.biases = self
-            .biases_optimizer
-            .update_parameters(epoch, &self.biases, &biases_grad);
         input_grad
     }
 }
 
-impl LearnableLayer for AvgPoolingLayer {
-    fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        let mut params = self.kernels.flatten().get_data();
-        params.push(self.biases.flatten().get_column(0));
-        params
+impl ParameterableLayer for AvgPoolingLayer {
+    fn as_learnable_layer(&self) -> Option<&dyn LearnableLayer> {
+        None
     }
 
-    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
-        let mut kernels = params_matrix.clone();
-        let biases = kernels.pop().unwrap();
-        self.kernels = Image::from_samples(
-            &Matrix::from_column_leading_matrix(&kernels),
-            self.kernels.channels(),
-        );
-        self.biases = Image::from_samples(
-            &Matrix::from_column_vector(&biases),
-            self.biases.channels(),
-        );
+    fn as_learnable_layer_mut(&mut self) -> Option<&mut dyn LearnableLayer> {
+        None
+    }
+
+    fn as_dropout_layer(&mut self) -> Option<&mut dyn crate::layer::DropoutLayer> {
+        None
     }
 }
 
-impl ConvLayer for AvgPoolingLayer {
-    fn scale_kernels(&mut self, scale: Scalar) {
-        self.kernels = self.kernels.scalar_mul(scale);
-    }
+impl ConvNetworkLayer for AvgPoolingLayer {
 }
