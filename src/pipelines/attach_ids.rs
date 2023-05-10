@@ -3,7 +3,7 @@ use crate::{
     datatable::DataTable,
 };
 
-use super::{DataTransformation};
+use super::DataTransformation;
 
 pub struct AttachIds(pub String);
 

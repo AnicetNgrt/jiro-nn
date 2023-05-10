@@ -22,7 +22,7 @@ pub fn shuffle_vec<T>(vec: &mut Vec<T>) {
 
 pub fn shuffle_column<T: Clone>(vec: &mut Vec<Vec<T>>, col: usize) {
     let mut rng = rand::thread_rng();
-    
+
     for i in 0..vec.len() {
         let j = rng.gen_range(0..vec.len());
         let swap = vec[j][col].clone();
@@ -34,7 +34,7 @@ pub fn shuffle_column<T: Clone>(vec: &mut Vec<Vec<T>>, col: usize) {
 pub fn r2_score_matrix(y: &Vec<Vec<Scalar>>, y_hat: &Vec<Vec<Scalar>>) -> Scalar {
     assert!(y.len() == y_hat.len());
     assert!(y[0].len() == y_hat[0].len());
-    
+
     let y_avg = avg_vector(&y.iter().map(|x| avg_vector(x)).collect());
     let mut ssr = 0.0;
     let mut sst = 0.0;
@@ -46,12 +46,12 @@ pub fn r2_score_matrix(y: &Vec<Vec<Scalar>>, y_hat: &Vec<Vec<Scalar>>) -> Scalar
         }
     }
 
-    1.0 - (ssr/sst)
+    1.0 - (ssr / sst)
 }
 
 pub fn r2_score(y: &Vec<Scalar>, y_hat: &Vec<Scalar>) -> Scalar {
     assert!(y.len() == y_hat.len());
-    
+
     let y_avg = avg_vector(y);
     let mut ssr = 0.0;
     let mut sst = 0.0;
@@ -61,12 +61,12 @@ pub fn r2_score(y: &Vec<Scalar>, y_hat: &Vec<Scalar>) -> Scalar {
         sst += (y[i] - y_avg).powi(2);
     }
 
-    1.0 - (ssr/sst)
+    1.0 - (ssr / sst)
 }
 
 pub fn median_vector(vec: &Vec<Scalar>) -> Scalar {
     if vec.len() == 0 {
-        return Scalar::NAN
+        return Scalar::NAN;
     }
     let mut vec = vec.clone();
     vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -172,12 +172,20 @@ pub fn normalize_matrix(vec: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, Scalar, Sc
     let min = min_matrix(vec);
     let max = max_matrix(vec);
     let range = max - min;
-    (vec.iter().map(|x| x.iter().map(|y| (y - min) / range).collect()).collect(), min, max)
+    (
+        vec.iter()
+            .map(|x| x.iter().map(|y| (y - min) / range).collect())
+            .collect(),
+        min,
+        max,
+    )
 }
 
 pub fn denormalize_matrix(vec: &Vec<Vec<Scalar>>, min: Scalar, max: Scalar) -> Vec<Vec<Scalar>> {
     let range = max - min;
-    vec.iter().map(|x| x.iter().map(|y| y * range + min).collect()).collect()
+    vec.iter()
+        .map(|x| x.iter().map(|y| y * range + min).collect())
+        .collect()
 }
 
 pub fn vectors_correlation(vec1: &[Scalar], vec2: &[Scalar]) -> Option<Scalar> {

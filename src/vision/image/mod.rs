@@ -11,10 +11,24 @@ pub trait ImageTrait {
 
     fn constant(nrow: usize, ncol: usize, nchan: usize, samples: usize, value: Scalar) -> Self;
 
-    fn random_uniform(nrow: usize, ncol: usize, nchan: usize, samples: usize, min: Scalar, max: Scalar) -> Self;
+    fn random_uniform(
+        nrow: usize,
+        ncol: usize,
+        nchan: usize,
+        samples: usize,
+        min: Scalar,
+        max: Scalar,
+    ) -> Self;
 
-    fn random_normal(nrow: usize, ncol: usize, nchan: usize, samples: usize, mean: Scalar, stddev: Scalar) -> Self;
-    
+    fn random_normal(
+        nrow: usize,
+        ncol: usize,
+        nchan: usize,
+        samples: usize,
+        mean: Scalar,
+        stddev: Scalar,
+    ) -> Self;
+
     fn from_fn<F>(nrows: usize, ncols: usize, nchan: usize, samples: usize, f: F) -> Self
     where
         F: FnMut(usize, usize, usize, usize) -> Scalar;
@@ -25,22 +39,22 @@ pub trait ImageTrait {
     fn from_samples(samples: &Matrix, channels: usize) -> Self;
 
     /// Adds the components of self and other. Assumes both images have the same pixel sizes and channels count.
-    /// 
+    ///
     /// If other has less samples than self, it will add the first sample of other to all samples of self.
     fn component_add(&self, other: &Self) -> Self;
 
     /// Substracts the components of self and other. Assumes both images have the same pixel sizes and channels count.
-    /// 
+    ///
     /// If other has less samples than self, it will substract the first sample of other to all samples of self.
     fn component_sub(&self, other: &Self) -> Self;
 
     /// Multiplies the components of self and other. Assumes both images have the same pixel sizes and channels count.
-    /// 
+    ///
     /// If other has less samples than self, it will multiply the first sample of other to all samples of self.
     fn component_mul(&self, other: &Self) -> Self;
 
     /// Divides the components of self and other. Assumes both images have the same pixel sizes and channels count.
-    /// 
+    ///
     /// If other has less samples than self, it will divide the first sample of other to all samples of self.
     fn component_div(&self, other: &Self) -> Self;
 
@@ -70,9 +84,13 @@ pub trait ImageTrait {
     /// Returns a single channel. Assumes the image contains only 1 sample.
     fn get_channel(&self, channel: usize) -> Self;
 
-    fn join_channels(channels: Vec<Self>) -> Self where Self: Sized;
+    fn join_channels(channels: Vec<Self>) -> Self
+    where
+        Self: Sized;
 
-    fn join_samples(samples: Vec<Self>) -> Self where Self: Sized;
+    fn join_samples(samples: Vec<Self>) -> Self
+    where
+        Self: Sized;
 
     fn square(&self) -> Self;
 

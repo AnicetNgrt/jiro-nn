@@ -35,31 +35,31 @@ pub fn main() {
     print_mat(&m5);
 
     let m = Matrix::from_iter(1, 3, vec![1.0, 2.0, 3.0].into_iter());
-    
+
     print_mat(&m);
 
     let m = Matrix::from_iter(3, 1, vec![1.0, 2.0, 3.0].into_iter());
-    
-    print_mat(&m);
-
-    let m = Matrix::from_fn(3, 4, |i, _| { i as Scalar });
 
     print_mat(&m);
 
-    let m = Matrix::from_fn(3, 4, |_, j| { j as Scalar });
+    let m = Matrix::from_fn(3, 4, |i, _| i as Scalar);
 
     print_mat(&m);
 
-    let m = Matrix::from_fn(3, 4, |i, j| { i as Scalar + j as Scalar });
+    let m = Matrix::from_fn(3, 4, |_, j| j as Scalar);
+
+    print_mat(&m);
+
+    let m = Matrix::from_fn(3, 4, |i, j| i as Scalar + j as Scalar);
 
     print_mat(&m);
 
     let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    
+
     print_mat(&m);
 
     let m = Matrix::from_column_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    
+
     print_mat(&m);
 
     let m = Matrix::random_uniform(10, 5, 3.0, 18.4);

@@ -4,10 +4,10 @@ use crate::{
     layer::{DropoutLayer, Layer, LearnableLayer, ParameterableLayer},
     linalg::{Matrix, Scalar},
     network::NetworkLayer,
-    vision::{image::ImageTrait, image::Image},
+    vision::{image::Image, image::ImageTrait},
 };
 
-use super::conv_layer::ConvLayer;
+use super::image_layer::ImageLayer;
 
 #[derive(Debug)]
 pub struct ConvNetwork {
@@ -99,4 +99,4 @@ impl DropoutLayer for ConvNetwork {
     }
 }
 
-pub trait ConvNetworkLayer: ConvLayer + ParameterableLayer + Debug + Send {}
+pub trait ConvNetworkLayer: ImageLayer + ParameterableLayer + Debug + Send {}

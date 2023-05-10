@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 
-use crate::{linalg::Scalar, dataset::{Dataset, Feature}, datatable::DataTable, vec_utils::min_vector};
+use crate::{
+    dataset::{Dataset, Feature},
+    datatable::DataTable,
+    linalg::Scalar,
+    vec_utils::min_vector,
+};
 
-use super::{DataTransformation, feature_cached::FeatureExtractorCached};
+use super::{feature_cached::FeatureExtractorCached, DataTransformation};
 
 pub struct LogScale10 {
-    logged_features: HashMap<String, Scalar>
+    logged_features: HashMap<String, Scalar>,
 }
 
 impl LogScale10 {
@@ -17,7 +22,13 @@ impl LogScale10 {
 }
 
 impl DataTransformation for LogScale10 {
-    fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable) {
+    fn transform(
+        &mut self,
+        id: &String,
+        working_dir: &str,
+        spec: &Dataset,
+        data: &DataTable,
+    ) -> (Dataset, DataTable) {
         let mut logged_features = HashMap::new();
 
         for feature in spec.features.iter() {
@@ -29,34 +40,34 @@ impl DataTransformation for LogScale10 {
         }
 
         self.logged_features = logged_features.clone();
-        
+
         let mut extractor = FeatureExtractorCached::new(
-            Box::new(move |feature: &Feature| {
-                match &feature.with_log10 {
-                    Some(new_feature) => Some(*new_feature.clone()),
-                    _ => match &feature.log10 {
-                        true => {
-                            let mut feature = feature.clone();
-                            feature.log10 = false;
-                            Some(feature)
-                        },
-                        _ => None,
-                    },
-                }
-            }),
-            Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data.map_scalar_column(&feature.name, |x| {
-                    let min = logged_features.get(&feature.name).unwrap();
-                    if min <= &1.0 {
-                        (min.abs() + x + 0.001).log10()
-                    } else {
-                        x.log10()
+            Box::new(move |feature: &Feature| match &feature.with_log10 {
+                Some(new_feature) => Some(*new_feature.clone()),
+                _ => match &feature.log10 {
+                    true => {
+                        let mut feature = feature.clone();
+                        feature.log10 = false;
+                        Some(feature)
                     }
-                })
-                    .rename_column(&feature.name, &extracted.name)
+                    _ => None,
+                },
             }),
+            Box::new(
+                move |data: &DataTable, extracted: &Feature, feature: &Feature| {
+                    data.map_scalar_column(&feature.name, |x| {
+                        let min = logged_features.get(&feature.name).unwrap();
+                        if min <= &1.0 {
+                            (min.abs() + x + 0.001).log10()
+                        } else {
+                            x.log10()
+                        }
+                    })
+                    .rename_column(&feature.name, &extracted.name)
+                },
+            ),
         );
-        
+
         extractor.transform(id, working_dir, spec, data)
     }
 

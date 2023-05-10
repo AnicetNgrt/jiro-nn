@@ -1,5 +1,5 @@
-use crate::vision::{image::ImageTrait, image::Image};
 use super::ConvActivationLayer;
+use crate::vision::{image::Image, image::ImageTrait};
 
 fn sigmoid(m: &Image) -> Image {
     let exp_neg = m.scalar_mul(-1.).exp();

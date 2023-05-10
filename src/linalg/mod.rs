@@ -75,7 +75,7 @@ pub trait MatrixTrait: Clone {
     ///     ...
     ///    [rowNrow: col0 col1 ... colNcol],
     /// ]
-    /// 
+    ///
     /// Result :
     /// [
     ///    [col0: row0 row1 ... rowNrow],
@@ -117,7 +117,7 @@ pub trait MatrixTrait: Clone {
     fn get_data(&self) -> Vec<Vec<Scalar>>;
 
     fn get_data_row_leading(&self) -> Vec<Vec<Scalar>>;
-    
+
     /// returns the dimensions of the matrix (nrow, ncol)
     fn dim(&self) -> (usize, usize);
 

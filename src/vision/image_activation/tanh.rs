@@ -1,5 +1,5 @@
-use crate::vision::{image::ImageTrait, image::Image};
 use super::ConvActivationLayer;
+use crate::vision::{image::Image, image::ImageTrait};
 
 fn tanh(m: &Image) -> Image {
     let exp = m.exp();
@@ -15,7 +15,7 @@ fn tanh_prime(m: &Image) -> Image {
         hbt.image_dims().1,
         hbt.image_dims().2,
         hbt.samples(),
-        1.
+        1.,
     );
     ones.component_sub(&hbt2)
 }

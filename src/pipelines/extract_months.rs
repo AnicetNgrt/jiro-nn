@@ -1,9 +1,9 @@
-use polars::export::chrono::{DateTime, NaiveDateTime, Utc, Datelike};
+use polars::export::chrono::{DateTime, Datelike, NaiveDateTime, Utc};
 
 use crate::{
     dataset::{Dataset, Feature},
     datatable::DataTable,
-    linalg::Scalar
+    linalg::Scalar,
 };
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
@@ -18,7 +18,6 @@ impl DataTransformation for ExtractMonths {
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
-
         let extracted_feature_spec = |feature: &Feature| {
             if feature.date_format.is_some() {
                 match &feature.with_extracted_month {
@@ -29,7 +28,7 @@ impl DataTransformation for ExtractMonths {
                             f.date_format = None;
                             f.extract_month = false;
                             Some(f)
-                        },
+                        }
                         false => None,
                     },
                 }
@@ -40,16 +39,11 @@ impl DataTransformation for ExtractMonths {
 
         let extract_feature = |data: &DataTable, extracted: &Feature, feature: &Feature| {
             let format = feature.date_format.clone().unwrap();
-            data.map_str_column_to_scalar_column(
-                &feature.name,
-                &extracted.name,
-                |date| {
-                    let datetime =
-                        NaiveDateTime::parse_from_str(date, &format).unwrap();
-                    let timestamp: DateTime<Utc> = DateTime::from_utc(datetime, Utc);
-                    timestamp.month() as Scalar
-                },
-            )
+            data.map_str_column_to_scalar_column(&feature.name, &extracted.name, |date| {
+                let datetime = NaiveDateTime::parse_from_str(date, &format).unwrap();
+                let timestamp: DateTime<Utc> = DateTime::from_utc(datetime, Utc);
+                timestamp.month() as Scalar
+            })
         };
 
         let mut extractor = FeatureExtractorCached::new(

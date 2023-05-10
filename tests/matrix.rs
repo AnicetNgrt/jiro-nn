@@ -83,10 +83,7 @@ fn test_get_column() {
 
 #[test]
 fn test_get_row() {
-    let m = Matrix::from_row_leading_matrix(&vec![
-        vec![1.0, 2.0, 3.0], 
-        vec![4.0, 5.0, 6.0]
-    ]);
+    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let row = m.get_row(1);
     assert_float_relative_eq!(row[0], 4.0, 0.00001);
     assert_float_relative_eq!(row[1], 5.0, 0.00001);

@@ -230,17 +230,30 @@ impl DataTable {
     }
 
     pub fn filter_by_scalar_column(&self, column: &str, f: impl Fn(Scalar) -> bool) -> Self {
-        let binding = self.0.column(column).unwrap().cast(&DataType::Float64).unwrap();
+        let binding = self
+            .0
+            .column(column)
+            .unwrap()
+            .cast(&DataType::Float64)
+            .unwrap();
         let series = binding.f64().unwrap();
         let mut mask = BooleanChunked::full("mask", true, series.len());
-        mask = mask.set_at_idx(
-            series
-                .into_iter()
-                .filter(|v| if let Some(v) = v { !f(*v as Scalar) } else { true })
-                .enumerate()
-                .map(|(i, _)| i as u32),
-            Some(false),
-        ).unwrap();
+        mask = mask
+            .set_at_idx(
+                series
+                    .into_iter()
+                    .filter(|v| {
+                        if let Some(v) = v {
+                            !f(*v as Scalar)
+                        } else {
+                            true
+                        }
+                    })
+                    .enumerate()
+                    .map(|(i, _)| i as u32),
+                Some(false),
+            )
+            .unwrap();
         Self(self.0.filter(&mask).unwrap())
     }
 
@@ -297,7 +310,7 @@ impl DataTable {
         for values in columns_vec {
             let mut t_id = 0;
             for v in values.iter() {
-                vectors[t_id][self.0.shape().1-x_id-1] = *v;
+                vectors[t_id][self.0.shape().1 - x_id - 1] = *v;
                 t_id += 1;
             }
             x_id += 1;
@@ -305,7 +318,10 @@ impl DataTable {
         vectors
     }
 
-    pub fn from_vectors<S: AsRef<str>>(columns_names: &[S], columns_vectors: &Vec<Vec<Scalar>>) -> Self {
+    pub fn from_vectors<S: AsRef<str>>(
+        columns_names: &[S],
+        columns_vectors: &Vec<Vec<Scalar>>,
+    ) -> Self {
         let mut data = Self::new_empty();
         for (i, column) in columns_names.iter().enumerate().rev() {
             let mut values = Vec::new();
@@ -427,7 +443,9 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let mut serie: Series = array.apply(|v| (((v as Scalar) - min) / (max - min)).into()).into_series();
+        let mut serie: Series = array
+            .apply(|v| (((v as Scalar) - min) / (max - min)).into())
+            .into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
     }
@@ -442,7 +460,9 @@ impl DataTable {
             .cast(&DataType::Float64)
             .unwrap();
         let array = series.f64().unwrap();
-        let mut serie: Series = array.apply(|v| ((v as Scalar) * (max - min) + min).into()).into_series();
+        let mut serie: Series = array
+            .apply(|v| ((v as Scalar) * (max - min) + min).into())
+            .into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())
     }

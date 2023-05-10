@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use crate::{
     dataset::{Dataset, Feature},
@@ -21,7 +21,8 @@ impl Normalize {
 
     pub fn same_normalization(&mut self, new_feature: &str, old_feature: &str) -> &mut Self {
         let min_max = self.features_min_max.get(old_feature).unwrap();
-        self.features_min_max.insert(new_feature.to_string(), *min_max);
+        self.features_min_max
+            .insert(new_feature.to_string(), *min_max);
         self
     }
 
@@ -30,8 +31,7 @@ impl Normalize {
 
         for (feature_name, min_max) in self.features_min_max.iter() {
             if denormalized_data.has_column(feature_name) {
-                denormalized_data = denormalized_data
-                    .denormalize_column(feature_name, *min_max);
+                denormalized_data = denormalized_data.denormalize_column(feature_name, *min_max);
             }
         }
 
@@ -66,15 +66,19 @@ impl DataTransformation for Normalize {
                         let mut feature = feature.clone();
                         feature.normalized = false;
                         Some(feature)
-                    },
+                    }
                     _ => None,
                 },
             }),
-            Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data
-                    .normalize_column(&feature.name, *features_min_max.get(&feature.name).unwrap())
+            Box::new(
+                move |data: &DataTable, extracted: &Feature, feature: &Feature| {
+                    data.normalize_column(
+                        &feature.name,
+                        *features_min_max.get(&feature.name).unwrap(),
+                    )
                     .rename_column(&feature.name, &extracted.name)
-            }),
+                },
+            ),
         );
 
         extractor.transform(id, working_dir, spec, data)

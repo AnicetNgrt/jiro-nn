@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::linalg::Scalar;
 use self::{inverse_time_decay::InverseTimeDecay, piecewise_constant::PiecewiseConstant};
+use crate::linalg::Scalar;
 
 pub mod inverse_time_decay;
 pub mod piecewise_constant;

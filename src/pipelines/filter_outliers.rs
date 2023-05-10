@@ -1,9 +1,6 @@
-use crate::{
-    dataset::{Dataset},
-    datatable::DataTable, vec_utils::vector_quartiles_iqr,
-};
+use crate::{dataset::Dataset, datatable::DataTable, vec_utils::vector_quartiles_iqr};
 
-use super::{DataTransformation};
+use super::DataTransformation;
 
 pub struct FilterOutliers;
 

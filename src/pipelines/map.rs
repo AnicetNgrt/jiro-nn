@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     dataset::{Dataset, Feature},
     datatable::DataTable,
-    linalg::Scalar
+    linalg::Scalar,
 };
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
@@ -115,8 +115,6 @@ impl MapValue {
 
         values
     }
-    
-
 }
 
 pub struct Map {
@@ -160,10 +158,12 @@ impl DataTransformation for Map {
             }),
             Box::new(
                 move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                    let corresponding_in = mapped_features[&feature.name].0
+                    let corresponding_in = mapped_features[&feature.name]
+                        .0
                         .find_all_corresponding(data, &feature.name);
 
-                    let out = mapped_features[&feature.name].1
+                    let out = mapped_features[&feature.name]
+                        .1
                         .apply(data, corresponding_in);
 
                     data.drop_column(&feature.name)

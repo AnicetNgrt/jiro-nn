@@ -7,7 +7,7 @@ use crate::{
     benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation},
     datatable::DataTable,
     model::Model,
-    network::{Network, params::NetworkParams},
+    network::{params::NetworkParams, Network},
     vec_utils::r2_score_matrix,
 };
 
@@ -16,15 +16,15 @@ use super::Trainer;
 pub type ReporterClosure = dyn FnMut(usize, usize, EpochEvaluation) -> () + Send + Sync;
 
 /// K-Folds trainer
-/// 
+///
 /// Trains a model using K-Folds cross validation.
-/// 
+///
 /// The model is trained on `k` folds of the data.
-/// 
+///
 /// The folds are created by splitting the data into `k` parts.
-/// 
+///
 /// The model is trained on `k-1` folds and validated on the remaining fold.
-/// 
+///
 /// This process is repeated `k` times, each time using a different fold for validation.
 pub struct KFolds {
     pub k: usize,
@@ -75,9 +75,9 @@ impl KFolds {
 
     /// Enables computing the R2 score of the model at the end of each epoch
     /// and reporting it if a real time reporter is attached.
-    /// 
+    ///
     /// /!\ Is time consuming.
-    /// 
+    ///
     /// Otherwise computes it only at the end of the final epoch
     pub fn all_epochs_r2(&mut self) -> &mut Self {
         self.all_epochs_r2 = true;
@@ -86,9 +86,9 @@ impl KFolds {
 
     /// Enables computing the validation score of the model at the end of each epoch
     /// and reporting it if a real time reporter is attached.
-    /// 
+    ///
     /// /!\ Is time consuming.
-    /// 
+    ///
     /// Otherwise computes it only at the end of the final epoch
     pub fn all_epochs_validation(&mut self) -> &mut Self {
         self.all_epochs_validation = true;
@@ -96,30 +96,23 @@ impl KFolds {
     }
 
     /// Attaches a real time reporter to the trainer.
-    /// 
+    ///
     /// The reporter is a closure that takes as arguments:
     /// - the current epoch
     /// - the current fold
     /// - the evaluation of the current epoch
-    /// 
+    ///
     /// The reporter is called on the fold's thread at the end of each epoch.
     /// It must therefore be `Send + Sync + 'static`.
-    pub fn attach_real_time_reporter<F>(
-        &mut self,
-        reporter: F,
-    ) -> &mut Self 
+    pub fn attach_real_time_reporter<F>(&mut self, reporter: F) -> &mut Self
     where
-        F: FnMut(usize, usize, EpochEvaluation) -> () + Send + Sync + 'static
+        F: FnMut(usize, usize, EpochEvaluation) -> () + Send + Sync + 'static,
     {
         self.real_time_reporter = Arc::new(Some(Mutex::new(Box::new(reporter))));
         self
     }
 
-    fn compute_best(
-        &mut self,
-        model_eval: &ModelEvaluation,
-        trained_models: &Vec<Network>,
-    ) {
+    fn compute_best(&mut self, model_eval: &ModelEvaluation, trained_models: &Vec<Network>) {
         if self.return_best {
             let mut best_fold = 0;
             let mut best_fold_r2 = 0.0;
@@ -185,7 +178,8 @@ impl KFolds {
             // It is costly and should be done only during the last epoch
             // and made optional for all the others in the future
             let loss_fn = model.loss.to_loss();
-            let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation {
+            let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation
+            {
                 network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
             } else {
                 (vec![], -1.0, -1.0)
@@ -270,7 +264,8 @@ impl KFolds {
                 // It is costly and should be done only during the last epoch
                 // and made optional for all the others in the future
                 let loss_fn = model.loss.to_loss();
-                let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || all_epochs_validation {
+                let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || all_epochs_validation
+                {
                     network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
                 } else {
                     (vec![], -1.0, -1.0)
@@ -358,13 +353,19 @@ impl Trainer for KFolds {
         for handle in handles.into_iter() {
             handle.join().unwrap();
         }
-        
-        // Destroy the datastructures for parallel computing
-        let validation_preds = Arc::try_unwrap(validation_preds).unwrap().into_inner().unwrap();
-        let model_eval = Arc::try_unwrap(model_eval).unwrap().into_inner().unwrap();
-        let trained_models = Arc::try_unwrap(trained_models).unwrap().into_inner().unwrap();
 
-        // Compute the best and average models 
+        // Destroy the datastructures for parallel computing
+        let validation_preds = Arc::try_unwrap(validation_preds)
+            .unwrap()
+            .into_inner()
+            .unwrap();
+        let model_eval = Arc::try_unwrap(model_eval).unwrap().into_inner().unwrap();
+        let trained_models = Arc::try_unwrap(trained_models)
+            .unwrap()
+            .into_inner()
+            .unwrap();
+
+        // Compute the best and average models
         // and store them internally if necessary
         self.compute_best(&model_eval, &trained_models);
         self.compute_avg(&trained_models);

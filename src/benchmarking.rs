@@ -6,7 +6,7 @@ use crate::linalg::Scalar;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct ModelEvaluation {
-    pub folds: Vec<FoldEvaluation>
+    pub folds: Vec<FoldEvaluation>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -24,9 +24,7 @@ pub struct EpochEvaluation {
 
 impl ModelEvaluation {
     pub fn new_empty() -> Self {
-        Self {
-            folds: vec![],
-        }
+        Self { folds: vec![] }
     }
 
     pub fn add_fold(&mut self, fold: FoldEvaluation) {
@@ -109,9 +107,7 @@ impl ModelEvaluation {
 
 impl FoldEvaluation {
     pub fn new_empty() -> Self {
-        Self {
-            epochs: vec![],
-        }
+        Self { epochs: vec![] }
     }
 
     pub fn add_epoch(&mut self, epoch: EpochEvaluation) {
@@ -136,12 +132,17 @@ impl FoldEvaluation {
 }
 
 impl EpochEvaluation {
-    pub fn new(train_loss: Scalar, test_loss_avg: Scalar, test_loss_std: Scalar, r2: Scalar) -> Self {
+    pub fn new(
+        train_loss: Scalar,
+        test_loss_avg: Scalar,
+        test_loss_std: Scalar,
+        r2: Scalar,
+    ) -> Self {
         Self {
             train_loss,
             test_loss_avg,
             test_loss_std,
-            r2
+            r2,
         }
     }
 }

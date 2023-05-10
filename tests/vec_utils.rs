@@ -144,7 +144,8 @@ fn test_denormalize_vector() {
 
 #[test]
 fn test_normalize_matrix() {
-    let vec = vec![        vec![1.0, 2.0, 3.0],
+    let vec = vec![
+        vec![1.0, 2.0, 3.0],
         vec![4.0, 5.0, 6.0],
         vec![7.0, 8.0, 9.0],
     ];
@@ -164,11 +165,7 @@ fn test_normalize_matrix() {
 
 #[test]
 fn test_denormalize_matrix() {
-    let input = vec![
-        vec![0.0, 0.25],
-        vec![0.5, 0.75],
-        vec![1.0, 1.0],
-    ];
+    let input = vec![vec![0.0, 0.25], vec![0.5, 0.75], vec![1.0, 1.0]];
     let min = 0.0;
     let max = 1.0;
     let expected_output = vec![

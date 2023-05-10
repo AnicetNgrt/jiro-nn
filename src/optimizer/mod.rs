@@ -1,12 +1,12 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::linalg::{Matrix};
+use crate::linalg::Matrix;
 
-use self::{sgd::SGD, momentum::Momentum, adam::Adam};
+use self::{adam::Adam, momentum::Momentum, sgd::SGD};
 
-pub mod sgd;
-pub mod momentum;
 pub mod adam;
+pub mod momentum;
+pub mod sgd;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Optimizers {
@@ -16,11 +16,20 @@ pub enum Optimizers {
 }
 
 impl Optimizers {
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
+    pub fn update_parameters(
+        &mut self,
+        epoch: usize,
+        parameters: &Matrix,
+        parameters_gradient: &Matrix,
+    ) -> Matrix {
         match self {
             Optimizers::SGD(sgd) => sgd.update_parameters(epoch, parameters, parameters_gradient),
-            Optimizers::Momentum(momentum) => momentum.update_parameters(epoch, parameters, parameters_gradient),
-            Optimizers::Adam(adam) => adam.update_parameters(epoch, parameters, parameters_gradient),
+            Optimizers::Momentum(momentum) => {
+                momentum.update_parameters(epoch, parameters, parameters_gradient)
+            }
+            Optimizers::Adam(adam) => {
+                adam.update_parameters(epoch, parameters, parameters_gradient)
+            }
         }
     }
 }

@@ -1,38 +1,49 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use self::{sgd::SGD, momentum::Momentum, adam::Adam};
+use self::{adam::ConvAdam, momentum::ConvMomentum, sgd::ConvSGD};
 
 use super::image::Image;
 
-pub mod sgd;
-pub mod momentum;
 pub mod adam;
+pub mod momentum;
+pub mod sgd;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConvOptimizers {
-    SGD(SGD),
-    Momentum(Momentum),
-    Adam(Adam),
+    ConvSGD(ConvSGD),
+    ConvMomentum(ConvMomentum),
+    ConvAdam(ConvAdam),
 }
 
 impl ConvOptimizers {
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &Image, parameters_gradient: &Image) -> Image {
+    pub fn update_parameters(
+        &mut self,
+        epoch: usize,
+        parameters: &Image,
+        parameters_gradient: &Image,
+    ) -> Image {
         match self {
-            ConvOptimizers::SGD(sgd) => sgd.update_parameters(epoch, parameters, parameters_gradient),
-            ConvOptimizers::Momentum(momentum) => momentum.update_parameters(epoch, parameters, parameters_gradient),
-            ConvOptimizers::Adam(adam) => adam.update_parameters(epoch, parameters, parameters_gradient),
+            ConvOptimizers::ConvSGD(sgd) => {
+                sgd.update_parameters(epoch, parameters, parameters_gradient)
+            }
+            ConvOptimizers::ConvMomentum(momentum) => {
+                momentum.update_parameters(epoch, parameters, parameters_gradient)
+            }
+            ConvOptimizers::ConvAdam(adam) => {
+                adam.update_parameters(epoch, parameters, parameters_gradient)
+            }
         }
     }
 }
 
-pub fn adam() -> ConvOptimizers {
-    ConvOptimizers::Adam(Adam::default())
+pub fn conv_adam() -> ConvOptimizers {
+    ConvOptimizers::ConvAdam(ConvAdam::default())
 }
 
-pub fn sgd() -> ConvOptimizers {
-    ConvOptimizers::SGD(SGD::default())
+pub fn conv_sgd() -> ConvOptimizers {
+    ConvOptimizers::ConvSGD(ConvSGD::default())
 }
 
-pub fn momentum() -> ConvOptimizers {
-    ConvOptimizers::Momentum(Momentum::default())
+pub fn conv_momentum() -> ConvOptimizers {
+    ConvOptimizers::ConvMomentum(ConvMomentum::default())
 }

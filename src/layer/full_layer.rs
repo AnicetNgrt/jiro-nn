@@ -7,7 +7,7 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use crate::network::NetworkLayer;
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
 
-use super::{LearnableLayer, DropoutLayer, ParameterableLayer};
+use super::{DropoutLayer, LearnableLayer, ParameterableLayer};
 
 #[derive(Debug)]
 pub struct FullLayer {
@@ -26,14 +26,11 @@ impl FullLayer {
             activation,
             dropout_rate: dropout,
             dropout_enabled: false,
-            mask: None
+            mask: None,
         }
     }
-    
-    fn generate_dropout_mask(
-        &mut self,
-        output_shape: (usize, usize),
-    ) -> Option<(Matrix, Scalar)> {
+
+    fn generate_dropout_mask(&mut self, output_shape: (usize, usize)) -> Option<(Matrix, Scalar)> {
         if let Some(dropout_rate) = self.dropout_rate {
             let mut rng = SmallRng::from_entropy();
             let dropout_mask = Matrix::from_fn(output_shape.0, output_shape.1, |_, _| {
@@ -78,9 +75,8 @@ impl Layer for FullLayer {
 
     fn backward(&mut self, epoch: usize, output_gradient: Matrix) -> Matrix {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
-        let input_gradient = self.dense
-            .backward(epoch, activation_input_gradient);
-        
+        let input_gradient = self.dense.backward(epoch, activation_input_gradient);
+
         if let Some(mask) = &self.mask {
             input_gradient.component_mul(&mask)
         } else {

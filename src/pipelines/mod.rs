@@ -1,19 +1,28 @@
-use std::{rc::Rc, cell::RefCell, hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
+use std::{
+    cell::RefCell,
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 use crate::{dataset::Dataset, datatable::DataTable};
 
-use self::{extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, map::Map, log_scale::LogScale10, square::Square, filter_outliers::FilterOutliers, normalize::Normalize};
+use self::{
+    extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
+    filter_outliers::FilterOutliers, log_scale::LogScale10, map::Map, normalize::Normalize,
+    square::Square,
+};
 
-pub mod feature_cached;
-pub mod normalize;
-pub mod log_scale;
-pub mod extract_timestamps;
-pub mod extract_months;
 pub mod attach_ids;
-pub mod square;
+pub mod extract_months;
+pub mod extract_timestamps;
+pub mod feature_cached;
 pub mod filter_outliers;
+pub mod log_scale;
 pub mod map;
+pub mod normalize;
 pub mod sample;
+pub mod square;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
@@ -29,7 +38,7 @@ impl Pipeline {
     /// Creates a pipeline that does every possible operations once.
     ///
     /// This may not fit your exact usecase, but it's a good starting point.
-    /// 
+    ///
     /// The pipeline is:
     /// - Extract months if required
     /// - Extract timestamps if required
@@ -38,7 +47,7 @@ impl Pipeline {
     /// - Square values if required
     /// - Filter outliers if required
     /// - Normalize values if required
-    /// 
+    ///
     pub fn basic_single_pass() -> Pipeline {
         let mut pipeline = Pipeline::new();
         pipeline
@@ -49,29 +58,37 @@ impl Pipeline {
             .push(Square::new())
             .push(FilterOutliers)
             .push(Normalize::new());
-        
+
         pipeline
     }
 
-    pub fn add_shared(&mut self, transformation: Rc<RefCell<dyn DataTransformation>>) -> &mut Pipeline {
+    pub fn add_shared(
+        &mut self,
+        transformation: Rc<RefCell<dyn DataTransformation>>,
+    ) -> &mut Pipeline {
         self.transformations.push(transformation);
         self
     }
 
     pub fn push<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
-        self.transformations.push(Rc::new(RefCell::new(transformation)));
+        self.transformations
+            .push(Rc::new(RefCell::new(transformation)));
         self
     }
 
-    pub fn prepend<DT: DataTransformation + 'static>(&mut self, transformation: DT) -> &mut Pipeline {
-        self.transformations.insert(0, Rc::new(RefCell::new(transformation)));
+    pub fn prepend<DT: DataTransformation + 'static>(
+        &mut self,
+        transformation: DT,
+    ) -> &mut Pipeline {
+        self.transformations
+            .insert(0, Rc::new(RefCell::new(transformation)));
         self
     }
 
     pub fn run(&mut self, working_dir: &str, spec: &Dataset) -> (Dataset, DataTable) {
         let data = DataTable::from_file(format!("{}/{}.csv", working_dir, spec.name))
             .select_columns(spec.feature_names().as_slice());
-        
+
         let mut hasher = DefaultHasher::new();
         spec.hash(&mut hasher);
         let mut id = hasher.finish().to_string();
@@ -114,6 +131,12 @@ impl Pipeline {
 
 pub trait DataTransformation {
     fn get_name(&self) -> String;
-    fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable);
+    fn transform(
+        &mut self,
+        id: &String,
+        working_dir: &str,
+        spec: &Dataset,
+        data: &DataTable,
+    ) -> (Dataset, DataTable);
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable;
 }

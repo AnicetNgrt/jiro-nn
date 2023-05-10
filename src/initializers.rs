@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::linalg::{Matrix, Scalar, MatrixTrait};
+use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum Initializers {

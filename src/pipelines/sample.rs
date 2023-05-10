@@ -1,9 +1,6 @@
-use crate::{
-    dataset::{Dataset},
-    datatable::DataTable,
-};
+use crate::{dataset::Dataset, datatable::DataTable};
 
-use super::{DataTransformation};
+use super::DataTransformation;
 
 pub struct Sample {
     pub count: usize,

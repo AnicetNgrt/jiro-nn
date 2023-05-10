@@ -1,10 +1,13 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{learning_rate::{LearningRateSchedule, default_learning_rate}, linalg::{Matrix, MatrixTrait, Scalar}};
+use crate::{
+    learning_rate::{default_learning_rate, LearningRateSchedule},
+    linalg::{Matrix, MatrixTrait, Scalar},
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SGD {
-    #[serde(default="default_learning_rate")]
+    #[serde(default = "default_learning_rate")]
     learning_rate: LearningRateSchedule,
 }
 
@@ -22,12 +25,15 @@ impl SGD {
     }
 
     pub fn new(learning_rate: LearningRateSchedule) -> Self {
-        Self {
-            learning_rate,
-        }
+        Self { learning_rate }
     }
 
-    pub fn update_parameters(&mut self, epoch: usize, parameters: &Matrix, parameters_gradient: &Matrix) -> Matrix {
+    pub fn update_parameters(
+        &mut self,
+        epoch: usize,
+        parameters: &Matrix,
+        parameters_gradient: &Matrix,
+    ) -> Matrix {
         let lr = self.learning_rate.get_learning_rate(epoch);
         parameters.component_sub(&parameters_gradient.scalar_mul(lr))
     }

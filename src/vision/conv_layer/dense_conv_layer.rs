@@ -1,7 +1,13 @@
-use crate::{linalg::{Scalar, MatrixTrait, Matrix}, vision::{
-    conv_initializers::ConvInitializers, conv_optimizer::ConvOptimizers, image::Image,
-    image::ImageTrait,
-}, layer::LearnableLayer};
+use crate::{
+    layer::LearnableLayer,
+    linalg::{Matrix, MatrixTrait, Scalar},
+    vision::{
+        conv_initializers::ConvInitializers, conv_optimizer::ConvOptimizers, image::Image,
+        image::ImageTrait,
+    },
+};
+
+use crate::vision::image_layer::ImageLayer;
 
 use super::ConvLayer;
 
@@ -37,7 +43,7 @@ impl DenseConvLayer {
     }
 }
 
-impl ConvLayer for DenseConvLayer {
+impl ImageLayer for DenseConvLayer {
     fn forward(&mut self, input: Image) -> Image {
         let res = input
             .cross_correlate(&self.kernels)
@@ -81,7 +87,19 @@ impl LearnableLayer for DenseConvLayer {
     fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
         let mut kernels = params_matrix.clone();
         let biases = kernels.pop().unwrap();
-        self.kernels = Image::from_samples(&Matrix::from_column_leading_matrix(&kernels), self.kernels.image_dims().2);
-        self.biases = Image::from_samples(&Matrix::from_column_vector(&biases), self.biases.image_dims().2);
+        self.kernels = Image::from_samples(
+            &Matrix::from_column_leading_matrix(&kernels),
+            self.kernels.image_dims().2,
+        );
+        self.biases = Image::from_samples(
+            &Matrix::from_column_vector(&biases),
+            self.biases.image_dims().2,
+        );
+    }
+}
+
+impl ConvLayer for DenseConvLayer {
+    fn scale_kernels(&mut self, scale: Scalar) {
+        self.kernels = self.kernels.scalar_mul(scale);
     }
 }

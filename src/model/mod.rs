@@ -6,19 +6,20 @@ use polars::series::Series;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use crate::dataset::Dataset;
 use crate::datatable::DataTable;
 use crate::linalg::Scalar;
 use crate::loss::Losses;
 use crate::network::{Network, NetworkLayer};
 use crate::trainers::Trainers;
-use crate::{dataset::Dataset};
 
 use self::conv_network_spec::ConvNetworkSpec;
 use self::full_layer_spec::FullLayerSpec;
 
-pub mod full_layer_spec;
-pub mod conv_network_spec;
 pub mod conv_layer_spec;
+pub mod conv_network_spec;
+pub mod full_conv_layer_spec;
+pub mod full_layer_spec;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
@@ -63,7 +64,13 @@ impl Model {
         spec
     }
 
-    pub fn train_epoch(&self, epoch: usize, network: &mut Network, train_data: &DataTable, id_column: &str) -> Scalar {
+    pub fn train_epoch(
+        &self,
+        epoch: usize,
+        network: &mut Network,
+        train_data: &DataTable,
+        id_column: &str,
+    ) -> Scalar {
         let (train_x_table, train_y_table) =
             train_data.random_order_in_out(&self.dataset.out_features_names());
 
@@ -105,9 +112,7 @@ impl Model {
                 self.hidden_layers[i].clone()
             };
             let in_size = sizes[i];
-            layers.push(
-                layer_spec.to_network_layer(in_size)
-            );
+            layers.push(layer_spec.to_network_layer(in_size));
         }
 
         Network::new(layers)
@@ -149,7 +154,7 @@ impl Model {
                 ModelOptions::FinalLayer(final_layer) => spec.final_layer = final_layer.clone(),
                 ModelOptions::BatchSize(batch_size) => spec.batch_size = Some(batch_size.clone()),
                 ModelOptions::Dataset(dataset) => spec.dataset = dataset.clone(),
-                ModelOptions::Trainer(trainer) => spec.trainer = trainer.clone()
+                ModelOptions::Trainer(trainer) => spec.trainer = trainer.clone(),
             }
         }
         spec
@@ -177,12 +182,8 @@ pub enum LayerSpecTypes {
 impl LayerSpecTypes {
     pub fn compute_out_size(&self, prev_out_size: usize) -> usize {
         match self {
-            LayerSpecTypes::Full(layer_spec) => {
-                layer_spec.out_size
-            }
-            LayerSpecTypes::ConvNetwork(layer_spec) => {
-                layer_spec.out_size(prev_out_size)
-            }
+            LayerSpecTypes::Full(layer_spec) => layer_spec.out_size,
+            LayerSpecTypes::ConvNetwork(layer_spec) => layer_spec.out_size(prev_out_size),
         }
     }
 
@@ -197,7 +198,7 @@ impl LayerSpecTypes {
                 Box::new(layer) as Box<dyn NetworkLayer>
             }
         }
-    } 
+    }
 }
 
 /// Options to be used in order to build a `Model` struct with the `from_options` method.

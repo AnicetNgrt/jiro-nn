@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{model::Model, datatable::DataTable, benchmarking::ModelEvaluation};
+use crate::{benchmarking::ModelEvaluation, datatable::DataTable, model::Model};
 
 use self::kfolds::KFolds;
 

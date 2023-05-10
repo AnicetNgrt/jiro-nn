@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::initializers::Initializers;
-use crate::layer::dense_layer::{
+use crate::layer::defaults::{
     default_biases_initializer, default_biases_optimizer, default_weights_initializer,
-    default_weights_optimizer, DenseLayer,
+    default_weights_optimizer,
 };
+use crate::layer::dense_layer::DenseLayer;
 use crate::layer::full_layer::FullLayer;
 use crate::linalg::Scalar;
 use crate::{activation::Activation, optimizer::Optimizers};
@@ -75,7 +76,7 @@ impl FullLayerSpec {
         )
     }
 
-        /// The `from_options` method is a constructor function for creating a `LayerSpecTypes` enum from a list of `FullLayerOptions`.
+    /// The `from_options` method is a constructor function for creating a `LayerSpecTypes` enum from a list of `FullLayerOptions`.
     ///
     /// See the `FullLayerOptions` enum for more information.
     pub fn from_options(options: &[FullLayerOptions]) -> FullLayerSpec {

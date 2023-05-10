@@ -1,13 +1,13 @@
 use std::fmt;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use super::{image::Image, image::ImageTrait};
 
+pub mod linear;
 pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
-pub mod linear;
 
 pub type ConvActivationFn = fn(&Image) -> Image;
 
@@ -31,11 +31,7 @@ impl ConvActivationLayer {
         (self.activation)(&input)
     }
 
-    pub fn backward(
-        &mut self,
-        _epoch: usize,
-        output_gradient: Image
-    ) -> Image {
+    pub fn backward(&mut self, _epoch: usize, output_gradient: Image) -> Image {
         let input = self.input.clone().unwrap();
         let fprime_x = (self.derivative)(&input);
         output_gradient.component_mul(&fprime_x)
@@ -47,7 +43,7 @@ pub enum ConvActivation {
     Tanh,
     Sigmoid,
     ReLU,
-    Linear
+    Linear,
 }
 
 impl ConvActivation {

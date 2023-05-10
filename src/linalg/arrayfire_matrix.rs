@@ -1,9 +1,9 @@
 use core::fmt;
 
 use arrayfire::{
-    add, constant, div, exp, index, matmul, maxof, mean_all, minof, mul, pow, print,
+    add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq, moddims,
+    RandomEngine, Seq,
 };
 use rand::Rng;
 
@@ -286,13 +286,9 @@ impl Matrix {
     }
 
     pub fn from_array(size: usize, samples: usize, array: &Array<Scalar>) -> Self {
-        Matrix(moddims(array,
-            Dim4::new(&[
-                size.try_into().unwrap(),
-                samples.try_into().unwrap(),
-                1,
-                1
-            ])
+        Matrix(moddims(
+            array,
+            Dim4::new(&[size.try_into().unwrap(), samples.try_into().unwrap(), 1, 1]),
         ))
     }
 }

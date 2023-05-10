@@ -27,8 +27,8 @@ impl InverseTimeDecay {
     }
 
     pub fn get_learning_rate(&self, epoch: usize) -> Scalar {
-        let mut learning_rate =
-            self.initial_learning_rate / (1. + self.decay_rate * (epoch as Scalar / self.decay_steps));
+        let mut learning_rate = self.initial_learning_rate
+            / (1. + self.decay_rate * (epoch as Scalar / self.decay_steps));
         if self.staircase {
             learning_rate = self.initial_learning_rate
                 / (1. + self.decay_rate * (epoch as Scalar / self.decay_steps).floor());

@@ -1,5 +1,9 @@
-use crate::{activation::Activation, linalg::{Matrix, Scalar}};
+use crate::{
+    activation::Activation,
+    linalg::{Matrix, Scalar},
+};
 
+pub mod defaults;
 pub mod dense_layer;
 pub mod full_layer;
 
@@ -17,8 +21,7 @@ pub trait Layer {
     /// `output_gradient` has shape `(j, n)` where `j` is the number of outputs and `n` is the number of samples.
     ///
     /// Returns `input_gradient` which has shape `(i, n)` where `i` is the number of inputs and `n` is the number of samples.
-    fn backward(&mut self, epoch: usize, output_gradient: Matrix)
-        -> Matrix;
+    fn backward(&mut self, epoch: usize, output_gradient: Matrix) -> Matrix;
 }
 
 pub trait ParameterableLayer {

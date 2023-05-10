@@ -1,9 +1,8 @@
 use std::fmt;
 
 use arrayfire::{
-    constant, exp, index, join_many, maxof, mean_all, minof,
-    pow, random_normal, random_uniform, sign, sqrt, sum_all, Array, Dim4,
-    RandomEngine, Seq, flip, convolve3,
+    constant, convolve3, exp, flip, index, join_many, maxof, mean_all, minof, pow, random_normal,
+    random_uniform, sign, sqrt, sum_all, Array, Dim4, RandomEngine, Seq,
 };
 use rand::Rng;
 
@@ -239,26 +238,42 @@ impl ImageTrait for Image {
 
     fn cross_correlate(&self, kernels: &Self) -> Self {
         let rot_kern = flip(&flip(&kernels.0, 0), 1);
-        let res = convolve3(&self.0, &rot_kern, arrayfire::ConvMode::DEFAULT, arrayfire::ConvDomain::AUTO);
+        let res = convolve3(
+            &self.0,
+            &rot_kern,
+            arrayfire::ConvMode::DEFAULT,
+            arrayfire::ConvDomain::AUTO,
+        );
         let out_size = self.image_dims().0 - kernels.image_dims().0 + 1;
-        let res = index(&res, &[
-            Seq::new(0, (out_size-1).try_into().unwrap(), 1), 
-            Seq::new(0, (out_size-1).try_into().unwrap(), 1), 
-            Seq::new(0, (kernels.samples()-1).try_into().unwrap(), 1), 
-            Seq::new(0, (self.samples()-1).try_into().unwrap(), 1),
-        ]);
+        let res = index(
+            &res,
+            &[
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (kernels.samples() - 1).try_into().unwrap(), 1),
+                Seq::new(0, (self.samples() - 1).try_into().unwrap(), 1),
+            ],
+        );
         Self(res)
     }
 
     fn convolve_full(&self, kernels: &Self) -> Self {
-        let res = convolve3(&self.0, &kernels.0, arrayfire::ConvMode::EXPAND, arrayfire::ConvDomain::AUTO);
+        let res = convolve3(
+            &self.0,
+            &kernels.0,
+            arrayfire::ConvMode::EXPAND,
+            arrayfire::ConvDomain::AUTO,
+        );
         let out_size = self.image_dims().0 + kernels.image_dims().0 - 1;
-        let res = index(&res, &[
-            Seq::new(0, (out_size-1).try_into().unwrap(), 1), 
-            Seq::new(0, (out_size-1).try_into().unwrap(), 1), 
-            Seq::new(0, (kernels.samples()-1).try_into().unwrap(), 1), 
-            Seq::new(0, (self.samples()-1).try_into().unwrap(), 1),
-        ]);
+        let res = index(
+            &res,
+            &[
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (kernels.samples() - 1).try_into().unwrap(), 1),
+                Seq::new(0, (self.samples() - 1).try_into().unwrap(), 1),
+            ],
+        );
         Self(res)
     }
 

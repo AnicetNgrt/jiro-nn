@@ -1,5 +1,5 @@
-use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
+use crate::linalg::{Matrix, MatrixTrait};
 
 fn sigmoid(m: &Matrix) -> Matrix {
     let exp_neg = m.scalar_mul(-1.).exp();

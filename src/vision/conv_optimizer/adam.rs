@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     learning_rate::{default_learning_rate, LearningRateSchedule},
-    linalg::{Scalar}, vision::{image::Image, image::ImageTrait},
+    linalg::Scalar,
+    vision::{image::Image, image::ImageTrait},
 };
 
 fn default_beta1() -> Scalar {
@@ -19,7 +20,7 @@ fn default_epsilon() -> Scalar {
 
 // https://arxiv.org/pdf/1412.6980.pdf
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Adam {
+pub struct ConvAdam {
     #[serde(default = "default_beta1")]
     beta1: Scalar,
     #[serde(default = "default_beta2")]
@@ -34,8 +35,13 @@ pub struct Adam {
     v: Option<Image>, // second moment vector
 }
 
-impl Adam {
-    pub fn new(learning_rate: LearningRateSchedule, beta1: Scalar, beta2: Scalar, epsilon: Scalar) -> Self {
+impl ConvAdam {
+    pub fn new(
+        learning_rate: LearningRateSchedule,
+        beta1: Scalar,
+        beta2: Scalar,
+        epsilon: Scalar,
+    ) -> Self {
         Self {
             m: None,
             v: None,
@@ -69,10 +75,10 @@ impl Adam {
         let n_sample = parameters_gradient.samples();
 
         if self.m.is_none() {
-            self.m = Some(Image::zeros(nrow, ncol, nchan , n_sample));
+            self.m = Some(Image::zeros(nrow, ncol, nchan, n_sample));
         }
         if self.v.is_none() {
-            self.v = Some(Image::zeros(nrow, ncol, nchan , n_sample));
+            self.v = Some(Image::zeros(nrow, ncol, nchan, n_sample));
         }
         let m = self.m.as_ref().unwrap();
         let v = self.v.as_ref().unwrap();
@@ -82,12 +88,12 @@ impl Adam {
 
         let m = &(m.scalar_mul(self.beta1)).component_add(&g.scalar_mul(1.0 - self.beta1));
         let v = &(v.scalar_mul(self.beta2)).component_add(&g2.scalar_mul(1.0 - self.beta2));
-        
+
         let m_bias_corrected = m.scalar_div(1.0 - self.beta1);
         let v_bias_corrected = v.scalar_div(1.0 - self.beta2);
-        
+
         let v_bias_corrected = v_bias_corrected.sqrt();
-        
+
         self.m = Some(m.clone());
         self.v = Some(v.clone());
         parameters.component_sub(

@@ -10,14 +10,14 @@ pub mod datatable;
 pub mod initializers;
 pub mod layer;
 pub mod learning_rate;
+pub mod linalg;
 pub mod loss;
 pub mod model;
 pub mod network;
 pub mod optimizer;
 pub mod pipelines;
-pub mod vec_utils;
-pub mod linalg;
 pub mod trainers;
+pub mod vec_utils;
 
 #[cfg(feature = "arrayfire")]
 pub mod vision;

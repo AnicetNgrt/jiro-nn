@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Div, Mul, Sub};
 
 use nalgebra::{DMatrix, DVector};
 use rand::Rng;
@@ -12,7 +12,6 @@ use super::{MatrixTrait, Scalar};
 pub struct Matrix(DMatrix<Scalar>);
 
 impl MatrixTrait for Matrix {
-    
     fn zeros(nrow: usize, ncol: usize) -> Self {
         Self(DMatrix::zeros(nrow, ncol))
     }
@@ -27,7 +26,7 @@ impl MatrixTrait for Matrix {
         let data: Vec<Vec<Scalar>> = (0..ncol)
             .map(|_| (0..nrow).map(|_| rng.gen_range(min..max)).collect())
             .collect();
-        
+
         Self(DMatrix::from_row_slice(nrow, ncol, &data.concat()))
     }
 
@@ -35,7 +34,11 @@ impl MatrixTrait for Matrix {
     fn random_normal(nrow: usize, ncol: usize, mean: Scalar, std_dev: Scalar) -> Self {
         let normal = rand_distr::Normal::new(mean, std_dev).unwrap();
         let data: Vec<Vec<Scalar>> = (0..ncol)
-            .map(|_| (0..nrow).map(|_| normal.sample(&mut rand::thread_rng())).collect())
+            .map(|_| {
+                (0..nrow)
+                    .map(|_| normal.sample(&mut rand::thread_rng()))
+                    .collect()
+            })
             .collect();
         Self(DMatrix::from_row_slice(nrow, ncol, &data.concat()))
     }
@@ -72,7 +75,7 @@ impl MatrixTrait for Matrix {
     ///     ...
     ///    [rowNrow: col0 col1 ... colNcol],
     /// ]
-    /// 
+    ///
     /// Result :
     /// [
     ///    [col0: row0 row1 ... rowNrow],
@@ -115,7 +118,8 @@ impl MatrixTrait for Matrix {
         let mut res = Self::zeros(self.0.nrows(), self.0.ncols());
         for i in 0..self.0.ncols() {
             let col = f(i, &self.get_column(i));
-            res.0.set_column(i, &DVector::from_column_slice(col.as_slice()));
+            res.0
+                .set_column(i, &DVector::from_column_slice(col.as_slice()));
         }
         res
     }
@@ -180,7 +184,7 @@ impl MatrixTrait for Matrix {
         }
         result
     }
-    
+
     /// returns the dimensions of the matrix (nrow, ncol)
     fn dim(&self) -> (usize, usize) {
         (self.0.nrows(), self.0.ncols())

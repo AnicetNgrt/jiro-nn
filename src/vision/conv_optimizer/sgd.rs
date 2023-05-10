@@ -2,16 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     learning_rate::{default_learning_rate, LearningRateSchedule},
-    linalg::{Scalar}, vision::{image::Image, image::ImageTrait},
+    linalg::Scalar,
+    vision::{image::Image, image::ImageTrait},
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SGD {
+pub struct ConvSGD {
     #[serde(default = "default_learning_rate")]
     learning_rate: LearningRateSchedule,
 }
 
-impl SGD {
+impl ConvSGD {
     pub fn default() -> Self {
         Self {
             learning_rate: default_learning_rate(),

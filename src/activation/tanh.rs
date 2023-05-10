@@ -1,5 +1,5 @@
-use crate::linalg::{MatrixTrait, Matrix};
 use super::ActivationLayer;
+use crate::linalg::{Matrix, MatrixTrait};
 
 fn tanh(m: &Matrix) -> Matrix {
     let exp = m.exp();

@@ -1,14 +1,14 @@
 use std::fmt;
 
 use crate::linalg::MatrixTrait;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{layer::Layer, linalg::Matrix};
 
+pub mod linear;
 pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
-pub mod linear;
 
 pub type ActivationFn = fn(&Matrix) -> Matrix;
 
@@ -35,11 +35,7 @@ impl Layer for ActivationLayer {
         (self.activation)(&input)
     }
 
-    fn backward(
-        &mut self,
-        _epoch: usize,
-        output_gradient: Matrix
-    ) -> Matrix {
+    fn backward(&mut self, _epoch: usize, output_gradient: Matrix) -> Matrix {
         // ∂E/∂X = ∂E/∂Y ⊙ f'(X)
         let input = self.input.clone().unwrap();
         let fprime_x = (self.derivative)(&input);
@@ -53,7 +49,7 @@ pub enum Activation {
     Tanh,
     Sigmoid,
     ReLU,
-    Linear
+    Linear,
 }
 
 impl Activation {

@@ -71,14 +71,8 @@ impl Network {
     /// `inputs` has shape `(n, i)` where `n` is the number of samples and `i` is the number of inputs.
     ///
     /// Returns `preds` which has shape `(n, j)` where `n` is the number of samples and `j` is the number of outputs.
-    pub fn predict_many(
-        &mut self,
-        inputs: &Vec<Vec<Scalar>>
-    ) -> Vec<Vec<Scalar>> {
-        let preds: Vec<_> = inputs
-            .into_iter()
-            .map(|x| self.predict(x))
-            .collect();
+    pub fn predict_many(&mut self, inputs: &Vec<Vec<Scalar>>) -> Vec<Vec<Scalar>> {
+        let preds: Vec<_> = inputs.into_iter().map(|x| self.predict(x)).collect();
 
         preds
     }
@@ -127,8 +121,8 @@ impl Network {
         loss: &Loss,
         batch_size: usize,
     ) -> Scalar {
-        self.layers.iter_mut().for_each(|l| { 
-            l.as_dropout_layer().map(|l| l.enable_dropout()); 
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| l.enable_dropout());
         });
 
         let mut error = 0.;

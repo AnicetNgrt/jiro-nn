@@ -1,4 +1,7 @@
-use crate::{loss::Loss, linalg::{Matrix, MatrixTrait, Scalar}};
+use crate::{
+    linalg::{Matrix, MatrixTrait, Scalar},
+    loss::Loss,
+};
 
 pub fn mse_vec(y_pred: &Vec<Scalar>, y_true: &Vec<Scalar>) -> Scalar {
     let n_samples = y_pred.len();
@@ -19,8 +22,5 @@ fn mse_prime(y_pred: &Matrix, y_true: &Matrix) -> Matrix {
 }
 
 pub fn new() -> Loss {
-    Loss::new(
-        mse,
-        mse_prime,
-    )
+    Loss::new(mse, mse_prime)
 }

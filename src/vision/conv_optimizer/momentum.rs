@@ -2,16 +2,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     learning_rate::{default_learning_rate, LearningRateSchedule},
-    linalg::{Scalar}, vision::{image::Image, image::ImageTrait},
+    linalg::Scalar,
+    vision::{image::Image, image::ImageTrait},
 };
 
-fn default_momentum() -> Scalar {
-    0.9
-}
+use crate::optimizer::momentum::default_momentum;
 
 // https://arxiv.org/pdf/1207.0580.pdf
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Momentum {
+pub struct ConvMomentum {
     #[serde(default = "default_momentum")]
     momentum: Scalar,
     #[serde(default = "default_learning_rate")]
@@ -20,7 +19,7 @@ pub struct Momentum {
     v: Option<Image>,
 }
 
-impl Momentum {
+impl ConvMomentum {
     pub fn new(learning_rate: LearningRateSchedule, momentum: Scalar) -> Self {
         Self {
             v: None,
@@ -48,7 +47,7 @@ impl Momentum {
         if let None = &self.v {
             let (nrow, ncol, nchan) = parameters_gradient.image_dims();
             let n_sample = parameters_gradient.samples();
-            self.v = Some(Image::zeros(nrow, ncol, nchan , n_sample));
+            self.v = Some(Image::zeros(nrow, ncol, nchan, n_sample));
         };
 
         let v = self.v.as_ref().unwrap();

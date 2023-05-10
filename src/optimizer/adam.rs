@@ -35,7 +35,12 @@ pub struct Adam {
 }
 
 impl Adam {
-    pub fn new(learning_rate: LearningRateSchedule, beta1: Scalar, beta2: Scalar, epsilon: Scalar) -> Self {
+    pub fn new(
+        learning_rate: LearningRateSchedule,
+        beta1: Scalar,
+        beta2: Scalar,
+        epsilon: Scalar,
+    ) -> Self {
         Self {
             m: None,
             v: None,
@@ -81,12 +86,12 @@ impl Adam {
 
         let m = &(m.scalar_mul(self.beta1)).component_add(&g.scalar_mul(1.0 - self.beta1));
         let v = &(v.scalar_mul(self.beta2)).component_add(&g2.scalar_mul(1.0 - self.beta2));
-        
+
         let m_bias_corrected = m.scalar_div(1.0 - self.beta1);
         let v_bias_corrected = v.scalar_div(1.0 - self.beta2);
-        
+
         let v_bias_corrected = v_bias_corrected.sqrt();
-        
+
         self.m = Some(m.clone());
         self.v = Some(v.clone());
         parameters.component_sub(

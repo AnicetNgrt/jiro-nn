@@ -1,9 +1,12 @@
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::bool_true;
 
-use crate::{pipelines::map::{MapSelector, MapOp}, datatable::DataTable};
+use crate::{
+    datatable::DataTable,
+    pipelines::map::{MapOp, MapSelector},
+};
 
 #[derive(Serialize, Debug, Deserialize, Clone, Hash, Default)]
 pub struct Dataset {
@@ -87,13 +90,9 @@ impl Dataset {
     /// Create a new dataset from a csv file by adding all its columns as default features.
     pub fn from_csv<P: Into<PathBuf>>(path: P) -> Self {
         let path = Into::<PathBuf>::into(path);
-        
+
         let binding = path.clone();
-        let file_name = binding
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap();
+        let file_name = binding.file_stem().unwrap().to_str().unwrap();
 
         let table = DataTable::from_file(path);
         let feature_names = table.get_columns_names();
@@ -135,13 +134,13 @@ impl Dataset {
     }
 
     /// The `from_features_options` method is a constructor function for creating a `Dataset` object from a collection of `FeatureOptions`.
-    /// 
+    ///
     /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureOptions` representing the individual features to be included in the dataset. The `FeatureOptions` for each feature specify how that feature should be preprocessed before being included in the dataset.
-    /// 
+    ///
     /// See the `FeatureOptions` documentation for more information on the available options.
-    /// 
+    ///
     /// Example:
-    /// 
+    ///
     /// ```
     /// let features1 = &[
     ///     FeatureOptions::Name("age"),
@@ -246,7 +245,7 @@ impl Feature {
 /// Options to be used to describe a feature and its related preprocessing.
 ///
 /// **Feature description options**:
-/// 
+///
 /// - `Name`: The name of the feature.
 /// - `UsedInModel`: Disables the pruning of the feature at the end of the pipeline. All features are used in the model by default.
 /// - `Out`: Sets the feature as an output feature. All features are input features by default.
@@ -254,7 +253,7 @@ impl Feature {
 /// - `DateFormat`: The date format to use for date/time features.
 ///
 /// **Feature replacement/mapping options**:
-/// 
+///
 /// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
 /// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` specified.
 /// - `Log10`: Enables applying base-10 logarithm to the feature.
@@ -264,9 +263,9 @@ impl Feature {
 /// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
 ///
 /// **Feature row filtering options**:
-/// 
+///
 /// - `FilterOutliers`: Enables filtering outlier rows from the feature's column using Tukey's fence method.
-/// 
+///
 /// **Automatic feature extraction options**:
 ///
 /// - `AddExtractedMonth`: Enables the extracted month feature extraction from that feature. The extracted feature will be named `"<feature_name>_month"`.
@@ -284,7 +283,7 @@ impl Feature {
 /// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
 ///
 /// **Meta options**:
-/// 
+///
 /// - `Not`: Negates the effect of the following option.
 /// - Some others that are internal and should not be used there.
 #[derive(Debug)]
@@ -340,7 +339,7 @@ pub enum FeatureOptions<'a> {
     /// The `ExceptFeatures` option enables the feature option to be applied to all features except some features.
     ExceptFeatures(&'a FeatureOptions<'a>, &'a [&'a str]),
     /// The `OnlyFeatures` option enables the feature option to be applied to only some features.
-    OnlyFeatures(&'a FeatureOptions<'a>, &'a [&'a str])
+    OnlyFeatures(&'a FeatureOptions<'a>, &'a [&'a str]),
 }
 
 impl<'a> FeatureOptions<'a> {
@@ -374,40 +373,30 @@ impl<'a> FeatureOptions<'a> {
                 feature.date_format = Some(date_format.to_string())
             }
             FeatureOptions::ToTimestamp => feature.to_timestamp = value,
-            FeatureOptions::ExtractMonth => {
-                feature.extract_month = value
-            }
+            FeatureOptions::ExtractMonth => feature.extract_month = value,
             FeatureOptions::Log10 => feature.log10 = value,
             FeatureOptions::Normalized => feature.normalized = value,
-            FeatureOptions::FilterOutliers => {
-                feature.filter_outliers = value
-            }
+            FeatureOptions::FilterOutliers => feature.filter_outliers = value,
             FeatureOptions::Squared => feature.squared = value,
-            FeatureOptions::UsedInModel => {
-                feature.used_in_model = value
-            }
+            FeatureOptions::UsedInModel => feature.used_in_model = value,
             FeatureOptions::IsId => feature.is_id = value,
             FeatureOptions::AddFeatureExtractedMonth(with_extracted_month) => {
-                feature.with_extracted_month = Some(Box::new(Feature::from_options(
-                    with_extracted_month,
-                )))
+                feature.with_extracted_month =
+                    Some(Box::new(Feature::from_options(with_extracted_month)))
             }
             FeatureOptions::AddFeatureExtractedTimestamp(with_extracted_timestamp) => {
-                feature.with_extracted_timestamp = Some(Box::new(
-                    Feature::from_options(with_extracted_timestamp),
-                ))
+                feature.with_extracted_timestamp =
+                    Some(Box::new(Feature::from_options(with_extracted_timestamp)))
             }
             FeatureOptions::AddFeatureLog10(with_log10) => {
                 feature.with_log10 = Some(Box::new(Feature::from_options(with_log10)))
             }
             FeatureOptions::AddFeatureNormalized(with_normalized) => {
-                feature.with_normalized =
-                    Some(Box::new(Feature::from_options(with_normalized)))
+                feature.with_normalized = Some(Box::new(Feature::from_options(with_normalized)))
             }
             FeatureOptions::AddFeatureSquared(with_squared) => {
-                feature.with_squared =
-                    Some(Box::new(Feature::from_options(with_squared)))
-            },
+                feature.with_squared = Some(Box::new(Feature::from_options(with_squared)))
+            }
             FeatureOptions::Mapped(map_selector, map_op) => {
                 feature.mapped = Some((map_selector.clone(), map_op.clone()))
             }
@@ -416,43 +405,47 @@ impl<'a> FeatureOptions<'a> {
                 if !exceptions.contains(&feature.name.as_str()) {
                     feature_option.apply_bool(feature, value)
                 }
-            },
+            }
             FeatureOptions::OnlyFeatures(feature_option, inclusions) => {
                 if inclusions.contains(&feature.name.as_str()) {
                     feature_option.apply_bool(feature, value)
                 }
-            },
+            }
             FeatureOptions::AddExtractedMonth => {
-                feature.with_extracted_month = Some(Box::new(Feature::from_options(
-                    &[FeatureOptions::Name(&format!("{}_month", feature.name))]
-                )))
-            },
+                feature.with_extracted_month =
+                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                        &format!("{}_month", feature.name),
+                    )])))
+            }
             FeatureOptions::AddExtractedTimestamp => {
-                feature.with_extracted_timestamp = Some(Box::new(Feature::from_options(
-                    &[FeatureOptions::Name(&format!("{}_timestamp", feature.name))]
-                )))
-            },
+                feature.with_extracted_timestamp =
+                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                        &format!("{}_timestamp", feature.name),
+                    )])))
+            }
             FeatureOptions::AddLog10 => {
-                feature.with_log10 = Some(Box::new(Feature::from_options(
-                    &[FeatureOptions::Name(&format!("log10({})", feature.name))]
-                )))
-            },
+                feature.with_log10 = Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                    &format!("log10({})", feature.name),
+                )])))
+            }
             FeatureOptions::AddNormalized => {
-                feature.with_normalized = Some(Box::new(Feature::from_options(
-                    &[FeatureOptions::Name(&format!("{}_normalized", feature.name))]
-                )))
-            },
+                feature.with_normalized =
+                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                        &format!("{}_normalized", feature.name),
+                    )])))
+            }
             FeatureOptions::AddSquared => {
-                feature.with_squared = Some(Box::new(Feature::from_options(
-                    &[FeatureOptions::Name(&format!("{}^2", feature.name))]
-                )))
-            },
+                feature.with_squared =
+                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                        &format!("{}^2", feature.name),
+                    )])))
+            }
             FeatureOptions::RecurseAdded(feature_option) => {
                 for extracted_feature in feature.get_extracted_features_mut().into_iter() {
                     self.apply_bool(extracted_feature, value)
-                };
+                }
                 feature_option.apply_bool(feature, value);
-            },
+            }
         };
     }
 }

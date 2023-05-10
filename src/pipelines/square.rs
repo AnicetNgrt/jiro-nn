@@ -1,11 +1,14 @@
 use std::collections::HashSet;
 
-use crate::{dataset::{Dataset, Feature}, datatable::DataTable};
+use crate::{
+    dataset::{Dataset, Feature},
+    datatable::DataTable,
+};
 
-use super::{DataTransformation, feature_cached::FeatureExtractorCached};
+use super::{feature_cached::FeatureExtractorCached, DataTransformation};
 
 pub struct Square {
-    squared_features: HashSet<String>
+    squared_features: HashSet<String>,
 }
 
 impl Square {
@@ -17,7 +20,13 @@ impl Square {
 }
 
 impl DataTransformation for Square {
-    fn transform(&mut self, id: &String, working_dir: &str, spec: &Dataset, data: &DataTable) -> (Dataset, DataTable) {
+    fn transform(
+        &mut self,
+        id: &String,
+        working_dir: &str,
+        spec: &Dataset,
+        data: &DataTable,
+    ) -> (Dataset, DataTable) {
         let mut squared_features = HashSet::new();
 
         for feature in spec.features.iter() {
@@ -27,27 +36,27 @@ impl DataTransformation for Square {
         }
 
         self.squared_features = squared_features.clone();
-        
+
         let mut extractor = FeatureExtractorCached::new(
-            Box::new(move |feature: &Feature| {
-                match &feature.with_squared {
-                    Some(new_feature) => Some(*new_feature.clone()),
-                    _ => match &feature.squared {
-                        true => {
-                            let mut feature = feature.clone();
-                            feature.squared = false;
-                            Some(feature)
-                        },
-                        _ => None,
-                    },
-                }
+            Box::new(move |feature: &Feature| match &feature.with_squared {
+                Some(new_feature) => Some(*new_feature.clone()),
+                _ => match &feature.squared {
+                    true => {
+                        let mut feature = feature.clone();
+                        feature.squared = false;
+                        Some(feature)
+                    }
+                    _ => None,
+                },
             }),
-            Box::new(move |data: &DataTable, extracted: &Feature, feature: &Feature| {
-                data.map_scalar_column(&feature.name, |x| x.powi(2))
-                    .rename_column(&feature.name, &extracted.name)
-            }),
+            Box::new(
+                move |data: &DataTable, extracted: &Feature, feature: &Feature| {
+                    data.map_scalar_column(&feature.name, |x| x.powi(2))
+                        .rename_column(&feature.name, &extracted.name)
+                },
+            ),
         );
-        
+
         extractor.transform(id, working_dir, spec, data)
     }
 
