@@ -56,21 +56,32 @@ impl ParameterableLayer for ConvNetwork {
 }
 
 impl LearnableLayer for ConvNetwork {
-    // TODO
     fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        // let mut params = Vec::new();
-        // for layer in self.layers.iter() {
-        //     params.push(layer.get_learnable_parameters());
-        // }
-        // ConvNetworkParams(params)
-        vec![]
+        let mut params = Vec::new();
+        for layer in self.layers.iter() {
+            layer.as_learnable_layer().map(|l| {
+                params.append(&mut l.get_learnable_parameters());
+            });
+            params.push(vec![-1.0; 1]);
+        }
+        params
     }
 
-    // TODO
-    fn set_learnable_parameters(&mut self, _params_matrix: &Vec<Vec<Scalar>>) {
-        // for (layer, params) in self.layers.iter_mut().zip(params.0.iter()) {
-        //     layer.set_learnable_parameters(params);
-        // }
+    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
+        // each layer's params are split in the params matrix at some line with a -1.0
+        let mut params_matrix = params_matrix.clone();
+        for layer in self.layers.iter_mut() {
+            let mut layer_params = Vec::new();
+            while let Some(param) = params_matrix.pop() {
+                if param[0] == -1.0 {
+                    break;
+                }
+                layer_params.push(param);
+            }
+            layer.as_learnable_layer_mut().map(|l| {
+                l.set_learnable_parameters(&layer_params);
+            });
+        }
     }
 }
 

@@ -9,7 +9,6 @@ use crate::layer::full_layer::FullLayer;
 use crate::linalg::Scalar;
 use crate::{activation::Activation, optimizer::Optimizers};
 
-
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct FullLayerSpec {
     #[serde(default)]

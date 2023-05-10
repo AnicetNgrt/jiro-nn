@@ -1,12 +1,14 @@
 use std::fmt;
 
-use crate::linalg::MatrixTrait;
+use crate::linalg::{MatrixTrait, Scalar};
 use crate::{
     initializers::Initializers,
     layer::Layer,
     linalg::Matrix,
     optimizer::{sgd, Optimizers},
 };
+
+use super::LearnableLayer;
 
 pub struct DenseLayer {
     // i inputs, j outputs, i x j connections
@@ -83,6 +85,23 @@ impl Layer for DenseLayer {
                 .update_parameters(epoch, &self.biases, &biases_gradient);
 
         input_gradient
+    }
+}
+
+impl LearnableLayer for DenseLayer {
+    // returns a matrix of the (jxi) weights and the final column being the (j) biases
+    fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
+        let mut params = self.weights.get_data();
+        params.push(self.biases.get_column(0));
+        params
+    }
+
+    // takes a matrix of the (jxi) weights and the final column being the (j) biases
+    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
+        let mut weights = params_matrix.clone();
+        let biases = weights.pop().unwrap();
+        self.weights = Matrix::from_column_leading_matrix(&weights);
+        self.biases = Matrix::from_column_vector(&biases);
     }
 }
 

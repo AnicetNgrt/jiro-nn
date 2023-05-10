@@ -14,7 +14,7 @@ use crate::vision::image::ImageTrait;
 
 #[derive(Debug)]
 pub struct FullConvLayer {
-    conv: DenseConvLayer,
+    dense: DenseConvLayer,
     activation: ConvActivationLayer,
     dropout_enabled: bool,
     dropout_rate: Option<Scalar>,
@@ -22,9 +22,9 @@ pub struct FullConvLayer {
 }
 
 impl FullConvLayer {
-    pub fn new(conv: DenseConvLayer, activation: ConvActivationLayer, dropout: Option<Scalar>) -> Self {
+    pub fn new(dense: DenseConvLayer, activation: ConvActivationLayer, dropout: Option<Scalar>) -> Self {
         Self {
-            conv,
+            dense,
             activation,
             dropout_rate: dropout,
             dropout_enabled: false,
@@ -69,15 +69,15 @@ impl ConvLayer for FullConvLayer {
                 input = input.component_mul(&mask);
                 self.mask = Some(mask);
             };
-            self.conv.forward(input)
+            self.dense.forward(input)
         } else {
             if let Some(dropout_rate) = self.dropout_rate {
-                self.conv.kernels = self.conv.kernels.scalar_mul(1.0 - dropout_rate);
-                let output = self.conv.forward(input);
-                self.conv.kernels = self.conv.kernels.scalar_div(1.0 - dropout_rate);
+                self.dense.kernels = self.dense.kernels.scalar_mul(1.0 - dropout_rate);
+                let output = self.dense.forward(input);
+                self.dense.kernels = self.dense.kernels.scalar_div(1.0 - dropout_rate);
                 output
             } else {
-                self.conv.forward(input)
+                self.dense.forward(input)
             }
         };
 
@@ -86,7 +86,7 @@ impl ConvLayer for FullConvLayer {
 
     fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
-        let input_gradient = self.conv
+        let input_gradient = self.dense
             .backward(epoch, activation_input_gradient);
         
         if let Some(mask) = &self.mask {
@@ -99,11 +99,11 @@ impl ConvLayer for FullConvLayer {
 
 impl LearnableLayer for FullConvLayer {
     fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        todo!()
+        self.dense.get_learnable_parameters()
     }
 
-    fn set_learnable_parameters(&mut self, _params_matrix: &Vec<Vec<Scalar>>) {
-        todo!()
+    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
+        self.dense.set_learnable_parameters(params_matrix)
     }
 }
 
