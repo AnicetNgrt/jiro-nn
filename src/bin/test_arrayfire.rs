@@ -1,5 +1,5 @@
 use arrayfire::{print, flip, index, Seq, convolve3};
-use neural_networks_rust::{vision::{Image, image::ImageTrait}, linalg::{Matrix, MatrixTrait}};
+use neural_networks_rust::{vision::{image::Image, image::ImageTrait}, linalg::{Matrix, MatrixTrait}};
 
 pub fn main() {
     let image = Image::from_samples(

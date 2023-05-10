@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::Image;
+use super::image::Image;
 use crate::{vision::image::ImageTrait, linalg::Scalar};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]

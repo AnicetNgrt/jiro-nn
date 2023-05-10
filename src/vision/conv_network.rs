@@ -1,13 +1,18 @@
 use std::fmt::Debug;
 
-use crate::{layer::{Layer, LearnableLayer, DropoutLayer, ParameterableLayer}, linalg::{Matrix, Scalar}, vision::{Image, image::ImageTrait}, network::{NetworkLayer}};
+use crate::{
+    layer::{DropoutLayer, Layer, LearnableLayer, ParameterableLayer},
+    linalg::{Matrix, Scalar},
+    network::NetworkLayer,
+    vision::{image::ImageTrait, image::Image},
+};
 
-use super::conv_layer::{ConvLayer};
+use super::conv_layer::ConvLayer;
 
 #[derive(Debug)]
 pub struct ConvNetwork {
     layers: Vec<Box<dyn ConvNetworkLayer>>,
-    channels: usize
+    channels: usize,
 }
 
 impl ConvNetwork {
@@ -71,14 +76,14 @@ impl LearnableLayer for ConvNetwork {
 
 impl DropoutLayer for ConvNetwork {
     fn enable_dropout(&mut self) {
-        self.layers.iter_mut().for_each(|l| { 
-            l.as_dropout_layer().map(|l| l.enable_dropout()); 
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| l.enable_dropout());
         });
     }
 
     fn disable_dropout(&mut self) {
-        self.layers.iter_mut().for_each(|l| { 
-            l.as_dropout_layer().map(|l| l.disable_dropout()); 
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| l.disable_dropout());
         });
     }
 }

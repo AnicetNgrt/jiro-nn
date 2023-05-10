@@ -1,4 +1,4 @@
-use crate::vision::{image::ImageTrait, Image};
+use crate::vision::{image::ImageTrait, image::Image};
 use super::ConvActivationLayer;
 
 pub fn new() -> ConvActivationLayer {

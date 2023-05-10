@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use self::{sgd::SGD, momentum::Momentum, adam::Adam};
 
-use super::Image;
+use super::image::Image;
 
 pub mod sgd;
 pub mod momentum;

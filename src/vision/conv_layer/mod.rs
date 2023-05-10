@@ -1,4 +1,4 @@
-use super::Image;
+use super::image::Image;
 
 pub mod dense_conv_layer;
 pub mod full_conv_layer;

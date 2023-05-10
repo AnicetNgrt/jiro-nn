@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Serialize, Deserialize};
 
-use super::{Image, image::ImageTrait};
+use super::{image::Image, image::ImageTrait};
 
 pub mod relu;
 pub mod sigmoid;

@@ -9,7 +9,7 @@ use rand::Rng;
 
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
-use super::image::ImageTrait;
+use super::ImageTrait;
 
 #[derive(Clone)]
 pub struct Image(pub Array<Scalar>);

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     learning_rate::{default_learning_rate, LearningRateSchedule},
-    linalg::{Scalar}, vision::{Image, image::ImageTrait},
+    linalg::{Scalar}, vision::{image::Image, image::ImageTrait},
 };
 
 fn default_momentum() -> Scalar {
