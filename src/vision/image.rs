@@ -1,7 +1,21 @@
 use crate::linalg::{Matrix, Scalar};
 
+
+
 /// An image (or batched images) composed of Scalar n rows on m columns and c channels (with s samples if batched).
 pub trait ImageTrait {
+    fn zeros(nrow: usize, ncol: usize, nchan: usize, samples: usize) -> Self;
+
+    fn constant(nrow: usize, ncol: usize, nchan: usize, samples: usize, value: Scalar) -> Self;
+
+    fn random_uniform(nrow: usize, ncol: usize, nchan: usize, samples: usize, min: Scalar, max: Scalar) -> Self;
+
+    fn random_normal(nrow: usize, ncol: usize, nchan: usize, samples: usize, mean: Scalar, stddev: Scalar) -> Self;
+    
+    fn from_fn<F>(nrows: usize, ncols: usize, nchan: usize, samples: usize, f: F) -> Self
+    where
+        F: FnMut(usize, usize, usize, usize) -> Scalar;
+
     /// `samples` has shape `(i, n)` where `n` is the number of samples, `i` is the number of pixels.
     ///
     /// Pixels are assumed to be in column-leading order with channels put in their entirety one after the other.
@@ -35,17 +49,9 @@ pub trait ImageTrait {
 
     fn scalar_div(&self, scalar: Scalar) -> Self;
 
-    /// Forward pass of a CNN 
-    fn convolve_cnn(&self, kernels: &Self) -> Self;
+    fn cross_correlate(&self, kernels: &Self) -> Self;
 
-    /// Gradient of the forward pass of a CNN
-    /// 
-    /// Returns (Input gradient, Filter gradient, Biases gradient)
-    /// 
-    /// It may seem like giving too much responsibility to the backend to do the whole gradient computation
-    /// but it may be the most efficient way to do it. The backend can use its own specialized function
-    /// such as the batched parallel and optimized CUDA implementation if CUDA is used.
-    fn convolve_grad_cnn(&self, input: &Self, filter: &Self, output: &Self) -> (Self, Self, Self) where Self: Sized;
+    fn convolve_full(&self, kernels: &Self) -> Self;
 
     fn flatten(&self) -> Matrix;
 
@@ -64,4 +70,20 @@ pub trait ImageTrait {
     fn join_channels(channels: Vec<Self>) -> Self where Self: Sized;
 
     fn join_samples(samples: Vec<Self>) -> Self where Self: Sized;
+
+    fn square(&self) -> Self;
+
+    fn sum(&self) -> Scalar;
+
+    fn mean(&self) -> Scalar;
+
+    fn exp(&self) -> Self;
+
+    fn maxof(&self, other: &Self) -> Self;
+
+    fn sign(&self) -> Self;
+
+    fn minof(&self, other: &Self) -> Self;
+
+    fn sqrt(&self) -> Self;
 }

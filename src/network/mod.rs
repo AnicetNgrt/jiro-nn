@@ -1,42 +1,52 @@
-use std::{fs::File, io::Write, path::{PathBuf}};
+use std::fmt::Debug;
 
 use crate::{
-    layer::{full_layer::FullLayer, Layer},
+    layer::{Layer, ParameterableLayer},
     linalg::{Matrix, MatrixTrait, Scalar},
     loss::Loss,
 };
+
+use self::params::NetworkParams;
+
+pub mod params;
 
 #[derive(Debug)]
 pub struct Network {
     // May be one or more layers inside
     // A layer is a layer as long as it implements the Layer trait
-    layers: Vec<FullLayer>,
-    pub i: usize,
-    pub j: usize,
+    layers: Vec<Box<dyn NetworkLayer>>,
 }
 
 impl Network {
-    pub fn new(layers: Vec<FullLayer>, i: usize, j: usize) -> Self {
-        Self { layers, i, j }
+    pub fn new(layers: Vec<Box<dyn NetworkLayer>>) -> Self {
+        Self { layers }
     }
 
     pub fn get_params(&self) -> NetworkParams {
         let mut params = Vec::new();
         for layer in self.layers.iter() {
-            params.push(layer.get_learnable_parameters());
+            layer.as_learnable_layer().map(|l| {
+                params.push(l.get_learnable_parameters());
+            });
         }
         NetworkParams(params)
     }
 
     pub fn load_params(&mut self, params: &NetworkParams) {
         for (layer, params) in self.layers.iter_mut().zip(params.0.iter()) {
-            layer.set_learnable_parameters(params);
+            layer.as_learnable_layer_mut().map(|l| {
+                l.set_learnable_parameters(params);
+            });
         }
     }
 
     /// `input` has shape `(i,)` where `i` is the number of inputs.
     pub fn predict(&mut self, input: &Vec<Scalar>) -> Vec<Scalar> {
-        self.layers.iter_mut().for_each(|l| l.disable_dropout());
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| {
+                l.disable_dropout();
+            });
+        });
 
         self.layers
             .forward(Matrix::from_column_vector(input))
@@ -117,7 +127,9 @@ impl Network {
         loss: &Loss,
         batch_size: usize,
     ) -> Scalar {
-        self.layers.iter_mut().for_each(|l| l.enable_dropout());
+        self.layers.iter_mut().for_each(|l| { 
+            l.as_dropout_layer().map(|l| l.enable_dropout()); 
+        });
 
         let mut error = 0.;
         let mut i = 0;
@@ -144,7 +156,7 @@ impl Network {
     }
 }
 
-impl<L: Layer> Layer for Vec<L> {
+impl Layer for Vec<Box<dyn NetworkLayer>> {
     fn forward(&mut self, input: Matrix) -> Matrix {
         let mut output = input;
         for layer in self.iter_mut() {
@@ -162,56 +174,4 @@ impl<L: Layer> Layer for Vec<L> {
     }
 }
 
-pub struct NetworkParams(pub Vec<Vec<Vec<Scalar>>>);
-
-impl NetworkParams {
-    pub fn average(networks: &Vec<Self>) -> Self {
-        let mut params = Vec::new();
-        
-        let layer_count = networks[0].0.len();
-
-        for layer_index in 0..layer_count {
-            let mut layer_params = Matrix::from_column_leading_matrix(&networks[0].0[layer_index]);
-
-            for network in networks.iter().skip(1) {
-                let other_params = Matrix::from_column_leading_matrix(&network.0[layer_index]);
-                layer_params =  layer_params.component_add(&other_params).scalar_div(2.0);
-            }
-
-            params.push(layer_params.get_data());
-        }
-    
-        NetworkParams(params)
-    }
-
-    pub fn to_json<P: Into<PathBuf>>(&self, path: P) {
-        let json = serde_json::json!({ "params": self.0 });
-        let mut file = File::create(path.into()).unwrap();
-        file.write_all(json.to_string().as_bytes()).unwrap();
-    }
-
-    pub fn from_json<P: Into<PathBuf>>(path: P) -> Self {
-        let file = File::open(path.into()).unwrap();
-        let json: serde_json::Value = serde_json::from_reader(file).unwrap();
-        let params = json["params"].as_array().unwrap();
-
-        NetworkParams(
-            params
-                .iter()
-                .map(|x| {
-                    x.as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|x| {
-                            x.as_array()
-                                .unwrap()
-                                .iter()
-                                .map(|x| x.as_f64().unwrap() as Scalar)
-                                .collect()
-                        })
-                        .collect()
-                })
-                .collect(),
-        )
-    }
-}
+pub trait NetworkLayer: Layer + ParameterableLayer + Debug + Send {}

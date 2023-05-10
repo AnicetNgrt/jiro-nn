@@ -1,4 +1,4 @@
-use crate::{activation::Activation, linalg::Matrix};
+use crate::{activation::Activation, linalg::{Matrix, Scalar}};
 
 pub mod dense_layer;
 pub mod full_layer;
@@ -19,4 +19,20 @@ pub trait Layer {
     /// Returns `input_gradient` which has shape `(i, n)` where `i` is the number of inputs and `n` is the number of samples.
     fn backward(&mut self, epoch: usize, output_gradient: Matrix)
         -> Matrix;
+}
+
+pub trait ParameterableLayer {
+    fn as_learnable_layer(&self) -> Option<&dyn LearnableLayer>;
+    fn as_learnable_layer_mut(&mut self) -> Option<&mut dyn LearnableLayer>;
+    fn as_dropout_layer(&mut self) -> Option<&mut dyn DropoutLayer>;
+}
+
+pub trait DropoutLayer {
+    fn enable_dropout(&mut self);
+    fn disable_dropout(&mut self);
+}
+
+pub trait LearnableLayer {
+    fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>>;
+    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>);
 }

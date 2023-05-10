@@ -3,7 +3,7 @@ use core::fmt;
 use arrayfire::{
     add, constant, div, exp, index, matmul, maxof, mean_all, minof, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq,
+    RandomEngine, Seq, moddims,
 };
 use rand::Rng;
 
@@ -12,7 +12,7 @@ use super::{MatrixTrait, Scalar};
 /// Arrayfire matrix
 
 #[derive(Clone)]
-pub struct Matrix(Array<Scalar>);
+pub struct Matrix(pub Array<Scalar>);
 
 impl MatrixTrait for Matrix {
     fn zeros(nrow: usize, ncol: usize) -> Self {
@@ -283,6 +283,17 @@ impl MatrixTrait for Matrix {
 impl Matrix {
     pub fn print(&self) {
         print(&self.0)
+    }
+
+    pub fn from_array(size: usize, samples: usize, array: &Array<Scalar>) -> Self {
+        Matrix(moddims(array,
+            Dim4::new(&[
+                size.try_into().unwrap(),
+                samples.try_into().unwrap(),
+                1,
+                1
+            ])
+        ))
     }
 }
 

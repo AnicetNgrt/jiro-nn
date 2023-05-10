@@ -15,16 +15,22 @@ use crate::layer::dense_layer::{
 use crate::layer::full_layer::FullLayer;
 use crate::linalg::Scalar;
 use crate::loss::Losses;
-use crate::network::Network;
+use crate::network::{Network, NetworkLayer};
 use crate::trainers::Trainers;
+use crate::vision::conv_activation::ConvActivation;
+use crate::vision::conv_initializers::ConvInitializers;
+use crate::vision::conv_layer::dense_conv_layer::DenseConvLayer;
+use crate::vision::conv_network::ConvNetwork;
+use crate::vision::conv_optimizer::ConvOptimizers;
+use crate::vision::conv_layer::full_conv_layer::FullConvLayer;
 use crate::{activation::Activation, dataset::Dataset, optimizer::Optimizers};
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
-    pub hidden_layers: Vec<LayerSpec>,
-    pub final_layer: LayerSpec,
+    pub hidden_layers: Vec<LayerSpecTypes>,
+    pub final_layer: LayerSpecTypes,
     pub batch_size: Option<usize>,
     pub trainer: Trainers,
     pub dataset: Dataset,
@@ -40,10 +46,42 @@ pub struct LayerSpec {
     pub weights_optimizer: Optimizers,
     #[serde(default = "default_biases_optimizer")]
     pub biases_optimizer: Optimizers,
-    #[serde(default = "default_biases_initializer")]
-    pub biases_initializer: Initializers,
     #[serde(default = "default_weights_initializer")]
     pub weights_initializer: Initializers,
+    #[serde(default = "default_biases_initializer")]
+    pub biases_initializer: Initializers,
+}
+
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub struct ConvNetworkSpec {
+    pub layers: Vec<ConvLayerSpec>,
+    pub in_channels: usize,
+    pub height: usize,
+    pub width: usize
+}
+
+impl ConvNetworkSpec {
+    pub fn out_size(&self, prev_out_size: usize) -> usize {
+        (prev_out_size / self.in_channels) * self.layers.last().unwrap().kern_count
+    }
+}
+
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub struct ConvLayerSpec {
+    pub kern_size: (usize, usize),
+    pub kern_count: usize,
+    pub activation: ConvActivation,
+    pub dropout: Option<Scalar>,
+    pub kernels_optimizer: ConvOptimizers,
+    pub biases_optimizer: ConvOptimizers,
+    pub kernels_initializer: ConvInitializers,
+    pub biases_initializer: ConvInitializers,
+}
+
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub enum LayerSpecTypes {
+    Full(LayerSpec),
+    ConvNetwork(ConvNetworkSpec),
 }
 
 /// Options to be used in order to build a `Model` struct with the `from_options` method.
@@ -66,9 +104,9 @@ pub enum ModelOptions<'a> {
     /// The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
     Loss(Losses),
     /// The hidden layers of the model (an array of `LayerSpec` objects).
-    HiddenLayers(&'a [LayerSpec]),
+    HiddenLayers(&'a [LayerSpecTypes]),
     /// The final layer of the model (a `LayerSpec` object).
-    FinalLayer(LayerSpec),
+    FinalLayer(LayerSpecTypes),
     /// The batch size to be used during training. If ommited, defaults to the size of the dataset.
     BatchSize(usize),
     /// The dataset to be used for training (a `Dataset` object).
@@ -129,10 +167,22 @@ impl Model {
 
     pub fn to_network(&self) -> Network {
         let mut sizes = vec![self.dataset.in_features_names().len()];
-        sizes.append(&mut self.hidden_layers.iter().map(|l| l.out_size).collect());
+        let mut prev_out_size = sizes[0];
+        for layer_spec in self.hidden_layers.iter() {
+            match layer_spec {
+                LayerSpecTypes::Full(layer_spec) => {
+                    sizes.push(layer_spec.out_size);
+                    prev_out_size = sizes.last().unwrap().clone();
+                }
+                LayerSpecTypes::ConvNetwork(layer_spec) => {
+                    sizes.push(layer_spec.out_size(prev_out_size));
+                    prev_out_size = sizes.last().unwrap().clone();
+                }
+            }
+        }
         sizes.push(self.dataset.out_features_names().len());
 
-        let mut layers = vec![];
+        let mut layers: Vec<Box<dyn NetworkLayer>> = vec![];
 
         for i in 0..sizes.len() - 1 {
             let layer_spec = if i == sizes.len() - 2 {
@@ -142,22 +192,53 @@ impl Model {
             };
             let in_size = sizes[i];
             let out_size = sizes[i + 1];
-            let layer = FullLayer::new(
-                DenseLayer::new(
-                    in_size,
-                    out_size,
-                    layer_spec.weights_optimizer.clone(),
-                    layer_spec.biases_optimizer.clone(),
-                    layer_spec.weights_initializer.clone(),
-                    layer_spec.biases_initializer.clone(),
-                ),
-                layer_spec.activation.to_layer(),
-                layer_spec.dropout,
-            );
-            layers.push(layer);
+            match layer_spec {
+                LayerSpecTypes::Full(layer_spec) => {
+                    let layer = FullLayer::new(
+                        DenseLayer::new(
+                            in_size,
+                            out_size,
+                            layer_spec.weights_optimizer.clone(),
+                            layer_spec.biases_optimizer.clone(),
+                            layer_spec.weights_initializer.clone(),
+                            layer_spec.biases_initializer.clone(),
+                        ),
+                        layer_spec.activation.to_layer(),
+                        layer_spec.dropout,
+                    );
+                    layers.push(Box::new(layer));
+                }
+                LayerSpecTypes::ConvNetwork(layer_spec) => {
+                    let mut conv_layers = vec![];
+                    let mut nchans = layer_spec.in_channels;
+                    for conv_layer_spec in layer_spec.layers.clone() {
+                        let layer = FullConvLayer::new(
+                            DenseConvLayer::new(
+                                conv_layer_spec.kern_size.0,
+                                conv_layer_spec.kern_size.1,
+                                nchans,
+                                conv_layer_spec.kern_count,
+                                conv_layer_spec.kernels_initializer,
+                                conv_layer_spec.biases_initializer,
+                                conv_layer_spec.kernels_optimizer,
+                                conv_layer_spec.biases_optimizer,
+                            ),
+                            conv_layer_spec.activation.to_layer(),
+                            conv_layer_spec.dropout,
+                        );
+                        nchans = conv_layer_spec.kern_count;
+                        conv_layers.push(layer);
+                    }
+                    let layer = ConvNetwork::new(
+                        conv_layers,
+                        layer_spec.in_channels
+                    );
+                    layers.push(Box::new(layer));
+                }
+            }
         }
 
-        Network::new(layers, *sizes.first().unwrap(), *sizes.last().unwrap())
+        Network::new(layers)
     }
 
     /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
@@ -207,7 +288,7 @@ impl Model {
             epochs: 100,
             loss: Losses::MSE,
             hidden_layers: vec![],
-            final_layer: LayerSpec::default(),
+            final_layer: LayerSpecTypes::Full(LayerSpec::default()),
             batch_size: None,
             trainer: Trainers::KFolds(10),
             dataset: Dataset::default(),

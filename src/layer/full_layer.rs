@@ -4,7 +4,10 @@ use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
+use crate::network::NetworkLayer;
 use crate::{activation::ActivationLayer, layer::dense_layer::DenseLayer, layer::Layer};
+
+use super::{LearnableLayer, DropoutLayer, ParameterableLayer};
 
 #[derive(Debug)]
 pub struct FullLayer {
@@ -25,29 +28,6 @@ impl FullLayer {
             dropout_enabled: false,
             mask: None
         }
-    }
-
-    // returns a matrix of the (jxi) weights and the final column being the (j) biases
-    pub fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        let mut params = self.dense.weights.get_data();
-        params.push(self.dense.biases.get_column(0));
-        params
-    }
-
-    // takes a matrix of the (jxi) weights and the final column being the (j) biases
-    pub fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
-        let mut weights = params_matrix.clone();
-        let biases = weights.pop().unwrap();
-        self.dense.weights = Matrix::from_column_leading_matrix(&weights);
-        self.dense.biases = Matrix::from_column_vector(&biases);
-    }
-
-    pub fn enable_dropout(&mut self) {
-        self.dropout_enabled = true;
-    }
-
-    pub fn disable_dropout(&mut self) {
-        self.dropout_enabled = false;
     }
     
     fn generate_dropout_mask(
@@ -106,5 +86,48 @@ impl Layer for FullLayer {
         } else {
             input_gradient
         }
+    }
+}
+
+impl NetworkLayer for FullLayer {}
+
+impl ParameterableLayer for FullLayer {
+    fn as_learnable_layer(&self) -> Option<&dyn LearnableLayer> {
+        Some(self)
+    }
+
+    fn as_learnable_layer_mut(&mut self) -> Option<&mut dyn LearnableLayer> {
+        Some(self)
+    }
+
+    fn as_dropout_layer(&mut self) -> Option<&mut dyn DropoutLayer> {
+        Some(self)
+    }
+}
+
+impl LearnableLayer for FullLayer {
+    // returns a matrix of the (jxi) weights and the final column being the (j) biases
+    fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
+        let mut params = self.dense.weights.get_data();
+        params.push(self.dense.biases.get_column(0));
+        params
+    }
+
+    // takes a matrix of the (jxi) weights and the final column being the (j) biases
+    fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
+        let mut weights = params_matrix.clone();
+        let biases = weights.pop().unwrap();
+        self.dense.weights = Matrix::from_column_leading_matrix(&weights);
+        self.dense.biases = Matrix::from_column_vector(&biases);
+    }
+}
+
+impl DropoutLayer for FullLayer {
+    fn enable_dropout(&mut self) {
+        self.dropout_enabled = true;
+    }
+
+    fn disable_dropout(&mut self) {
+        self.dropout_enabled = false;
     }
 }

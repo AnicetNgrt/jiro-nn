@@ -7,7 +7,7 @@ use crate::{
     benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation},
     datatable::DataTable,
     model::Model,
-    network::{Network, NetworkParams},
+    network::{Network, params::NetworkParams},
     vec_utils::r2_score_matrix,
 };
 

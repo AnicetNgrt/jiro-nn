@@ -112,14 +112,6 @@ pub trait MatrixTrait: Clone {
 
     fn columns_sum(&self) -> Self;
 
-    fn component_mul(&self, other: &Self) -> Self;
-
-    fn component_add(&self, other: &Self) -> Self;
-
-    fn component_sub(&self, other: &Self) -> Self;
-
-    fn component_div(&self, other: &Self) -> Self;
-
     fn transpose(&self) -> Self;
 
     fn get_data(&self) -> Vec<Vec<Scalar>>;
@@ -129,6 +121,14 @@ pub trait MatrixTrait: Clone {
     /// returns the dimensions of the matrix (nrow, ncol)
     fn dim(&self) -> (usize, usize);
 
+    fn component_mul(&self, other: &Self) -> Self;
+
+    fn component_add(&self, other: &Self) -> Self;
+
+    fn component_sub(&self, other: &Self) -> Self;
+
+    fn component_div(&self, other: &Self) -> Self;
+
     fn scalar_add(&self, scalar: Scalar) -> Self;
 
     fn scalar_mul(&self, scalar: Scalar) -> Self;
@@ -136,10 +136,6 @@ pub trait MatrixTrait: Clone {
     fn scalar_sub(&self, scalar: Scalar) -> Self;
 
     fn scalar_div(&self, scalar: Scalar) -> Self;
-
-    fn index(&self, row: usize, col: usize) -> Scalar;
-
-    fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar;
 
     fn square(&self) -> Self;
 
@@ -156,4 +152,8 @@ pub trait MatrixTrait: Clone {
     fn minof(&self, other: &Self) -> Self;
 
     fn sqrt(&self) -> Self;
+
+    fn index(&self, row: usize, col: usize) -> Scalar;
+
+    fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar;
 }

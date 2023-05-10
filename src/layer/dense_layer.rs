@@ -67,7 +67,7 @@ impl Layer for DenseLayer {
     ///
     /// Returns `input_gradient` which has shape `(i, n)` where `i` is the number of inputs and `n` is the number of samples.
     fn backward(&mut self, epoch: usize, output_gradient: Matrix) -> Matrix {
-        let input = self.input.clone().unwrap();
+        let input = self.input.as_ref().unwrap();
 
         let weights_gradient = &output_gradient.dot(&input.transpose());
 
