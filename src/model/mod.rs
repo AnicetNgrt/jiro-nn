@@ -7,23 +7,18 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::datatable::DataTable;
-use crate::initializers::Initializers;
-use crate::layer::dense_layer::{
-    default_biases_initializer, default_biases_optimizer, default_weights_initializer,
-    default_weights_optimizer, DenseLayer,
-};
-use crate::layer::full_layer::FullLayer;
 use crate::linalg::Scalar;
 use crate::loss::Losses;
 use crate::network::{Network, NetworkLayer};
 use crate::trainers::Trainers;
-use crate::vision::conv_activation::ConvActivation;
-use crate::vision::conv_initializers::ConvInitializers;
-use crate::vision::conv_layer::dense_conv_layer::DenseConvLayer;
-use crate::vision::conv_network::ConvNetwork;
-use crate::vision::conv_optimizer::ConvOptimizers;
-use crate::vision::conv_layer::full_conv_layer::FullConvLayer;
-use crate::{activation::Activation, dataset::Dataset, optimizer::Optimizers};
+use crate::{dataset::Dataset};
+
+use self::conv_network_spec::ConvNetworkSpec;
+use self::full_layer_spec::FullLayerSpec;
+
+pub mod full_layer_spec;
+pub mod conv_network_spec;
+pub mod conv_layer_spec;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
@@ -34,85 +29,6 @@ pub struct Model {
     pub batch_size: Option<usize>,
     pub trainer: Trainers,
     pub dataset: Dataset,
-}
-
-#[derive(Serialize, Debug, Deserialize, Clone)]
-pub struct LayerSpec {
-    #[serde(default)]
-    pub out_size: usize,
-    pub activation: Activation,
-    pub dropout: Option<Scalar>,
-    #[serde(default = "default_weights_optimizer")]
-    pub weights_optimizer: Optimizers,
-    #[serde(default = "default_biases_optimizer")]
-    pub biases_optimizer: Optimizers,
-    #[serde(default = "default_weights_initializer")]
-    pub weights_initializer: Initializers,
-    #[serde(default = "default_biases_initializer")]
-    pub biases_initializer: Initializers,
-}
-
-#[derive(Serialize, Debug, Deserialize, Clone)]
-pub struct ConvNetworkSpec {
-    pub layers: Vec<ConvLayerSpec>,
-    pub in_channels: usize,
-    pub height: usize,
-    pub width: usize
-}
-
-impl ConvNetworkSpec {
-    pub fn out_size(&self, prev_out_size: usize) -> usize {
-        (prev_out_size / self.in_channels) * self.layers.last().unwrap().kern_count
-    }
-}
-
-#[derive(Serialize, Debug, Deserialize, Clone)]
-pub struct ConvLayerSpec {
-    pub kern_size: (usize, usize),
-    pub kern_count: usize,
-    pub activation: ConvActivation,
-    pub dropout: Option<Scalar>,
-    pub kernels_optimizer: ConvOptimizers,
-    pub biases_optimizer: ConvOptimizers,
-    pub kernels_initializer: ConvInitializers,
-    pub biases_initializer: ConvInitializers,
-}
-
-#[derive(Serialize, Debug, Deserialize, Clone)]
-pub enum LayerSpecTypes {
-    Full(LayerSpec),
-    ConvNetwork(ConvNetworkSpec),
-}
-
-/// Options to be used in order to build a `Model` struct with the `from_options` method.
-///
-/// **Required options**:
-///
-/// - `HiddenLayers`: The hidden layers of the model (an array of `LayerSpec` objects).
-/// - `FinalLayer`: The final layer of the model (a `LayerSpec` object).
-/// - `Dataset`: The dataset to be used for training (a `Dataset` object).
-///
-/// **Optional options**:
-///
-/// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
-/// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
-/// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
-/// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
-pub enum ModelOptions<'a> {
-    /// The number of epochs to train for. If ommited, defaults to `100`.
-    Epochs(usize),
-    /// The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
-    Loss(Losses),
-    /// The hidden layers of the model (an array of `LayerSpec` objects).
-    HiddenLayers(&'a [LayerSpecTypes]),
-    /// The final layer of the model (a `LayerSpec` object).
-    FinalLayer(LayerSpecTypes),
-    /// The batch size to be used during training. If ommited, defaults to the size of the dataset.
-    BatchSize(usize),
-    /// The dataset to be used for training (a `Dataset` object).
-    Dataset(Dataset),
-    /// The trainer to use (a variant of the `Trainers` enum). If ommited, defaults to `Trainers::KFolds(10)`.
-    Trainer(Trainers),
 }
 
 impl Model {
@@ -165,77 +81,33 @@ impl Model {
         train_loss
     }
 
-    pub fn to_network(&self) -> Network {
+    fn compute_network_sizes(&self) -> Vec<usize> {
         let mut sizes = vec![self.dataset.in_features_names().len()];
         let mut prev_out_size = sizes[0];
         for layer_spec in self.hidden_layers.iter() {
-            match layer_spec {
-                LayerSpecTypes::Full(layer_spec) => {
-                    sizes.push(layer_spec.out_size);
-                    prev_out_size = sizes.last().unwrap().clone();
-                }
-                LayerSpecTypes::ConvNetwork(layer_spec) => {
-                    sizes.push(layer_spec.out_size(prev_out_size));
-                    prev_out_size = sizes.last().unwrap().clone();
-                }
-            }
+            let size = layer_spec.compute_out_size(prev_out_size);
+            sizes.push(size);
+            prev_out_size = size;
         }
         sizes.push(self.dataset.out_features_names().len());
+        sizes
+    }
+
+    pub fn to_network(&self) -> Network {
+        let sizes = self.compute_network_sizes();
 
         let mut layers: Vec<Box<dyn NetworkLayer>> = vec![];
 
         for i in 0..sizes.len() - 1 {
             let layer_spec = if i == sizes.len() - 2 {
-                &self.final_layer
+                self.final_layer.clone()
             } else {
-                &self.hidden_layers[i]
+                self.hidden_layers[i].clone()
             };
             let in_size = sizes[i];
-            let out_size = sizes[i + 1];
-            match layer_spec {
-                LayerSpecTypes::Full(layer_spec) => {
-                    let layer = FullLayer::new(
-                        DenseLayer::new(
-                            in_size,
-                            out_size,
-                            layer_spec.weights_optimizer.clone(),
-                            layer_spec.biases_optimizer.clone(),
-                            layer_spec.weights_initializer.clone(),
-                            layer_spec.biases_initializer.clone(),
-                        ),
-                        layer_spec.activation.to_layer(),
-                        layer_spec.dropout,
-                    );
-                    layers.push(Box::new(layer));
-                }
-                LayerSpecTypes::ConvNetwork(layer_spec) => {
-                    let mut conv_layers = vec![];
-                    let mut nchans = layer_spec.in_channels;
-                    for conv_layer_spec in layer_spec.layers.clone() {
-                        let layer = FullConvLayer::new(
-                            DenseConvLayer::new(
-                                conv_layer_spec.kern_size.0,
-                                conv_layer_spec.kern_size.1,
-                                nchans,
-                                conv_layer_spec.kern_count,
-                                conv_layer_spec.kernels_initializer,
-                                conv_layer_spec.biases_initializer,
-                                conv_layer_spec.kernels_optimizer,
-                                conv_layer_spec.biases_optimizer,
-                            ),
-                            conv_layer_spec.activation.to_layer(),
-                            conv_layer_spec.dropout,
-                        );
-                        nchans = conv_layer_spec.kern_count;
-                        conv_layers.push(layer);
-                    }
-                    let layer = ConvNetwork::new(
-                        conv_layers,
-                        layer_spec.in_channels
-                    );
-                    layers.push(Box::new(layer));
-                }
-            }
+            layers.push(
+                layer_spec.to_network_layer(in_size)
+            );
         }
 
         Network::new(layers)
@@ -288,7 +160,7 @@ impl Model {
             epochs: 100,
             loss: Losses::MSE,
             hidden_layers: vec![],
-            final_layer: LayerSpecTypes::Full(LayerSpec::default()),
+            final_layer: LayerSpecTypes::Full(FullLayerSpec::default()),
             batch_size: None,
             trainer: Trainers::KFolds(10),
             dataset: Dataset::default(),
@@ -296,81 +168,65 @@ impl Model {
     }
 }
 
-/// Options to be used in order to specify the properties of a layer.
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub enum LayerSpecTypes {
+    Full(FullLayerSpec),
+    ConvNetwork(ConvNetworkSpec),
+}
+
+impl LayerSpecTypes {
+    pub fn compute_out_size(&self, prev_out_size: usize) -> usize {
+        match self {
+            LayerSpecTypes::Full(layer_spec) => {
+                layer_spec.out_size
+            }
+            LayerSpecTypes::ConvNetwork(layer_spec) => {
+                layer_spec.out_size(prev_out_size)
+            }
+        }
+    }
+
+    pub fn to_network_layer(self, in_size: usize) -> Box<dyn NetworkLayer> {
+        match self {
+            LayerSpecTypes::Full(layer_spec) => {
+                let layer = layer_spec.to_layer(in_size);
+                Box::new(layer) as Box<dyn NetworkLayer>
+            }
+            LayerSpecTypes::ConvNetwork(layer_spec) => {
+                let layer = layer_spec.to_layer();
+                Box::new(layer) as Box<dyn NetworkLayer>
+            }
+        }
+    } 
+}
+
+/// Options to be used in order to build a `Model` struct with the `from_options` method.
 ///
 /// **Required options**:
 ///
-/// - `OutSize`: The size of the output layer.
+/// - `HiddenLayers`: The hidden layers of the model (an array of `FullLayerSpec` objects).
+/// - `FinalLayer`: The final layer of the model (a `LayerSpecTypes` enum).
+/// - `Dataset`: The dataset to be used for training (a `Dataset` object).
 ///
 /// **Optional options**:
 ///
-/// - `Activation`: The activation function to be used (a variant of the `Activation` enum). If ommited defaults to `Activation::Linear`.
-/// - `Dropout`: The dropout rate (an optional float). If ommited defaults to `None`.
-/// - `WeightsOptimizer`: The optimizer to be used for updating the weights (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-/// - `BiasesOptimizer`: The optimizer to be used for updating the biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-/// - `Optimizer`: The optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-/// - `WeightsInitializer`: The initializer to be used for initializing the weights (a variant of the `Initializers` enum). If ommited defaults to `initializer::GlorotUniform`.
-/// - `BiasesInitializer`: The initializer to be used for initializing the biases (a variant of the `Initializers` enum). If ommited defaults to `initializer::Zeros`.
-pub enum LayerOptions {
-    /// The `OutSize` option specifies the size of the output layer.
-    OutSize(usize),
-    /// The `Activation` option specifies the activation function to be used (a variant of the `Activation` enum). If ommited defaults to `Activation::Linear`.
-    Activation(Activation),
-    /// The `Dropout` option specifies the dropout rate (an optional float). If ommited defaults to `None`.
-    Dropout(Option<Scalar>),
-    /// The `WeightsOptimizer` option specifies the optimizer to be used for updating the weights (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-    WeightsOptimizer(Optimizers),
-    /// The `BiasesOptimizer` option specifies the optimizer to be used for updating the biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-    BiasesOptimizer(Optimizers),
-    /// The `Optimizer` option specifies the optimizer to be used for updating the weights and biases (a variant of the `Optimizers` enum). If ommited defaults to `optimizer::sgd`.
-    Optimizer(Optimizers),
-    /// The `WeightsInitializer` option specifies the initializer to be used for initializing the weights (a variant of the `Initializers` enum). If ommited defaults to `initializer::GlorotUniform`.
-    WeightsInitializer(Initializers),
-    /// The `BiasesInitializer` option specifies the initializer to be used for initializing the biases (a variant of the `Initializers` enum). If ommited defaults to `initializer::Zeros`.
-    BiasesInitializer(Initializers),
-}
-
-impl LayerSpec {
-    /// The `from_options` method is a constructor function for creating a `LayerSpec` object from a list of `LayerOptions`.
-    ///
-    /// See the `LayerOptions` enum for more information.
-    pub fn from_options(options: &[LayerOptions]) -> LayerSpec {
-        let mut spec = LayerSpec::default();
-        for option in options {
-            match option {
-                LayerOptions::OutSize(out_size) => spec.out_size = out_size.clone(),
-                LayerOptions::Activation(activation) => spec.activation = activation.clone(),
-                LayerOptions::Dropout(dropout) => spec.dropout = dropout.clone(),
-                LayerOptions::WeightsOptimizer(weights_optimizer) => {
-                    spec.weights_optimizer = weights_optimizer.clone()
-                }
-                LayerOptions::BiasesOptimizer(biases_optimizer) => {
-                    spec.biases_optimizer = biases_optimizer.clone()
-                }
-                LayerOptions::WeightsInitializer(weights_initializer) => {
-                    spec.weights_initializer = weights_initializer.clone()
-                }
-                LayerOptions::BiasesInitializer(biases_initializer) => {
-                    spec.biases_initializer = biases_initializer.clone()
-                }
-                LayerOptions::Optimizer(global_optimizer) => {
-                    spec.weights_optimizer = global_optimizer.clone();
-                    spec.biases_optimizer = global_optimizer.clone();
-                }
-            }
-        }
-        spec
-    }
-
-    pub fn default() -> LayerSpec {
-        LayerSpec {
-            out_size: 0,
-            activation: Activation::Linear,
-            dropout: None,
-            weights_optimizer: default_weights_optimizer(),
-            biases_optimizer: default_biases_optimizer(),
-            weights_initializer: default_weights_initializer(),
-            biases_initializer: default_biases_initializer(),
-        }
-    }
+/// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
+/// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
+/// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
+/// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
+pub enum ModelOptions<'a> {
+    /// The number of epochs to train for. If ommited, defaults to `100`.
+    Epochs(usize),
+    /// The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
+    Loss(Losses),
+    /// The hidden layers of the model (an array of `LayerSpecTypes` enums).
+    HiddenLayers(&'a [LayerSpecTypes]),
+    /// The final layer of the model (a `LayerSpecTypes` enum).
+    FinalLayer(LayerSpecTypes),
+    /// The batch size to be used during training. If ommited, defaults to the size of the dataset.
+    BatchSize(usize),
+    /// The dataset to be used for training (a `Dataset` object).
+    Dataset(Dataset),
+    /// The trainer to use (a variant of the `Trainers` enum). If ommited, defaults to `Trainers::KFolds(10)`.
+    Trainer(Trainers),
 }

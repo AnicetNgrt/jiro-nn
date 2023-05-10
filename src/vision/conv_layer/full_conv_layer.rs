@@ -3,9 +3,11 @@ use std::cmp::Ordering;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
+use crate::layer::{ParameterableLayer, LearnableLayer, DropoutLayer};
 use crate::linalg::{Scalar};
+use crate::vision::conv_network::ConvNetworkLayer;
 
-use super::Image;
+use super::{Image, ConvLayer};
 use crate::vision::conv_activation::ConvActivationLayer;
 use super::dense_conv_layer::DenseConvLayer;
 use crate::vision::image::ImageTrait;
@@ -28,29 +30,6 @@ impl FullConvLayer {
             dropout_enabled: false,
             mask: None
         }
-    }
-
-    pub fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        todo!()
-        // let mut params = self.conv.weights.get_data();
-        // params.push(self.conv.biases.get_column(0));
-        // params
-    }
-
-    pub fn set_learnable_parameters(&mut self, _params_matrix: &Vec<Vec<Scalar>>) {
-        todo!()
-        // let mut weights = params_Image.clone();
-        // let biases = weights.pop().unwrap();
-        // self.conv.weights = Image::from_column_leading_image(&weights);
-        // self.conv.biases = Image::from_column_vector(&biases);
-    }
-
-    pub fn enable_dropout(&mut self) {
-        self.dropout_enabled = true;
-    }
-
-    pub fn disable_dropout(&mut self) {
-        self.dropout_enabled = false;
     }
     
     fn generate_dropout_mask(
@@ -81,8 +60,10 @@ impl FullConvLayer {
             None
         }
     }
+}
 
-    pub fn forward(&mut self, mut input: Image) -> Image {
+impl ConvLayer for FullConvLayer {
+    fn forward(&mut self, mut input: Image) -> Image {
         let output = if self.dropout_enabled {
             if let Some((mask, _)) = self.generate_dropout_mask(input.image_dims(), input.samples()) {
                 input = input.component_mul(&mask);
@@ -103,7 +84,7 @@ impl FullConvLayer {
         self.activation.forward(output)
     }
 
-    pub fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
+    fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
         let activation_input_gradient = self.activation.backward(epoch, output_gradient);
         let input_gradient = self.conv
             .backward(epoch, activation_input_gradient);
@@ -115,3 +96,39 @@ impl FullConvLayer {
         }
     }
 }
+
+impl LearnableLayer for FullConvLayer {
+    fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
+        todo!()
+    }
+
+    fn set_learnable_parameters(&mut self, _params_matrix: &Vec<Vec<Scalar>>) {
+        todo!()
+    }
+}
+
+impl DropoutLayer for FullConvLayer {
+    fn enable_dropout(&mut self) {
+        self.dropout_enabled = true;
+    }
+
+    fn disable_dropout(&mut self) {
+        self.dropout_enabled = false;
+    }
+}
+
+impl ParameterableLayer for FullConvLayer {
+    fn as_learnable_layer(&self) -> Option<&dyn crate::layer::LearnableLayer> {
+        Some(self)
+    }
+
+    fn as_learnable_layer_mut(&mut self) -> Option<&mut dyn crate::layer::LearnableLayer> {
+        Some(self)
+    }
+
+    fn as_dropout_layer(&mut self) -> Option<&mut dyn crate::layer::DropoutLayer> {
+        Some(self)
+    }
+}
+
+impl ConvNetworkLayer for FullConvLayer {}

@@ -1,15 +1,17 @@
+use std::fmt::Debug;
+
 use crate::{layer::{Layer, LearnableLayer, DropoutLayer, ParameterableLayer}, linalg::{Matrix, Scalar}, vision::{Image, image::ImageTrait}, network::{NetworkLayer}};
 
-use super::conv_layer::full_conv_layer::FullConvLayer;
+use super::conv_layer::{ConvLayer};
 
 #[derive(Debug)]
 pub struct ConvNetwork {
-    layers: Vec<FullConvLayer>,
+    layers: Vec<Box<dyn ConvNetworkLayer>>,
     channels: usize
 }
 
 impl ConvNetwork {
-    pub fn new(layers: Vec<FullConvLayer>, channels: usize) -> Self {
+    pub fn new(layers: Vec<Box<dyn ConvNetworkLayer>>, channels: usize) -> Self {
         Self { layers, channels }
     }
 }
@@ -69,14 +71,16 @@ impl LearnableLayer for ConvNetwork {
 
 impl DropoutLayer for ConvNetwork {
     fn enable_dropout(&mut self) {
-        for layer in self.layers.iter_mut() {
-            layer.enable_dropout();
-        }
+        self.layers.iter_mut().for_each(|l| { 
+            l.as_dropout_layer().map(|l| l.enable_dropout()); 
+        });
     }
 
     fn disable_dropout(&mut self) {
-        for layer in self.layers.iter_mut() {
-            layer.disable_dropout();
-        }
+        self.layers.iter_mut().for_each(|l| { 
+            l.as_dropout_layer().map(|l| l.disable_dropout()); 
+        });
     }
 }
+
+pub trait ConvNetworkLayer: ConvLayer + ParameterableLayer + Debug + Send {}

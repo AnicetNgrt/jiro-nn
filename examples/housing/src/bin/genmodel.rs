@@ -1,7 +1,7 @@
 use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
-    model::{LayerOptions::*, LayerSpec, ModelOptions::*, Model},
+    model::{FullLayerOptions::*, LayerSpec, ModelOptions::*, Model},
     optimizer::{momentum},
     pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
 };
