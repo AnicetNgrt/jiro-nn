@@ -5,7 +5,7 @@ use crate::{
     initializers::Initializers,
     layer::Layer,
     linalg::Matrix,
-    optimizer::{sgd, Optimizers},
+    optimizer::{Optimizers},
 };
 
 use super::LearnableLayer;
@@ -103,22 +103,6 @@ impl LearnableLayer for DenseLayer {
         self.weights = Matrix::from_column_leading_matrix(&weights);
         self.biases = Matrix::from_column_vector(&biases);
     }
-}
-
-pub fn default_biases_initializer() -> Initializers {
-    Initializers::Zeros
-}
-
-pub fn default_weights_initializer() -> Initializers {
-    Initializers::GlorotUniform
-}
-
-pub fn default_biases_optimizer() -> Optimizers {
-    sgd()
-}
-
-pub fn default_weights_optimizer() -> Optimizers {
-    sgd()
 }
 
 impl fmt::Debug for DenseLayer {

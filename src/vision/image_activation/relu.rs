@@ -7,7 +7,7 @@ pub fn new() -> ConvActivationLayer {
             m.maxof(&Image::constant(
                 m.image_dims().0,
                 m.image_dims().1,
-                m.image_dims().2,
+                m.channels(),
                 m.samples(),
                 0.,
             ))
@@ -16,7 +16,7 @@ pub fn new() -> ConvActivationLayer {
             m.sign().maxof(&Image::constant(
                 m.image_dims().0,
                 m.image_dims().1,
-                m.image_dims().2,
+                m.channels(),
                 m.samples(),
                 0.,
             ))

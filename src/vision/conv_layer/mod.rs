@@ -6,6 +6,8 @@ use super::{image::Image, image_layer::ImageLayer};
 
 pub mod defaults;
 pub mod dense_conv_layer;
+pub mod direct_conv_layer;
+pub mod avg_pooling_layer;
 pub mod full_conv_layer;
 
 pub trait ConvLayer: ImageLayer + LearnableLayer + Send + Debug {

@@ -13,7 +13,7 @@ fn tanh_prime(m: &Image) -> Image {
     let ones = Image::constant(
         hbt.image_dims().0,
         hbt.image_dims().1,
-        hbt.image_dims().2,
+        hbt.channels(),
         hbt.samples(),
         1.,
     );

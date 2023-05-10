@@ -2,7 +2,7 @@ use std::fmt;
 
 use arrayfire::{
     constant, convolve3, exp, flip, index, join_many, maxof, mean_all, minof, pow, random_normal,
-    random_uniform, sign, sqrt, sum_all, Array, Dim4, RandomEngine, Seq,
+    random_uniform, sign, sqrt, sum_all, Array, Dim4, RandomEngine, Seq, sum,
 };
 use rand::Rng;
 
@@ -278,7 +278,7 @@ impl ImageTrait for Image {
     }
 
     fn flatten(&self) -> Matrix {
-        let image_size = self.image_dims().0 * self.image_dims().1 * self.image_dims().2;
+        let image_size = self.image_dims().0 * self.image_dims().1 * self.channels();
         Matrix::from_array(image_size, self.samples(), &self.0)
     }
 
@@ -288,6 +288,10 @@ impl ImageTrait for Image {
             self.0.dims()[1] as usize,
             self.0.dims()[2] as usize,
         )
+    }
+
+    fn channels(&self) -> usize {
+        self.0.dims()[2] as usize
     }
 
     fn samples(&self) -> usize {
@@ -318,6 +322,26 @@ impl ImageTrait for Image {
         ))
     }
 
+    fn get_channel_across_samples(&self, channel: usize) -> Self {
+        Self(index(
+            &self.0,
+            &[
+                Seq::default(),
+                Seq::default(),
+                Seq::new(channel.try_into().unwrap(), channel.try_into().unwrap(), 1),
+                Seq::new(
+                    (self.samples() - 1).try_into().unwrap(),
+                    (self.samples() - 1).try_into().unwrap(),
+                    1,
+                ),
+            ],
+        ))
+    }
+
+    fn sum_samples(&self) -> Self {
+        Self(sum(&self.0, 3))
+    }
+
     fn join_channels(channels: Vec<Self>) -> Self {
         let inner_channels = channels.iter().map(|el| &el.0).collect::<Vec<_>>();
         Self(join_many(2, inner_channels))
@@ -334,7 +358,7 @@ impl ImageTrait for Image {
             &constant!(2.0 as Scalar;
                 self.image_dims().0.try_into().unwrap(),
                 self.image_dims().1.try_into().unwrap(),
-                self.image_dims().2.try_into().unwrap(),
+                self.channels().try_into().unwrap(),
                 self.samples().try_into().unwrap()
             ),
             false,

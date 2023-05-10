@@ -92,7 +92,7 @@ impl Model {
         let mut sizes = vec![self.dataset.in_features_names().len()];
         let mut prev_out_size = sizes[0];
         for layer_spec in self.hidden_layers.iter() {
-            let size = layer_spec.compute_out_size(prev_out_size);
+            let size = layer_spec.out_size(prev_out_size);
             sizes.push(size);
             prev_out_size = size;
         }
@@ -180,7 +180,7 @@ pub enum LayerSpecTypes {
 }
 
 impl LayerSpecTypes {
-    pub fn compute_out_size(&self, prev_out_size: usize) -> usize {
+    pub fn out_size(&self, prev_out_size: usize) -> usize {
         match self {
             LayerSpecTypes::Full(layer_spec) => layer_spec.out_size,
             LayerSpecTypes::ConvNetwork(layer_spec) => layer_spec.out_size(prev_out_size),

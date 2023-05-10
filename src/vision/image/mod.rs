@@ -75,6 +75,8 @@ pub trait ImageTrait {
     /// Returns (nrow, ncol, nchan)
     fn image_dims(&self) -> (usize, usize, usize);
 
+    fn channels(&self) -> usize;
+
     /// Returns the amount of samples in the batch
     fn samples(&self) -> usize;
 
@@ -83,6 +85,11 @@ pub trait ImageTrait {
 
     /// Returns a single channel. Assumes the image contains only 1 sample.
     fn get_channel(&self, channel: usize) -> Self;
+
+    /// Returns all the samples with only one channel.
+    fn get_channel_across_samples(&self, channel: usize) -> Self;
+
+    fn sum_samples(&self) -> Self;
 
     fn join_channels(channels: Vec<Self>) -> Self
     where

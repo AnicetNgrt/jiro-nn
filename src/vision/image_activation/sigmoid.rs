@@ -6,7 +6,7 @@ fn sigmoid(m: &Image) -> Image {
     let ones = Image::constant(
         m.image_dims().0,
         m.image_dims().1,
-        m.image_dims().2,
+        m.channels(),
         m.samples(),
         1.,
     );
@@ -18,7 +18,7 @@ fn sigmoid_prime(m: &Image) -> Image {
     let ones = Image::constant(
         m.image_dims().0,
         m.image_dims().1,
-        m.image_dims().2,
+        m.channels(),
         m.samples(),
         1.,
     );
