@@ -5,16 +5,19 @@ use crate::linalg::MatrixTrait;
 use crate::linalg::Scalar;
 
 pub mod mse;
+pub mod bce;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum Losses {
     MSE,
+    BCE,
 }
 
 impl Losses {
     pub fn to_loss(&self) -> Loss {
         match self {
             Losses::MSE => mse::new(),
+            Losses::BCE => bce::new(),
         }
     }
 }

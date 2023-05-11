@@ -3,7 +3,7 @@ use core::fmt;
 use arrayfire::{
     add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq,
+    RandomEngine, Seq, log,
 };
 use rand::Rng;
 
@@ -273,6 +273,10 @@ impl MatrixTrait for Matrix {
 
     fn minof(&self, other: &Self) -> Self {
         Self(minof(&self.0, &other.0, false))
+    }
+
+    fn log(&self) -> Self {
+        Self(log(&self.0))
     }
 
     fn sqrt(&self) -> Self {

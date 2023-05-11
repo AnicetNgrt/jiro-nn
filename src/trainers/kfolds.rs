@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    benchmarking::{EpochEvaluation, FoldEvaluation, ModelEvaluation},
+    benchmarking::{EpochEvaluation, TrainingEvaluation, ModelEvaluation},
     datatable::DataTable,
     model::Model,
     network::{params::NetworkParams, Network},
@@ -98,8 +98,8 @@ impl KFolds {
     /// Attaches a real time reporter to the trainer.
     ///
     /// The reporter is a closure that takes as arguments:
-    /// - the current epoch
     /// - the current fold
+    /// - the current epoch
     /// - the evaluation of the current epoch
     ///
     /// The reporter is called on the fold's thread at the end of each epoch.
@@ -168,15 +168,13 @@ impl KFolds {
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
         let validation_y = validation_y_table.to_vectors();
 
-        let mut fold_eval = FoldEvaluation::new_empty();
+        let mut fold_eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
             // Train the model with the k-th folds except the i-th
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
             // Predict all values in the i-th fold
-            // It is costly and should be done only during the last epoch
-            // and made optional for all the others in the future
             let loss_fn = model.loss.to_loss();
             let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation
             {
@@ -254,7 +252,7 @@ impl KFolds {
             let validation_x = validation_x_table.drop_column(id_column).to_vectors();
             let validation_y = validation_y_table.to_vectors();
 
-            let mut fold_eval = FoldEvaluation::new_empty();
+            let mut fold_eval = TrainingEvaluation::new_empty();
             let epochs = model.epochs;
             for e in 0..epochs {
                 // Train the model with the k-th folds except the i-th

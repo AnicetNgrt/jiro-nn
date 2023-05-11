@@ -962,7 +962,7 @@ fn parallel_k_fold(
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
         let validation_y = validation_y_table.to_vectors();
 
-        let mut fold_eval = FoldEvaluation::new_empty();
+        let mut fold_eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
             // Train the model with the k-th folds except the i-th

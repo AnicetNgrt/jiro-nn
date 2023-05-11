@@ -245,6 +245,10 @@ impl MatrixTrait for Matrix {
     fn sqrt(&self) -> Self {
         Self(self.0.clone().map(|x| x.sqrt()))
     }
+
+    fn log(&self) -> Self {
+        Self(self.0.clone().map(|x| x.ln()))
+    }
 }
 
 impl Matrix {

@@ -153,6 +153,8 @@ pub trait MatrixTrait: Clone {
 
     fn sqrt(&self) -> Self;
 
+    fn log(&self) -> Self;
+
     fn index(&self, row: usize, col: usize) -> Scalar;
 
     fn index_mut(&mut self, row: usize, col: usize) -> &mut Scalar;

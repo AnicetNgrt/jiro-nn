@@ -288,6 +288,13 @@ impl DataTable {
         (train, validation)
     }
 
+    pub fn split_ratio(&self, ratio: Scalar) -> (Self, Self) {
+        let nrows = self.0.shape().0;
+        let rows_train = (nrows as Scalar * ratio) as usize;
+        let (train, validation) = self.split(rows_train, nrows - rows_train);
+        (train, validation)
+    }
+
     pub fn as_scalar_hashmap(&self) -> HashMap<String, Vec<Scalar>> {
         let columns = self.0.get_column_names();
         let mut hashmap = HashMap::new();
