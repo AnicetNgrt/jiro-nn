@@ -939,7 +939,7 @@ dependencies = [
 
 [[package]]
 name = "neural_networks_rust"
-version = "0.2.0"
+version = "0.3.1"
 dependencies = [
  "arrayfire",
  "assert_float_eq",
