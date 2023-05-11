@@ -18,6 +18,4 @@ pub mod optimizer;
 pub mod pipelines;
 pub mod trainers;
 pub mod vec_utils;
-
-#[cfg(feature = "arrayfire")]
 pub mod vision;

@@ -5,6 +5,11 @@ pub mod arrayfire_image;
 #[cfg(feature = "arrayfire")]
 pub type Image = arrayfire_image::Image;
 
+#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
+pub mod nalgebra_image;
+#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
+pub type Image = nalgebra_image::Image;
+
 /// An image (or batched images) composed of Scalar n rows on m columns and c channels (with s samples if batched).
 pub trait ImageTrait {
     fn zeros(nrow: usize, ncol: usize, nchan: usize, samples: usize) -> Self;

@@ -4,6 +4,7 @@ use neural_networks_rust::{
     vision::{image::Image, image::ImageTrait},
 };
 
+#[cfg(feature = "arrayfire")]
 pub fn main() {
     let image = Image::from_samples(
         &Matrix::from_column_leading_matrix(&vec![
@@ -61,4 +62,9 @@ pub fn main() {
     );
 
     print(&res);
+}
+
+#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
+pub fn main() {
+    println!("This example requires the arrayfire feature to be enabled");
 }
