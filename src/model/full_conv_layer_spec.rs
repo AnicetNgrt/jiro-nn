@@ -33,10 +33,10 @@ impl FullConvLayerSpec {
         let mut spec = FullConvLayerSpec::default();
         for option in options {
             match option {
-                FullConvLayerOptions::Activation(activation) => {
+                FullConvLayerOptions::ConvActivation(activation) => {
                     spec.activation = activation.clone()
                 }
-                FullConvLayerOptions::Dropout(dropout) => spec.dropout = dropout.clone(),
+                FullConvLayerOptions::ConvDropout(dropout) => spec.dropout = dropout.clone(),
                 FullConvLayerOptions::Conv(conv) => spec.conv = conv.clone(),
             }
         }
@@ -45,7 +45,7 @@ impl FullConvLayerSpec {
 
     pub fn default() -> FullConvLayerSpec {
         FullConvLayerSpec {
-            activation: ConvActivation::Linear,
+            activation: ConvActivation::ConvLinear,
             dropout: None,
             conv: ConvLayerSpecTypes::Dense(DenseConvLayerSpec::default()),
         }
@@ -53,8 +53,8 @@ impl FullConvLayerSpec {
 }
 
 pub enum FullConvLayerOptions {
-    Activation(ConvActivation),
-    Dropout(Option<Scalar>),
+    ConvActivation(ConvActivation),
+    ConvDropout(Option<Scalar>),
     Conv(ConvLayerSpecTypes),
 }
 

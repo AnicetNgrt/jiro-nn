@@ -451,7 +451,13 @@ impl DataTable {
             .unwrap();
         let array = series.f64().unwrap();
         let mut serie: Series = array
-            .apply(|v| (((v as Scalar) - min) / (max - min)).into())
+            .apply(|v| {
+                if (min - max).abs() < 0.0001 && (max - 0.0).abs() < 0.00001  {
+                    0.0
+                } else {
+                    (((v as Scalar) - min) / (max - min)).into()
+                }
+            })
             .into_series();
         serie.rename(column);
         Self(edited.0.replace(column, serie).unwrap().clone())

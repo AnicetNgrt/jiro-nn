@@ -32,7 +32,7 @@ impl DirectConvLayer {
     ) -> Self {
         Self {
             kernels: kernels_initializer.gen_image(nrow, ncol, nchan, 1),
-            biases: biases_initializer.gen_image(nrow, ncol, nchan, 1),
+            biases: biases_initializer.gen_image(1, 1, nchan, 1),
             input: None,
             kernels_optimizer,
             biases_optimizer,
@@ -45,9 +45,17 @@ impl ImageLayer for DirectConvLayer {
         let mut channels = vec![];
         for c in 0..input.channels() {
             let channel = input.get_channel_across_samples(c);
+
             let kernel = self.kernels.get_channel(c);
-            let bias = self.biases.get_channel(c);
+            
             let correlated = channel.cross_correlate(&kernel);
+
+            if self.biases.image_dims().0 != correlated.image_dims().0 {
+                self.biases = self.biases.tile(correlated.image_dims().0, correlated.image_dims().1, 1, 1);
+            }
+
+            let bias = self.biases.get_channel(c);
+
             let result_channel = correlated.component_add(&bias);
             channels.push(result_channel);
         }
@@ -70,9 +78,9 @@ impl ImageLayer for DirectConvLayer {
 
         let mut kern_grad_channels = vec![];
         for i in 0..input.channels() {
-            let output_grad_i = output_gradient.get_channel_across_samples(i);
+            let output_grad_i = output_gradient.get_channel_across_samples(i).sum_samples();
             let input_i = input.get_channel_across_samples(i);
-            let correlated = input_i.cross_correlate(&output_grad_i);
+            let correlated = input_i.cross_correlate(&output_grad_i).sum_samples();
             kern_grad_channels.push(correlated);
         }
         let kern_grad = Image::join_channels(kern_grad_channels);

@@ -10,7 +10,7 @@ use crate::{
 
 use super::{feature_cached::FeatureExtractorCached, DataTransformation};
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapSelector {
     #[default]
     All,
@@ -45,7 +45,7 @@ impl MapSelector {
     }
 }
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapOp {
     #[default]
     None,
@@ -78,7 +78,7 @@ impl MapOp {
     }
 }
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapValue {
     #[default]
     Zero,

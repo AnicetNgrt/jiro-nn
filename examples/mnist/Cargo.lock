@@ -614,15 +614,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "housing"
-version = "0.1.0"
-dependencies = [
- "gnuplot",
- "neural_networks_rust",
- "rand",
-]
-
-[[package]]
 name = "iana-time-zone"
 version = "0.1.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -871,6 +862,15 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys",
+]
+
+[[package]]
+name = "mnist"
+version = "0.1.0"
+dependencies = [
+ "gnuplot",
+ "neural_networks_rust",
+ "rand",
 ]
 
 [[package]]

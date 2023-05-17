@@ -98,17 +98,20 @@ impl Trainer for SplitTraining {
             let loss_fn = model.loss.to_loss();
             let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation
             {
+                println!("Computing validation loss");
                 network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn)
             } else {
                 (vec![], -1.0, -1.0)
             };
 
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
+                println!("Computing R2");
                 r2_score_matrix(&validation_y, &preds)
             } else {
                 -1.0
             };
 
+            println!("Epoch {} done", e);
             let epoch_eval = EpochEvaluation::new(train_loss, loss_avg, loss_std, r2);
 
             // Report the benchmark in real time if expected

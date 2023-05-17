@@ -13,29 +13,39 @@ use super::image_layer::ImageLayer;
 pub struct ConvNetwork {
     layers: Vec<Box<dyn ConvNetworkLayer>>,
     channels: usize,
+    out_channels: Option<usize>
 }
 
 impl ConvNetwork {
     pub fn new(layers: Vec<Box<dyn ConvNetworkLayer>>, channels: usize) -> Self {
-        Self { layers, channels }
+        Self { layers, channels, out_channels: None }
     }
 }
 
 impl Layer for ConvNetwork {
     fn forward(&mut self, input: Matrix) -> Matrix {
         let mut output = Image::from_samples(&input, self.channels);
-        for layer in self.layers.iter_mut() {
+
+        for (_, layer) in self.layers.iter_mut().enumerate() {
+            //println!("Layer {}", i);
+            //println!("Input: {:?} : {}", output.image_dims(), output.samples());
             output = layer.forward(output);
+            //println!("Output: {:?} : {}", output.image_dims(), output.samples());
         }
-        output.flatten()
+
+        self.out_channels = Some(output.channels());
+
+        let out = output.flatten();
+        out
     }
 
     fn backward(&mut self, epoch: usize, error_gradient: Matrix) -> Matrix {
-        let mut error_gradient = Image::from_samples(&error_gradient, self.channels);
+        let mut error_gradient = Image::from_samples(&error_gradient, self.out_channels.unwrap());
         for layer in self.layers.iter_mut().rev() {
             error_gradient = layer.backward(epoch, error_gradient);
         }
-        error_gradient.flatten()
+        let grad = error_gradient.flatten();
+        grad
     }
 }
 

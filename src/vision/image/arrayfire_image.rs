@@ -1,9 +1,9 @@
 use std::fmt;
 
 use arrayfire::{
-    constant, convolve3, exp, flip, index, join_many, maxof, mean, mean_all, minof, pow,
+    constant, exp, flip, index, join_many, maxof, mean, mean_all, minof, pow,
     random_normal, random_uniform, sign, sqrt, sum, sum_all, unwrap, wrap, Array, Dim4,
-    RandomEngine, Seq, tile,
+    RandomEngine, Seq, tile, convolve2_nn,
 };
 use rand::Rng;
 
@@ -113,8 +113,6 @@ impl ImageTrait for Image {
                 )
             })
             .collect::<Vec<_>>();
-
-        println!("elements: {:?}", elements);
 
         Self(Array::new_strided(
             elements.as_slice(),
@@ -294,45 +292,12 @@ impl ImageTrait for Image {
     }
 
     fn cross_correlate(&self, kernels: &Self) -> Self {
-        let rot_kern = flip(&flip(&kernels.0, 0), 1);
-
-        let res = convolve3(
-            &self.0,
-            &rot_kern,
-            arrayfire::ConvMode::DEFAULT,
-            arrayfire::ConvDomain::AUTO,
-        );
-        let out_size = self.image_dims().0 - kernels.image_dims().0 + 1;
-        let res = index(
-            &res,
-            &[
-                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
-                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
-                Seq::new(0, (kernels.samples() - 1).try_into().unwrap(), 1),
-                Seq::new(0, (self.samples() - 1).try_into().unwrap(), 1),
-            ],
-        );
-        Self(res)
+        let kernels = Self(flip(&flip(&kernels.0, 0), 1));
+        self.convolve(&kernels, false)
     }
 
     fn convolve_full(&self, kernels: &Self) -> Self {
-        let res = convolve3(
-            &self.0,
-            &kernels.0,
-            arrayfire::ConvMode::EXPAND,
-            arrayfire::ConvDomain::AUTO,
-        );
-        let out_size = self.image_dims().0 + kernels.image_dims().0 - 1;
-        let res = index(
-            &res,
-            &[
-                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
-                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
-                Seq::new(0, (kernels.samples() - 1).try_into().unwrap(), 1),
-                Seq::new(0, (self.samples() - 1).try_into().unwrap(), 1),
-            ],
-        );
-        Self(res)
+        self.convolve(&kernels, true)
     }
 
     fn flatten(&self) -> Matrix {
@@ -387,11 +352,7 @@ impl ImageTrait for Image {
                 Seq::default(),
                 Seq::default(),
                 Seq::new(channel.try_into().unwrap(), channel.try_into().unwrap(), 1),
-                Seq::new(
-                    (self.samples() - 1).try_into().unwrap(),
-                    (self.samples() - 1).try_into().unwrap(),
-                    1,
-                ),
+                Seq::default(),
             ],
         ))
     }
@@ -400,14 +361,26 @@ impl ImageTrait for Image {
         Self(sum(&self.0, 3))
     }
 
-    fn join_channels(channels: Vec<Self>) -> Self {
-        let inner_channels = channels.iter().map(|el| &el.0).collect::<Vec<_>>();
-        Self(join_many(2, inner_channels))
+    fn join_channels(mut channels: Vec<Self>) -> Self {
+        if channels.len() == 1 {
+            return channels.pop().unwrap();
+        }
+        let mut res = join_many(2, vec![&channels[0].0, &channels[1].0]);
+        for i in 2..channels.len() {
+            res = join_many(2, vec![&res, &channels[i].0]);
+        }
+        Self(res)
     }
 
-    fn join_samples(samples: Vec<Self>) -> Self {
-        let inner_samples = samples.iter().map(|el| &el.0).collect::<Vec<_>>();
-        Self(join_many(3, inner_samples))
+    fn join_samples(mut samples: Vec<Self>) -> Self {
+        if samples.len() == 1 {
+            return samples.pop().unwrap();
+        }
+        let mut res = join_many(3, vec![&samples[0].0, &samples[1].0]);
+        for i in 2..samples.len() {
+            res = join_many(3, vec![&res, &samples[i].0]);
+        }
+        Self(res)
     }
 
     fn square(&self) -> Self {
@@ -453,6 +426,46 @@ impl ImageTrait for Image {
 
     fn sqrt(&self) -> Self {
         Self(sqrt(&self.0))
+    }
+}
+
+impl Image {
+    fn convolve(&self, kernels: &Self, full: bool) -> Self {
+        let (out_size, padding) = if full {
+            (
+                self.image_dims().0 + kernels.image_dims().0 - 1,
+                Dim4::new(&[
+                    (kernels.image_dims().0 - 1).try_into().unwrap(), 
+                    (kernels.image_dims().1 - 1).try_into().unwrap(), 
+                    1, 
+                    1
+                ]),
+            )
+        } else {
+            (
+                self.image_dims().0 - kernels.image_dims().0 + 1,
+                Dim4::new(&[0, 0, 0, 0])
+            )
+        };
+
+        let res = convolve2_nn(
+            &self.0,
+            &kernels.0,
+            Dim4::new(&[1, 1, 1, 1]),
+            padding,
+            Dim4::new(&[0, 0, 0, 0])
+        );
+
+        let res = Self(index(
+            &res,
+            &[
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (out_size - 1).try_into().unwrap(), 1),
+                Seq::new(0, (kernels.samples() - 1).try_into().unwrap(), 1),
+                Seq::new(0, (self.samples() - 1).try_into().unwrap(), 1),
+            ],
+        ));
+        res
     }
 }
 

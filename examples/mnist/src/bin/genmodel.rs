@@ -1,63 +1,86 @@
 use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
-    model::{FullLayerOptions::*, LayerSpec, ModelOptions::*, Model},
-    optimizer::{momentum},
-    pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
+    model::{
+        conv_network_spec::ConvNetworkLayerSpecTypes::*,
+        conv_network_spec::ConvNetworkSpec,
+        dense_conv_layer_spec::DenseConvLayerOptions::*,
+        dense_conv_layer_spec::DenseConvLayerSpec,
+        direct_conv_layer_spec::{DirectConvLayerSpec, DirectConvLayerOptions::*},
+        full_conv_layer_spec::{ConvLayerSpecTypes::*, FullConvLayerSpec, FullConvLayerOptions::*},
+        full_layer_spec::{FullLayerOptions::*, FullLayerSpec},
+        LayerSpecTypes::*,
+        Model,
+        ModelOptions::*,
+    },
+    vision::{image_activation::ConvActivation::*, conv_optimizer::*},
+    optimizer::momentum,
+    trainers::Trainers,
 };
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
 
-    let mut dataset_spec = Dataset::from_csv("dataset/kc_house_data.csv");
+    let mut dataset_spec = Dataset::from_csv("dataset/train.csv");
     dataset_spec
-        .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
-        .add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
-        .add_opt_to("date", AddExtractedMonth)
-        .add_opt_to("date", AddExtractedTimestamp)
-        .add_opt_to("date", Not(&UsedInModel))
-        .add_opt_to(
-            "yr_renovated",
-            Mapped(
-                MapSelector::Equal(0.0.into()),
-                MapOp::ReplaceWith(MapValue::Feature("yr_built".to_string())),
-            ),
-        )
-        .add_opt_to("price", Out)
-        .add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
-        .add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
-        //.add_opt(FilterOutliers.except(&["date"]).incl_added_features())
-        .add_opt(Normalized.except(&["date"]).incl_added_features());
+        .add_opt(Normalized.except(&["label"]))
+        .add_opt_to("label", Out)
+        .add_opt_to("label", OneHotEncode);
 
-    let h_size = dataset_spec.in_features_names().len() + 1;
-    let nh = 8;
     let dropout = None;
 
-    let mut layers = vec![];
-    for i in 0..nh {
-        layers.push(LayerSpec::from_options(&[
-            OutSize(h_size),
-            Activation(ReLU),
-            Dropout(if i > 0 { dropout } else { None }),
-            Optimizer(momentum()),
-        ]));
-    }
+    let conv_layers = vec![
+        FullConv(FullConvLayerSpec::from_options(&[
+            ConvActivation(ConvSigmoid),
+            ConvDropout(dropout),
+            Conv(Dense(DenseConvLayerSpec::from_options(&[
+                KernelCount(32),
+                KernelSize(3, 3),
+                ConvOptimizer(conv_momentum()),
+            ]))),
+        ])),
+        AvgPooling(2),
+        FullConv(FullConvLayerSpec::from_options(&[
+            ConvActivation(ConvSigmoid),
+            ConvDropout(dropout),
+            Conv(Direct(DirectConvLayerSpec::from_options(&[
+                DCvKernelSize(5, 5),
+                DCvOptimizer(conv_momentum()),
+            ]))),
+        ])),
+        AvgPooling(3),
+    ];
 
-    let final_layer = LayerSpec::from_options(&[
-        OutSize(1),
+    let mut layers = vec![];
+    layers.push(ConvNetwork(ConvNetworkSpec {
+        layers: conv_layers,
+        in_channels: 1,
+        height: 28,
+        width: 28,
+    }));
+
+    layers.push(Full(FullLayerSpec::from_options(&[
+        OutSize(128),
+        Activation(ReLU),
+        Dropout(dropout),
+        Optimizer(momentum()),
+    ])));
+
+    let final_layer = Full(FullLayerSpec::from_options(&[
+        OutSize(10),
         Activation(Linear),
         Dropout(dropout),
         Optimizer(momentum()),
-    ]);
+    ]));
 
     let model = Model::from_options(&[
         Dataset(dataset_spec),
         HiddenLayers(layers.as_slice()),
         FinalLayer(final_layer),
-        BatchSize(128),
-        Trainer(Trainers::KFolds(8)),
-        Epochs(500),
+        BatchSize(240),
+        Trainer(Trainers::SplitTraining(0.8)),
+        Epochs(10),
     ]);
 
     //println!("{:#?}", model);

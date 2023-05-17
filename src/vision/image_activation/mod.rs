@@ -40,19 +40,19 @@ impl ConvActivationLayer {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum ConvActivation {
-    Tanh,
-    Sigmoid,
-    ReLU,
-    Linear,
+    ConvTanh,
+    ConvSigmoid,
+    ConvReLU,
+    ConvLinear,
 }
 
 impl ConvActivation {
     pub fn to_layer(&self) -> ConvActivationLayer {
         match self {
-            Self::Linear => linear::new(),
-            Self::Tanh => tanh::new(),
-            Self::Sigmoid => sigmoid::new(),
-            Self::ReLU => relu::new(),
+            Self::ConvLinear => linear::new(),
+            Self::ConvTanh => tanh::new(),
+            Self::ConvSigmoid => sigmoid::new(),
+            Self::ConvReLU => relu::new(),
         }
     }
 }

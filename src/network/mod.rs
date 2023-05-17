@@ -153,7 +153,7 @@ impl Network {
 impl Layer for Vec<Box<dyn NetworkLayer>> {
     fn forward(&mut self, input: Matrix) -> Matrix {
         let mut output = input;
-        for layer in self.iter_mut() {
+        for (_, layer) in self.iter_mut().enumerate() {
             output = layer.forward(output);
         }
         output

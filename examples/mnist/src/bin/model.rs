@@ -18,22 +18,16 @@ pub fn main() {
 
     let model = model.with_new_dataset(updated_dataset_spec);
     
-    let mut kfold = model.trainer.maybe_kfold().expect("Only KFolds trainer is supported");
-    let (validation_preds, model_eval) = kfold
-        .attach_real_time_reporter(|fold, epoch, report| {
-            println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
+    let mut training = model.trainer.maybe_split().expect("Only Split trainer is supported");
+    let (validation_preds, model_eval) = training
+        .attach_real_time_reporter(|epoch, report| {
+            println!("Perf report: {:4} {:#?}", epoch, report)
         })
-        // .all_epochs_validation()
-        // .all_epochs_r2()
-        .compute_best_model()
-        // .compute_avg_model()
         .run(&model, &data);
 
-    let best_model_params = kfold.take_best_model();
-    //let avg_model_params = kfold.take_avg_model();
+    let best_model_params = training.take_model();
 
     best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
-    //avg_model_params.to_json(format!("models_stats/{}_avg_params.json", config_name));
 
     let validation_preds = pipeline.revert_columnswise(&validation_preds);
     let data = pipeline.revert_columnswise(&data);

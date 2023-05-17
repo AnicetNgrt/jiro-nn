@@ -1,7 +1,7 @@
 use neural_networks_rust::{
     activation::Activation::*,
     dataset::{Dataset, FeatureOptions::*},
-    model::{FullLayerOptions::*, LayerSpec, ModelOptions::*, Model},
+    model::{full_layer_spec::{FullLayerSpec, FullLayerOptions::*}, LayerSpecTypes::*, ModelOptions::*, Model},
     optimizer::{momentum},
     pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
 };
@@ -36,20 +36,22 @@ fn main() {
 
     let mut layers = vec![];
     for i in 0..nh {
-        layers.push(LayerSpec::from_options(&[
-            OutSize(h_size),
-            Activation(ReLU),
-            Dropout(if i > 0 { dropout } else { None }),
-            Optimizer(momentum()),
-        ]));
+        layers.push(
+            Full(FullLayerSpec::from_options(&[
+                OutSize(h_size),
+                Activation(ReLU),
+                Dropout(if i > 0 { dropout } else { None }),
+                Optimizer(momentum()),
+            ]))
+        );
     }
 
-    let final_layer = LayerSpec::from_options(&[
+    let final_layer = Full(FullLayerSpec::from_options(&[
         OutSize(1),
         Activation(Linear),
         Dropout(dropout),
         Optimizer(momentum()),
-    ]);
+    ]));
 
     let model = Model::from_options(&[
         Dataset(dataset_spec),

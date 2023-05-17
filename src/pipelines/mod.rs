@@ -10,7 +10,7 @@ use crate::{dataset::Dataset, datatable::DataTable};
 use self::{
     extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
     filter_outliers::FilterOutliers, log_scale::LogScale10, map::Map, normalize::Normalize,
-    square::Square,
+    square::Square, one_hot_encode::OneHotEncode,
 };
 
 pub mod attach_ids;
@@ -23,6 +23,7 @@ pub mod map;
 pub mod normalize;
 pub mod sample;
 pub mod square;
+pub mod one_hot_encode;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
@@ -40,6 +41,7 @@ impl Pipeline {
     /// This may not fit your exact usecase, but it's a good starting point.
     ///
     /// The pipeline is:
+    /// - One hot encode categorical features if required
     /// - Extract months if required
     /// - Extract timestamps if required
     /// - Map values if required
@@ -51,6 +53,7 @@ impl Pipeline {
     pub fn basic_single_pass() -> Pipeline {
         let mut pipeline = Pipeline::new();
         pipeline
+            .push(OneHotEncode)
             .push(ExtractMonths)
             .push(ExtractTimestamps)
             .push(Map::new())

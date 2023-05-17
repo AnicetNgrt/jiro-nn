@@ -26,8 +26,8 @@ impl DirectConvLayerSpec {
         (
             in_channels,
             (
-                (self.kern_size.0 - image_size.0 + 1),
-                (self.kern_size.1 - image_size.1 + 1),
+                (self.kern_size.0.abs_diff(image_size.0) + 1),
+                (self.kern_size.1.abs_diff(image_size.1) + 1),
             ),
         )
     }
@@ -48,22 +48,22 @@ impl DirectConvLayerSpec {
         let mut spec = DirectConvLayerSpec::default();
         for option in options {
             match option {
-                DirectConvLayerOptions::KernelSize(rows, cols) => {
+                DirectConvLayerOptions::DCvKernelSize(rows, cols) => {
                     spec.kern_size = (rows.clone(), cols.clone())
                 }
-                DirectConvLayerOptions::KernelsOptimizer(kernels_optimizer) => {
+                DirectConvLayerOptions::DCvKernelsOptimizer(kernels_optimizer) => {
                     spec.kernels_optimizer = kernels_optimizer.clone()
                 }
-                DirectConvLayerOptions::BiasesOptimizer(biases_optimizer) => {
+                DirectConvLayerOptions::DCvBiasesOptimizer(biases_optimizer) => {
                     spec.biases_optimizer = biases_optimizer.clone()
                 }
-                DirectConvLayerOptions::KernelsInitializer(kernels_initializer) => {
+                DirectConvLayerOptions::DCvKernelsInitializer(kernels_initializer) => {
                     spec.kernels_initializer = kernels_initializer.clone()
                 }
-                DirectConvLayerOptions::BiasesInitializer(biases_initializer) => {
+                DirectConvLayerOptions::DCvBiasesInitializer(biases_initializer) => {
                     spec.biases_initializer = biases_initializer.clone()
                 }
-                DirectConvLayerOptions::Optimizer(global_optimizer) => {
+                DirectConvLayerOptions::DCvOptimizer(global_optimizer) => {
                     spec.kernels_optimizer = global_optimizer.clone();
                     spec.biases_optimizer = global_optimizer.clone();
                 }
@@ -84,10 +84,10 @@ impl DirectConvLayerSpec {
 }
 
 pub enum DirectConvLayerOptions {
-    KernelSize(usize, usize),
-    KernelsOptimizer(ConvOptimizers),
-    BiasesOptimizer(ConvOptimizers),
-    Optimizer(ConvOptimizers),
-    KernelsInitializer(ConvInitializers),
-    BiasesInitializer(ConvInitializers),
+    DCvKernelSize(usize, usize),
+    DCvKernelsOptimizer(ConvOptimizers),
+    DCvBiasesOptimizer(ConvOptimizers),
+    DCvOptimizer(ConvOptimizers),
+    DCvKernelsInitializer(ConvInitializers),
+    DCvBiasesInitializer(ConvInitializers),
 }

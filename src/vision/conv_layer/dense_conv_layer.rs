@@ -33,7 +33,7 @@ impl DenseConvLayer {
     ) -> Self {
         Self {
             kernels: kernels_initializer.gen_image(nrow, ncol, nchan, nkern),
-            biases: biases_initializer.gen_image(nrow, ncol, nkern, 1),
+            biases: biases_initializer.gen_image(1, 1, nkern, 1),
             input: None,
             kernels_optimizer,
             biases_optimizer,
@@ -44,8 +44,15 @@ impl DenseConvLayer {
 impl ImageLayer for DenseConvLayer {
     fn forward(&mut self, input: Image) -> Image {
         let res = input
-            .cross_correlate(&self.kernels)
+            .cross_correlate(&self.kernels);
+
+        if self.biases.image_dims() != res.image_dims() {
+            self.biases = self.biases.tile(res.image_dims().0, res.image_dims().1, 1, 1);
+        }
+
+        let res = res
             .component_add(&self.biases);
+
         self.input = Some(input);
         res
     }
@@ -69,11 +76,11 @@ impl ImageLayer for DenseConvLayer {
         let mut kern_grad_samples = vec![];
         for k in 0..self.kernels.samples() {
             let mut kern_grad_channels = vec![];
-            let output_grad_k = output_gradient.get_channel_across_samples(k);
+            let output_grad_k = output_gradient.get_channel_across_samples(k).sum_samples();
             for i in 0..self.kernels.channels() {
                 let input_i = input.get_channel_across_samples(i);
                 let correlated = input_i.cross_correlate(&output_grad_k);
-                kern_grad_channels.push(correlated);
+                kern_grad_channels.push(correlated.sum_samples());
             }
             let kern_grad_sample = Image::join_channels(kern_grad_channels);
             kern_grad_samples.push(kern_grad_sample);

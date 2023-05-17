@@ -15,10 +15,8 @@ impl DataTransformation for FilterOutliers {
         let mut data = data.clone();
         for feature in spec.features.iter() {
             if feature.filter_outliers {
-                println!("FO: {}", feature.name);
                 let vals = data.column_to_vector(&feature.name);
                 let (_, _, _, min, max) = vector_quartiles_iqr(&vals);
-                println!("Filtering outliers {:?} {:#?}", feature.name, data);
                 data = data.filter_by_scalar_column(&feature.name, |x| x >= min && x <= max);
             }
         }

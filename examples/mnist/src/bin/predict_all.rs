@@ -1,4 +1,10 @@
-use neural_networks_rust::{network::NetworkParams, model::Model, pipelines::{Pipeline, attach_ids::AttachIds}, datatable::DataTable, vec_utils::{r2_score_matrix}};
+use neural_networks_rust::{
+    datatable::DataTable,
+    model::Model,
+    network::params::NetworkParams,
+    pipelines::{attach_ids::AttachIds, Pipeline},
+    vec_utils::r2_score_matrix,
+};
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -36,13 +42,12 @@ pub fn main() {
 
     println!("r2: {:#?}", r2);
 
-    let preds_and_ids = DataTable::from_vectors(&out_features, &preds)
-        .add_column_from(&x_table, "id");
+    let preds_and_ids =
+        DataTable::from_vectors(&out_features, &preds).add_column_from(&x_table, "id");
 
     let preds_and_ids = pipeline.revert_columnswise(&preds_and_ids);
     let data = pipeline.revert_columnswise(&data);
     let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
     data_and_preds.to_file(format!("models_stats/{}.csv", out_name));
-
 }

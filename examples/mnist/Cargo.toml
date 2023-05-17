@@ -1,5 +1,5 @@
 [package]
-name = "housing"
+name = "mnist"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,6 +12,6 @@ rand = "0.8.5"
 
 [features]
 f64 = ["neural_networks_rust/f64"]
-default = ["nalgebra"]
+default = ["arrayfire"]
 nalgebra = ["neural_networks_rust/nalgebra"]
 arrayfire = ["neural_networks_rust/arrayfire"]

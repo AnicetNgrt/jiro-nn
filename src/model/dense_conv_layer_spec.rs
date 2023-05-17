@@ -27,8 +27,8 @@ impl DenseConvLayerSpec {
         (
             self.kern_count,
             (
-                (self.kern_size.0 - image_size.0 + 1),
-                (self.kern_size.1 - image_size.1 + 1),
+                (self.kern_size.0.abs_diff(image_size.0) + 1),
+                (self.kern_size.1.abs_diff(image_size.1) + 1),
             ),
         )
     }
@@ -59,16 +59,16 @@ impl DenseConvLayerSpec {
                 DenseConvLayerOptions::KernelsOptimizer(kernels_optimizer) => {
                     spec.kernels_optimizer = kernels_optimizer.clone()
                 }
-                DenseConvLayerOptions::BiasesOptimizer(biases_optimizer) => {
+                DenseConvLayerOptions::ConvBiasesOptimizer(biases_optimizer) => {
                     spec.biases_optimizer = biases_optimizer.clone()
                 }
                 DenseConvLayerOptions::KernelsInitializer(kernels_initializer) => {
                     spec.kernels_initializer = kernels_initializer.clone()
                 }
-                DenseConvLayerOptions::BiasesInitializer(biases_initializer) => {
+                DenseConvLayerOptions::ConvBiasesInitializer(biases_initializer) => {
                     spec.biases_initializer = biases_initializer.clone()
                 }
-                DenseConvLayerOptions::Optimizer(global_optimizer) => {
+                DenseConvLayerOptions::ConvOptimizer(global_optimizer) => {
                     spec.kernels_optimizer = global_optimizer.clone();
                     spec.biases_optimizer = global_optimizer.clone();
                 }
@@ -93,8 +93,8 @@ pub enum DenseConvLayerOptions {
     KernelCount(usize),
     KernelSize(usize, usize),
     KernelsOptimizer(ConvOptimizers),
-    BiasesOptimizer(ConvOptimizers),
-    Optimizer(ConvOptimizers),
+    ConvBiasesOptimizer(ConvOptimizers),
+    ConvOptimizer(ConvOptimizers),
     KernelsInitializer(ConvInitializers),
-    BiasesInitializer(ConvInitializers),
+    ConvBiasesInitializer(ConvInitializers),
 }

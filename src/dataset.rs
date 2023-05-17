@@ -25,6 +25,15 @@ impl Dataset {
         }
     }
 
+    pub fn without_feature(&self, feature_name: String) -> Self {
+        let mut features = self.features.clone();
+        features.retain(|f| f.name != feature_name);
+        Self {
+            name: self.name.clone(),
+            features,
+        }
+    }
+
     /// Create a new dataset with a feature replaced.
     pub fn with_replaced_feature(&self, old_feature_name: &str, feature: Feature) -> Self {
         let mut features = self.features.clone();
@@ -176,7 +185,7 @@ impl Dataset {
     }
 }
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash)]
+#[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub struct Feature {
     pub name: String,
     #[serde(default)]
@@ -203,6 +212,8 @@ pub struct Feature {
     pub with_squared: Option<Box<Feature>>,
     #[serde(default = "bool_true")]
     pub used_in_model: bool,
+    #[serde(default)]
+    pub one_hot_encoded: bool,
     #[serde(default)]
     pub is_id: bool,
 }
@@ -256,6 +267,7 @@ impl Feature {
 ///
 /// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
 /// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` specified.
+/// - `OneHotEncode`: Enables one-hot encoding of the feature.
 /// - `Log10`: Enables applying base-10 logarithm to the feature.
 /// - `Normalized`: Enables normalizing the feature.
 /// - `FilterOutliers`: Enables filtering outliers from the feature.
@@ -294,6 +306,8 @@ pub enum FeatureOptions<'a> {
     Out,
     /// The `DateFormat` option specifies the date format to use for date/time features.
     DateFormat(&'a str),
+    /// The `OneHotEncod` option enables conversion to one-hot encoding of the feature.
+    OneHotEncode,
     /// The `ToTimestamp` option enables conversion of the date/time feature to a Unix timestamp.
     ToTimestamp,
     /// The `ExtractMonth` option enables conversion of the date/time to its month.
@@ -364,8 +378,6 @@ impl<'a> FeatureOptions<'a> {
     }
 
     fn apply_bool(&self, feature: &mut Feature, value: bool) {
-        println!("Applying {:?} to {:?} with {}", self, feature.name, value);
-
         match self {
             FeatureOptions::Name(name) => feature.name = name.to_string(),
             FeatureOptions::Out => feature.out = value,
@@ -378,6 +390,7 @@ impl<'a> FeatureOptions<'a> {
             FeatureOptions::Normalized => feature.normalized = value,
             FeatureOptions::FilterOutliers => feature.filter_outliers = value,
             FeatureOptions::Squared => feature.squared = value,
+            FeatureOptions::OneHotEncode => feature.one_hot_encoded = value,
             FeatureOptions::UsedInModel => feature.used_in_model = value,
             FeatureOptions::IsId => feature.is_id = value,
             FeatureOptions::AddFeatureExtractedMonth(with_extracted_month) => {

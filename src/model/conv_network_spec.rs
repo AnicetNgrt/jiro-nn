@@ -42,14 +42,14 @@ impl ConvNetworkSpec {
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum ConvNetworkLayerSpecTypes {
-    Full(FullConvLayerSpec),
+    FullConv(FullConvLayerSpec),
     AvgPooling(usize)
 }
 
 impl ConvNetworkLayerSpecTypes {
     pub fn out_size(&self, image_size: (usize, usize), in_channels: usize) -> (usize, (usize, usize)) {
         match self {
-            ConvNetworkLayerSpecTypes::Full(spec) => spec.out_size(image_size, in_channels),
+            ConvNetworkLayerSpecTypes::FullConv(spec) => spec.out_size(image_size, in_channels),
             ConvNetworkLayerSpecTypes::AvgPooling(pool_size) => {
                 (in_channels, (image_size.0 / pool_size, image_size.1 / pool_size))
             }
@@ -58,7 +58,7 @@ impl ConvNetworkLayerSpecTypes {
 
     pub fn to_conv_layer(self, nchans: usize) -> Box<dyn ConvNetworkLayer> {
         match self {
-            ConvNetworkLayerSpecTypes::Full(spec) => {
+            ConvNetworkLayerSpecTypes::FullConv(spec) => {
                 Box::new(spec.to_conv_layer(nchans))
             },
             ConvNetworkLayerSpecTypes::AvgPooling(pool_size) => {

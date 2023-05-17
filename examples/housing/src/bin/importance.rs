@@ -2,7 +2,7 @@ use gnuplot::*;
 use neural_networks_rust::{
     linalg::Scalar,
     model::Model,
-    network::NetworkParams,
+    network::params::NetworkParams,
     pipelines::{sample::Sample, Pipeline},
     vec_utils::{avg_vector, r2_score_matrix, shuffle_column},
 };
