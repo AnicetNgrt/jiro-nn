@@ -10,24 +10,16 @@ use crate::dataset::Dataset;
 use crate::datatable::DataTable;
 use crate::linalg::Scalar;
 use crate::loss::Losses;
-use crate::network::{Network, NetworkLayer};
+use crate::network::{Network};
 use crate::trainers::Trainers;
 
-use self::conv_network_spec::ConvNetworkSpec;
-use self::full_layer_spec::FullLayerSpec;
-
-pub mod dense_conv_layer_spec;
-pub mod direct_conv_layer_spec;
-pub mod conv_network_spec;
-pub mod full_conv_layer_spec;
-pub mod full_layer_spec;
+pub mod network_model;
+pub mod full_dense_conv_layer_model;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
-    pub hidden_layers: Vec<LayerSpecTypes>,
-    pub final_layer: LayerSpecTypes,
     pub batch_size: Option<usize>,
     pub trainer: Trainers,
     pub dataset: Dataset,
@@ -89,34 +81,8 @@ impl Model {
         train_loss
     }
 
-    fn compute_network_sizes(&self) -> Vec<usize> {
-        let mut sizes = vec![self.dataset.in_features_names().len()];
-        let mut prev_out_size = sizes[0];
-        for layer_spec in self.hidden_layers.iter() {
-            let size = layer_spec.out_size(prev_out_size);
-            sizes.push(size);
-            prev_out_size = size;
-        }
-        sizes.push(self.dataset.out_features_names().len());
-        sizes
-    }
-
     pub fn to_network(&self) -> Network {
-        let sizes = self.compute_network_sizes();
-
-        let mut layers: Vec<Box<dyn NetworkLayer>> = vec![];
-
-        for i in 0..sizes.len() - 1 {
-            let layer_spec = if i == sizes.len() - 2 {
-                self.final_layer.clone()
-            } else {
-                self.hidden_layers[i].clone()
-            };
-            let in_size = sizes[i];
-            layers.push(layer_spec.to_network_layer(in_size));
-        }
-
-        Network::new(layers)
+        todo!()
     }
 
     /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
@@ -140,95 +106,13 @@ impl Model {
         table
     }
 
-    /// The `from_options` method is a constructor function for creating a `Model` object from a list of `ModelOptions`.
-    ///
-    /// See the `ModelOptions` enum for more information.
-    pub fn from_options(options: &[ModelOptions]) -> Model {
-        let mut spec = Model::default();
-        for option in options {
-            match option {
-                ModelOptions::Epochs(epochs) => spec.epochs = epochs.clone(),
-                ModelOptions::Loss(loss) => spec.loss = loss.clone(),
-                ModelOptions::HiddenLayers(hidden_layers) => {
-                    spec.hidden_layers = hidden_layers.to_vec()
-                }
-                ModelOptions::FinalLayer(final_layer) => spec.final_layer = final_layer.clone(),
-                ModelOptions::BatchSize(batch_size) => spec.batch_size = Some(batch_size.clone()),
-                ModelOptions::Dataset(dataset) => spec.dataset = dataset.clone(),
-                ModelOptions::Trainer(trainer) => spec.trainer = trainer.clone(),
-            }
-        }
-        spec
-    }
-
     pub fn default() -> Model {
         Model {
             epochs: 100,
             loss: Losses::MSE,
-            hidden_layers: vec![],
-            final_layer: LayerSpecTypes::Full(FullLayerSpec::default()),
             batch_size: None,
             trainer: Trainers::KFolds(10),
             dataset: Dataset::default(),
         }
     }
-}
-
-#[derive(Serialize, Debug, Deserialize, Clone)]
-pub enum LayerSpecTypes {
-    Full(FullLayerSpec),
-    ConvNetwork(ConvNetworkSpec),
-}
-
-impl LayerSpecTypes {
-    pub fn out_size(&self, prev_out_size: usize) -> usize {
-        match self {
-            LayerSpecTypes::Full(layer_spec) => layer_spec.out_size,
-            LayerSpecTypes::ConvNetwork(layer_spec) => layer_spec.out_size(prev_out_size),
-        }
-    }
-
-    pub fn to_network_layer(self, in_size: usize) -> Box<dyn NetworkLayer> {
-        match self {
-            LayerSpecTypes::Full(layer_spec) => {
-                let layer = layer_spec.to_layer(in_size);
-                Box::new(layer) as Box<dyn NetworkLayer>
-            }
-            LayerSpecTypes::ConvNetwork(layer_spec) => {
-                let layer = layer_spec.to_layer();
-                Box::new(layer) as Box<dyn NetworkLayer>
-            }
-        }
-    }
-}
-
-/// Options to be used in order to build a `Model` struct with the `from_options` method.
-///
-/// **Required options**:
-///
-/// - `HiddenLayers`: The hidden layers of the model (an array of `FullLayerSpec` objects).
-/// - `FinalLayer`: The final layer of the model (a `LayerSpecTypes` enum).
-/// - `Dataset`: The dataset to be used for training (a `Dataset` object).
-///
-/// **Optional options**:
-///
-/// - `Epochs`: The number of epochs to train for. If ommited, defaults to `100`.
-/// - `Loss`: The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
-/// - `BatchSize`: The batch size to be used during training. If ommited, defaults to the size of the dataset.
-/// - `Folds`: The number of folds to be used during cross-validation. If ommited, defaults to `10`.
-pub enum ModelOptions<'a> {
-    /// The number of epochs to train for. If ommited, defaults to `100`.
-    Epochs(usize),
-    /// The loss function to be used (a variant of the `Losses` enum). If ommited, defaults to `Losses::MSE`.
-    Loss(Losses),
-    /// The hidden layers of the model (an array of `LayerSpecTypes` enums).
-    HiddenLayers(&'a [LayerSpecTypes]),
-    /// The final layer of the model (a `LayerSpecTypes` enum).
-    FinalLayer(LayerSpecTypes),
-    /// The batch size to be used during training. If ommited, defaults to the size of the dataset.
-    BatchSize(usize),
-    /// The dataset to be used for training (a `Dataset` object).
-    Dataset(Dataset),
-    /// The trainer to use (a variant of the `Trainers` enum). If ommited, defaults to `Trainers::KFolds(10)`.
-    Trainer(Trainers),
 }

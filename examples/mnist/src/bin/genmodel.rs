@@ -30,6 +30,31 @@ fn main() {
 
     let dropout = None;
 
+    /*
+    NetworkModel::new()
+        .conv_network()
+        .full_conv(32, 3)
+        .sigmoid()
+        .momentum()
+        .next()
+        .avg_pooling(2)
+        .next()
+        .direct_conv(5)
+        .sigmoid()
+        .momentum()
+        .next()
+        .avg_pooling(3)
+        .end_conv_network()
+        .full(128)
+        .relu()
+        .momentum()
+        .repeat(1)
+        .full(10)
+        .linear()
+        .momentum()
+        .end()
+     */
+
     let conv_layers = vec![
         FullConv(FullConvLayerSpec::from_options(&[
             ConvActivation(ConvSigmoid),
