@@ -13,8 +13,84 @@ use crate::loss::Losses;
 use crate::network::{Network};
 use crate::trainers::Trainers;
 
+use self::network_model::{NetworkModel, NetworkModelBuilder};
+
 pub mod network_model;
+pub mod conv_network_model;
+pub mod full_dense_layer_model;
 pub mod full_dense_conv_layer_model;
+
+pub struct ModelBuilder {
+    pub model: Model
+}
+
+impl ModelBuilder {
+    pub fn new(dataset: Dataset) -> Self {
+        Self {
+            model: Model {
+                dataset,
+                trainer: Trainers::SplitTraining(0.8),
+                loss: Losses::MSE,
+                epochs: 100,
+                batch_size: Some(32),
+                network: None
+            }
+        }
+    }
+
+    pub fn trainer(self, trainer: Trainers) -> Self {
+        Self {
+            model: Model {
+                trainer,
+                ..self.model
+            }, 
+            ..self
+        }
+    }
+
+    pub fn loss(self, loss: Losses) -> Self {
+        Self {
+            model: Model {
+                loss,
+                ..self.model
+            },
+            ..self
+        }
+    }
+
+    pub fn epochs(self, epochs: usize) -> Self {
+        Self {
+            model: Model {
+                epochs,
+                ..self.model
+            },
+            ..self
+        }
+    }
+
+    pub fn batch_size(self, batch_size: Option<usize>) -> Self {
+        Self {
+            model: Model {
+                batch_size,
+                ..self.model
+            },
+            ..self
+        }
+    }
+
+    pub fn neural_network(self) -> NetworkModelBuilder {
+        NetworkModelBuilder::new(self)
+    }
+
+    pub fn accept_neural_network(mut self, network: NetworkModel) -> Self {
+        self.model.network = Some(network);
+        self
+    }
+
+    pub fn build(self) -> Model {
+        self.model
+    }
+}
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
@@ -23,6 +99,7 @@ pub struct Model {
     pub batch_size: Option<usize>,
     pub trainer: Trainers,
     pub dataset: Dataset,
+    pub network: Option<NetworkModel>
 }
 
 impl Model {
@@ -104,15 +181,5 @@ impl Model {
             table = table.append_column(Series::new(&format!("pred_{}", names[i]), pred.clone()));
         }
         table
-    }
-
-    pub fn default() -> Model {
-        Model {
-            epochs: 100,
-            loss: Losses::MSE,
-            batch_size: None,
-            trainer: Trainers::KFolds(10),
-            dataset: Dataset::default(),
-        }
     }
 }

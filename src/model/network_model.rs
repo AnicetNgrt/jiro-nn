@@ -1,63 +1,46 @@
-use super::full_dense_conv_layer_model::FullDenseConvLayerModel;
+use serde::{Serialize, Deserialize};
 
+use super::{ModelBuilder, conv_network_model::{ConvNetworkModelBuilder, ConvNetworkModel}, full_dense_layer_model::FullDenseLayerModel};
+
+pub struct NetworkModelBuilder {
+    pub model: NetworkModel,
+    pub parent: ModelBuilder
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NetworkModel {
     pub layers: Vec<NetworkLayerModels>
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum NetworkLayerModels {
     Convolution(ConvNetworkModel),
+    FullDense(FullDenseLayerModel)
 }
 
-impl NetworkModel {
-    pub fn new() -> Self {
-        Self { 
-            layers: Vec::new(),
+impl NetworkModelBuilder {
+    pub fn new(parent: ModelBuilder) -> Self {
+        Self {
+            model: NetworkModel { layers: Vec::new() },
+            parent
         }
     }
 
-    pub fn conv_network(self) -> ConvNetworkModel {
-        ConvNetworkModel::new(self)
-    }
-}
-
-pub struct ConvNetworkModel {
-    pub layers: Vec<ConvNetworkLayerModels>,
-    parent: NetworkModel,
-}
-
-pub enum ConvNetworkLayerModels {
-    FullDenseConv(FullDenseConvLayerModel),
-    AvgPooling {
-        kernel_size: usize,
-    },
-    
-}
-
-impl ConvNetworkModel {
-    pub fn new(parent: NetworkModel) -> Self {
-        Self { 
-            layers: Vec::new(),
-            parent,
-        }
+    pub fn conv_network(self) -> ConvNetworkModelBuilder {
+        ConvNetworkModelBuilder::new(self)
     }
 
-    pub fn end(self) -> NetworkModel {
-        self.parent
-    }
-
-    pub fn full_dense(self, kernels_count: usize, kernels_size: usize) -> FullDenseConvLayerModel {
-        FullDenseConvLayerModel::new(self, kernels_count, kernels_size)
-    }
-
-    pub fn accept_full_dense(mut self, model: FullDenseConvLayerModel) -> Self {
-        self.layers.push(ConvNetworkLayerModels::FullDenseConv(model));
+    pub fn accept_conv_network(mut self, layer: ConvNetworkModel) -> Self {
+        self.model.layers.push(NetworkLayerModels::Convolution(layer));
         self
     }
 
-    pub fn avg_pooling(self, kernel_size: usize) -> Self {
-        Self {
-            layers: self.layers,
-            parent: self.parent,
-        }
+    pub fn accept_full_dense(mut self, layer: FullDenseLayerModel) -> Self {
+        self.model.layers.push(NetworkLayerModels::FullDense(layer));
+        self
+    }
+
+    pub fn end(self) -> ModelBuilder {
+        self.parent.accept_neural_network(self.model)
     }
 }
