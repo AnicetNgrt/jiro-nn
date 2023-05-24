@@ -18,6 +18,7 @@ use self::network_model::{NetworkModel, NetworkModelBuilder};
 pub mod network_model;
 pub mod conv_network_model;
 pub mod full_dense_layer_model;
+pub mod full_direct_conv_layer_model;
 pub mod full_dense_conv_layer_model;
 
 pub struct ModelBuilder {
@@ -159,7 +160,9 @@ impl Model {
     }
 
     pub fn to_network(&self) -> Network {
-        todo!()
+        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
+        let in_dims = self.dataset.in_features_names().len();
+        network_spec.to_network(in_dims)
     }
 
     /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
