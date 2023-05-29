@@ -1,13 +1,9 @@
 use serde::{Serialize, Deserialize};
 
-use crate::{activation::Activation, initializers::Initializers, optimizer::{Optimizers, sgd, momentum, adam}};
+use crate::{activation::Activation, initializers::Initializers, optimizer::{Optimizers, sgd, momentum, adam}, layer::{dense_layer::DenseLayer, full_layer::FullLayer}, network::NetworkLayer};
 
 use super::network_model::NetworkModelBuilder;
 
-pub struct FullDenseLayerModelBuilder {
-    pub model: FullDenseLayerModel,
-    parent: NetworkModelBuilder
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FullDenseLayerModel {
@@ -16,7 +12,34 @@ pub struct FullDenseLayerModel {
     pub biases_initializer: Initializers,
     pub weights_initializer: Initializers,
     pub biases_optimizer: Optimizers,
-    pub weights_optimizer: Optimizers
+    pub weights_optimizer: Optimizers,
+    pub dropout: Option<f32>
+}
+
+impl FullDenseLayerModel {
+    pub fn to_layer(self, in_size: usize) -> (usize, Box<dyn NetworkLayer>) {
+        let inner = DenseLayer::new(
+            in_size,
+            self.size,
+            self.biases_optimizer,
+            self.weights_optimizer,
+            self.weights_initializer,
+            self.biases_initializer,
+        );
+
+        let layer = FullLayer::new(
+            inner,
+            self.activation.to_layer(),
+            self.dropout
+        );
+
+        (self.size, Box::new(layer))
+    }
+}
+
+pub struct FullDenseLayerModelBuilder {
+    pub model: FullDenseLayerModel,
+    parent: NetworkModelBuilder
 }
 
 impl FullDenseLayerModelBuilder {
@@ -28,7 +51,8 @@ impl FullDenseLayerModelBuilder {
                 biases_initializer: Initializers::Zeros,
                 weights_initializer: Initializers::GlorotUniform,
                 biases_optimizer: sgd(),
-                weights_optimizer: sgd()
+                weights_optimizer: sgd(),
+                dropout: None
             },
             parent,
         }
@@ -36,6 +60,16 @@ impl FullDenseLayerModelBuilder {
 
     pub fn end(self) -> NetworkModelBuilder {
         self.parent.accept_full_dense(self.model)
+    }
+
+    pub fn dropout(self, dropout: f32) -> Self {
+        Self {
+            model: FullDenseLayerModel {
+                dropout: Some(dropout),
+                ..self.model
+            },
+            ..self
+        }
     }
 
     pub fn activation(self, activation: Activation) -> Self {

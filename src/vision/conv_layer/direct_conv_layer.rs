@@ -22,21 +22,33 @@ pub struct DirectConvLayer {
 
 impl DirectConvLayer {
     pub fn new(
-        nrow: usize,
-        ncol: usize,
-        nchan: usize,
+        krows: usize,
+        kcols: usize,
+        in_chans: usize,
         kernels_initializer: ConvInitializers,
         biases_initializer: ConvInitializers,
         kernels_optimizer: ConvOptimizers,
         biases_optimizer: ConvOptimizers,
     ) -> Self {
         Self {
-            kernels: kernels_initializer.gen_image(nrow, ncol, nchan, 1),
-            biases: biases_initializer.gen_image(1, 1, nchan, 1),
+            kernels: kernels_initializer.gen_image(krows, kcols, in_chans, 1),
+            biases: biases_initializer.gen_image(1, 1, in_chans, 1),
             input: None,
             kernels_optimizer,
             biases_optimizer,
         }
+    }
+
+    pub fn out_img_dims_and_channels(
+        in_rows: usize,
+        in_cols: usize,
+        in_chans: usize,
+        krows: usize,
+        kcols: usize,
+    ) -> (usize, usize, usize) {
+        let out_rows = in_rows - krows + 1;
+        let out_cols = in_cols - kcols + 1;
+        (out_rows, out_cols, in_chans)
     }
 }
 
@@ -47,11 +59,13 @@ impl ImageLayer for DirectConvLayer {
             let channel = input.get_channel_across_samples(c);
 
             let kernel = self.kernels.get_channel(c);
-            
+
             let correlated = channel.cross_correlate(&kernel);
 
             if self.biases.image_dims().0 != correlated.image_dims().0 {
-                self.biases = self.biases.tile(correlated.image_dims().0, correlated.image_dims().1, 1, 1);
+                self.biases =
+                    self.biases
+                        .tile(correlated.image_dims().0, correlated.image_dims().1, 1, 1);
             }
 
             let bias = self.biases.get_channel(c);
@@ -66,7 +80,7 @@ impl ImageLayer for DirectConvLayer {
 
     fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
         let input = self.input.as_ref().unwrap();
-        
+
         let mut input_grad_channels = vec![];
         for i in 0..input.channels() {
             let kernel = self.kernels.get_channel(i);
@@ -117,10 +131,8 @@ impl LearnableLayer for DirectConvLayer {
             &Matrix::from_column_leading_matrix(&kernels),
             self.kernels.channels(),
         );
-        self.biases = Image::from_samples(
-            &Matrix::from_column_vector(&biases),
-            self.biases.channels(),
-        );
+        self.biases =
+            Image::from_samples(&Matrix::from_column_vector(&biases), self.biases.channels());
     }
 }
 

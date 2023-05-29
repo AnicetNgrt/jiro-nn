@@ -39,6 +39,20 @@ impl DenseConvLayer {
             biases_optimizer,
         }
     }
+
+    pub fn out_img_dims_and_channels(
+        in_rows: usize,
+        in_cols: usize,
+        in_chans: usize,
+        krows: usize,
+        kcols: usize,
+        kchans: usize,
+    ) -> (usize, usize, usize) {
+        let out_rows = in_rows - krows + 1;
+        let out_cols = in_cols - kcols + 1;
+        let out_chans = kchans;
+        (out_rows, out_cols, out_chans)
+    }
 }
 
 impl ImageLayer for DenseConvLayer {

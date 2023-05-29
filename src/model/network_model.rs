@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::network::{Network, NetworkLayer};
 
-use super::{ModelBuilder, conv_network_model::{ConvNetworkModelBuilder, ConvNetworkModel}, full_dense_layer_model::FullDenseLayerModel};
+use super::{ModelBuilder, conv_network_model::{ConvNetworkModelBuilder, ConvNetworkModel}, full_dense_layer_model::{FullDenseLayerModel, FullDenseLayerModelBuilder}};
 
 pub struct NetworkModelBuilder {
     pub model: NetworkModel,
@@ -26,6 +26,10 @@ impl NetworkModelBuilder {
         self
     }
 
+    pub fn full_dense(self, size: usize) -> FullDenseLayerModelBuilder {
+        FullDenseLayerModelBuilder::new(self, size)
+    }
+
     pub fn accept_full_dense(mut self, layer: FullDenseLayerModel) -> Self {
         self.model.layers.push(NetworkLayerModels::FullDense(layer));
         self
@@ -42,10 +46,11 @@ pub struct NetworkModel {
 }
 
 impl NetworkModel {
-    pub fn to_network(&self, in_dims: usize) -> Network {
+    pub fn to_network(self, mut in_dims: usize) -> Network {
         let mut layers = vec![];
-        for layer_spec in self.layers.iter() {
-            let (in_dims, layer) = layer_spec.to_layer(in_dims);
+        for layer_spec in self.layers.into_iter() {
+            let (out_dims, layer) = layer_spec.to_layer(in_dims);
+            in_dims = out_dims;
             layers.push(layer);
         }
         Network::new(layers)
@@ -59,7 +64,7 @@ pub enum NetworkLayerModels {
 }
 
 impl NetworkLayerModels {
-    pub fn to_layer(&self, in_dims: usize) -> (usize, Box<dyn NetworkLayer>) {
+    pub fn to_layer(self, in_dims: usize) -> (usize, Box<dyn NetworkLayer>) {
         match self {
             Self::Convolution(network) => network.to_layer(in_dims),
             Self::FullDense(layer) => layer.to_layer(in_dims)

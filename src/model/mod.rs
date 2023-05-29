@@ -25,6 +25,22 @@ pub struct ModelBuilder {
     pub model: Model
 }
 
+// pub fn example() {
+//     let b = ModelBuilder::new("truc.csv")
+//             .neural_network()
+//                 .conv_network(3)
+//                     .full_dense(3, 7)
+//                     .end()
+//                     .full_direct(3)
+//                     .end()
+//                     .avg_pooling(2)
+//                 .end()
+//                 .full_dense(3)
+//                 .end()
+//             .end()
+//         .build();
+// }
+
 impl ModelBuilder {
     pub fn new(dataset: Dataset) -> Self {
         Self {

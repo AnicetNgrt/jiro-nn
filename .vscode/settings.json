@@ -3,5 +3,10 @@
         "./Cargo.toml"
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
-    "rust-analyzer.check.features": ["arrayfire"]
+    "rust-analyzer.check.features": [
+        "arrayfire"
+    ],
+    "cSpell.enableFiletypes": [
+        "!rust"
+    ]
 }

@@ -1,13 +1,9 @@
 use serde::{Serialize, Deserialize};
 
-use crate::vision::{conv_initializers::ConvInitializers, image_activation::ConvActivation, conv_optimizer::{ConvOptimizers, conv_sgd, conv_momentum, conv_adam}};
+use crate::vision::{conv_initializers::ConvInitializers, image_activation::ConvActivation, conv_optimizer::{ConvOptimizers, conv_sgd, conv_momentum, conv_adam}, conv_network::ConvNetworkLayer, conv_layer::{direct_conv_layer::DirectConvLayer, full_conv_layer::FullConvLayer}};
 
 use super::conv_network_model::ConvNetworkModelBuilder;
 
-pub struct FullDirectConvLayerModelBuilder {
-    pub model: FullDirectConvLayerModel,
-    parent: ConvNetworkModelBuilder
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FullDirectConvLayerModel {
@@ -16,7 +12,43 @@ pub struct FullDirectConvLayerModel {
     pub biases_initializer: ConvInitializers,
     pub kernels_initializer: ConvInitializers,
     pub biases_optimizer: ConvOptimizers,
-    pub kernels_optimizer: ConvOptimizers
+    pub kernels_optimizer: ConvOptimizers,
+    pub dropout: Option<f32>
+}
+
+impl FullDirectConvLayerModel {
+    pub fn to_layer(self, in_img_dims: usize, in_channels: usize) -> (usize, usize, Box<dyn ConvNetworkLayer>) {
+        let inner_layer = DirectConvLayer::new(
+            self.kernels_size,
+            self.kernels_size,
+            in_channels,
+            self.kernels_initializer,
+            self.biases_initializer,
+            self.kernels_optimizer,
+            self.biases_optimizer
+        );
+        
+        let (out_img_dims, _, out_channels) = DirectConvLayer::out_img_dims_and_channels(
+            self.kernels_size,
+            self.kernels_size,
+            in_img_dims,
+            in_img_dims,
+            in_channels,
+        );
+        
+        let layer = FullConvLayer::new(
+            Box::new(inner_layer),
+            self.activation.to_layer(),
+            self.dropout
+        );
+
+        (out_img_dims, out_channels, Box::new(layer))
+    }
+}
+
+pub struct FullDirectConvLayerModelBuilder {
+    pub model: FullDirectConvLayerModel,
+    parent: ConvNetworkModelBuilder
 }
 
 impl FullDirectConvLayerModelBuilder {
@@ -28,7 +60,8 @@ impl FullDirectConvLayerModelBuilder {
                 biases_initializer: ConvInitializers::Zeros,
                 kernels_initializer: ConvInitializers::GlorotUniform,
                 biases_optimizer: conv_sgd(),
-                kernels_optimizer: conv_sgd()
+                kernels_optimizer: conv_sgd(),
+                dropout: None
             },
             parent,
         }
@@ -36,6 +69,16 @@ impl FullDirectConvLayerModelBuilder {
 
     pub fn end(self) -> ConvNetworkModelBuilder {
         self.parent.accept_full_direct(self.model)
+    }
+
+    pub fn dropout(self, dropped_rate: f32) -> Self {
+        Self {
+            model: FullDirectConvLayerModel {
+                dropout: Some(dropped_rate),
+                ..self.model
+            },
+            ..self
+        }
     }
 
     pub fn activation(self, activation: ConvActivation) -> Self {
