@@ -8,7 +8,7 @@ use crate::{
     datatable::DataTable,
     model::Model,
     network::{params::NetworkParams, Network},
-    vec_utils::r2_score_matrix,
+    vec_utils::r2_score_matrix, linalg::{Matrix, MatrixTrait},
 };
 
 use super::Trainer;
@@ -316,38 +316,34 @@ impl Trainer for KFolds {
         let validation_preds = Arc::new(Mutex::new(DataTable::new_empty()));
         let model_eval = Arc::new(Mutex::new(ModelEvaluation::new_empty()));
         let trained_models = Arc::new(Mutex::new(Vec::new()));
-        #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
         let mut handles = Vec::new();
         let k = self.k;
 
         for i in 0..k {
-            #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
-            let handle = self.parallel_k_fold(
-                i,
-                model,
-                data,
-                &validation_preds,
-                &model_eval,
-                &trained_models,
-                k,
-            );
-
-            #[cfg(feature = "arrayfire")]
-            self.sequential_k_fold(
-                i,
-                model,
-                data,
-                &validation_preds,
-                &model_eval,
-                &trained_models,
-                k,
-            );
-
-            #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
-            handles.push(handle);
+            if Matrix::is_backend_thread_safe() {
+                let handle = self.parallel_k_fold(
+                    i,
+                    model,
+                    data,
+                    &validation_preds,
+                    &model_eval,
+                    &trained_models,
+                    k,
+                );
+                handles.push(handle);
+            } else {
+                self.sequential_k_fold(
+                    i,
+                    model,
+                    data,
+                    &validation_preds,
+                    &model_eval,
+                    &trained_models,
+                    k,
+                );
+            }
         }
 
-        #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
         for handle in handles.into_iter() {
             handle.join().unwrap();
         }

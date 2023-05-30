@@ -12,6 +12,10 @@ use super::{MatrixTrait, Scalar};
 pub struct Matrix(DMatrix<Scalar>);
 
 impl MatrixTrait for Matrix {
+    fn is_backend_thread_safe() -> bool {
+        true
+    }
+
     fn zeros(nrow: usize, ncol: usize) -> Self {
         Self(DMatrix::zeros(nrow, ncol))
     }

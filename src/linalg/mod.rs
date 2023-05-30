@@ -44,6 +44,8 @@ pub const BACKEND: Backends = Backends::Nalgebra;
 // pub use faer_matrix::Matrix;
 
 pub trait MatrixTrait: Clone {
+    fn is_backend_thread_safe() -> bool;
+
     fn zeros(nrow: usize, ncol: usize) -> Self;
 
     fn constant(nrow: usize, ncol: usize, value: Scalar) -> Self;

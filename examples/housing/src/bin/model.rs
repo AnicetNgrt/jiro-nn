@@ -32,7 +32,7 @@ pub fn main() {
     let best_model_params = kfold.take_best_model();
     //let avg_model_params = kfold.take_avg_model();
 
-    best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
+    best_model_params.to_json(format!("models_weights/{}_best_params.json", config_name));
     //avg_model_params.to_json(format!("models_stats/{}_avg_params.json", config_name));
 
     let validation_preds = pipeline.revert_columnswise(&validation_preds);
@@ -43,5 +43,5 @@ pub fn main() {
 
     println!("{:#?}", data_and_preds);
 
-    model_eval.to_json_file(format!("models_weights/{}.json", config_name));
+    model_eval.to_json_file(format!("models_stats/{}.json", config_name));
 }

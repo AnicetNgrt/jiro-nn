@@ -3,7 +3,7 @@ use core::fmt;
 use arrayfire::{
     add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq, log,
+    RandomEngine, Seq, log, get_active_backend, Backend,
 };
 use rand::Rng;
 
@@ -15,6 +15,10 @@ use super::{MatrixTrait, Scalar};
 pub struct Matrix(pub Array<Scalar>);
 
 impl MatrixTrait for Matrix {
+    fn is_backend_thread_safe() -> bool {
+        get_active_backend() == Backend::CPU
+    }
+
     fn zeros(nrow: usize, ncol: usize) -> Self {
         Self(constant!(0 as Scalar; nrow.try_into().unwrap(), ncol.try_into().unwrap()))
     }
