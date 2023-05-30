@@ -29,11 +29,11 @@ impl FullDirectConvLayerModel {
         );
         
         let (out_img_dims, _, out_channels) = DirectConvLayer::out_img_dims_and_channels(
-            self.kernels_size,
-            self.kernels_size,
             in_img_dims,
             in_img_dims,
             in_channels,
+            self.kernels_size,
+            self.kernels_size,
         );
         
         let layer = FullConvLayer::new(

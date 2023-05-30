@@ -43,7 +43,6 @@ impl DenseConvLayer {
     pub fn out_img_dims_and_channels(
         in_rows: usize,
         in_cols: usize,
-        in_chans: usize,
         krows: usize,
         kcols: usize,
         kchans: usize,
