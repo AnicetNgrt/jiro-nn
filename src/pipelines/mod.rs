@@ -2,7 +2,7 @@ use std::{
     cell::RefCell,
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
-    rc::Rc,
+    rc::Rc, path::PathBuf,
 };
 
 use crate::{dataset::Dataset, datatable::DataTable};
@@ -27,12 +27,16 @@ pub mod one_hot_encode;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
+    spec: Option<Dataset>,
+    data: Option<DataTable>,
 }
 
 impl Pipeline {
     pub fn new() -> Pipeline {
         Pipeline {
             transformations: Vec::new(),
+            spec: None,
+            data: None,
         }
     }
 
@@ -88,9 +92,22 @@ impl Pipeline {
         self
     }
 
-    pub fn run(&mut self, working_dir: &str, spec: &Dataset) -> (Dataset, DataTable) {
-        let data = DataTable::from_csv_file(format!("{}/{}.csv", working_dir, spec.name))
+    pub fn load_csv<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self 
+    where
+        P: Into<PathBuf>,
+    {
+        let data = DataTable::from_csv_file(dataset_path)
             .select_columns(spec.feature_names().as_slice());
+        
+        self.data = Some(data);
+        self.spec = Some(spec.clone());
+
+        self
+    }
+
+    pub fn run(&mut self, working_dir: &str) -> (Dataset, DataTable) {
+        let data = self.data.clone().unwrap();
+        let spec = self.spec.clone().unwrap();
 
         let mut hasher = DefaultHasher::new();
         spec.hash(&mut hasher);
@@ -101,7 +118,7 @@ impl Pipeline {
             let mut transformation = transformation.borrow_mut();
             id = format!("{}-{}", id, transformation.get_name());
             res = transformation.transform(&id, working_dir, &res.0, &res.1);
-        }
+        }   
         let (spec, data) = res;
 
         let used_features = spec
