@@ -89,7 +89,7 @@ impl Pipeline {
     }
 
     pub fn run(&mut self, working_dir: &str, spec: &Dataset) -> (Dataset, DataTable) {
-        let data = DataTable::from_file(format!("{}/{}.csv", working_dir, spec.name))
+        let data = DataTable::from_csv_file(format!("{}/{}.csv", working_dir, spec.name))
             .select_columns(spec.feature_names().as_slice());
 
         let mut hasher = DefaultHasher::new();

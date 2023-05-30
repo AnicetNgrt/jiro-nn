@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, fs::File,
 };
 
 use crate::linalg::Scalar;
@@ -174,14 +174,48 @@ impl DataTable {
         Self(self.0.sort(&[column], false).unwrap())
     }
 
-    pub fn from_file<P>(path: P) -> Self
+    pub fn from_ipc_file<P>(path: P) -> Self
+    where
+        P: Into<PathBuf>,
+    {
+        Self(IpcReader::new(File::open(path.into()).unwrap()).finish().unwrap())
+    }
+
+    pub fn to_ipc_file<P>(&self, path: P)
+    where
+        P: AsRef<Path>,
+    {
+        let mut file = std::fs::File::create(path).unwrap();
+        IpcWriter::new(&mut file)
+            .finish(&mut self.0.clone())
+            .unwrap();
+    }
+
+    pub fn from_parquet_file<P>(path: P) -> Self
+    where
+        P: Into<PathBuf>,
+    {
+        Self(ParquetReader::new(File::open(path.into()).unwrap()).finish().unwrap())
+    }
+
+    pub fn to_parquet_file<P>(&self, path: P)
+    where
+        P: AsRef<Path>,
+    {
+        let mut file = std::fs::File::create(path).unwrap();
+        ParquetWriter::new(&mut file)
+            .finish(&mut self.0.clone())
+            .unwrap();
+    }
+
+    pub fn from_csv_file<P>(path: P) -> Self
     where
         P: Into<PathBuf>,
     {
         Self(CsvReader::from_path(path).unwrap().finish().unwrap())
     }
 
-    pub fn to_file<P>(&self, path: P)
+    pub fn to_csv_file<P>(&self, path: P)
     where
         P: AsRef<Path>,
     {

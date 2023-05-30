@@ -4,7 +4,7 @@ use neural_networks_rust::{datatable::DataTable};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let model_name = &args[1];
-    let out_data = DataTable::from_file(format!("models_stats/{}.csv", model_name));
+    let out_data = DataTable::from_csv_file(format!("models_stats/{}.csv", model_name));
 
     for col in out_data.get_columns_names().iter() {
         let mut fg = Figure::new();

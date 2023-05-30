@@ -52,7 +52,7 @@ impl FeatureExtractorCached {
     ) -> Option<DataTable> {
         let file_name = self.get_cached_feature_file_name(id, working_dir, feature);
         if std::path::Path::new(&file_name).exists() {
-            let dataset_table = DataTable::from_file(file_name);
+            let dataset_table = DataTable::from_csv_file(file_name);
             Some(dataset_table.get_column_as_table(&feature.name))
         } else {
             None
@@ -100,7 +100,7 @@ impl DataTransformation for FeatureExtractorCached {
                     };
                     dataset_table
                         .get_column_as_table(&extracted_feature.name)
-                        .to_file(self.get_cached_feature_file_name(
+                        .to_csv_file(self.get_cached_feature_file_name(
                             &id,
                             working_dir,
                             &extracted_feature,

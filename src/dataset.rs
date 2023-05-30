@@ -103,7 +103,7 @@ impl Dataset {
         let binding = path.clone();
         let file_name = binding.file_stem().unwrap().to_str().unwrap();
 
-        let table = DataTable::from_file(path);
+        let table = DataTable::from_csv_file(path);
         let feature_names = table.get_columns_names();
         let mut features = Vec::new();
         for feature_name in feature_names {
