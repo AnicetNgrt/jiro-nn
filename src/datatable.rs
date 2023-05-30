@@ -296,10 +296,14 @@ impl DataTable {
     }
 
     pub fn as_scalar_hashmap(&self) -> HashMap<String, Vec<Scalar>> {
-        let columns = self.0.get_column_names();
         let mut hashmap = HashMap::new();
-        for column in columns {
-            hashmap.insert(column.to_string(), self.column_to_vector(column));
+        for column in self.0.get_columns() {
+            if column.dtype().is_numeric() {
+                hashmap.insert(
+                    column.name().to_string(),
+                    self.column_to_vector(column.name()),
+                );
+            }
         }
         hashmap
     }
@@ -452,7 +456,7 @@ impl DataTable {
         let array = series.f64().unwrap();
         let mut serie: Series = array
             .apply(|v| {
-                if (min - max).abs() < 0.0001 && (max - 0.0).abs() < 0.00001  {
+                if (min - max).abs() < 0.0001 && (max - 0.0).abs() < 0.00001 {
                     0.0
                 } else {
                     (((v as Scalar) - min) / (max - min)).into()
