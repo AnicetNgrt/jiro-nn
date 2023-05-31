@@ -18,7 +18,7 @@ pub fn main() {
     let (updated_dataset_spec, data) = pipeline
         .push(AttachIds::new("id"))
         .load_csv("./dataset/kc_house_data.csv", &model.dataset)
-        .run("./dataset");
+        .run();
 
     println!("data: {:#?}", data);
 

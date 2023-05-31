@@ -3,7 +3,7 @@ use crate::{
     datatable::DataTable,
 };
 
-use super::DataTransformation;
+use super::{DataTransformation, CachedConfig};
 
 pub struct AttachIds(pub String);
 
@@ -16,8 +16,7 @@ impl AttachIds {
 impl DataTransformation for AttachIds {
     fn transform(
         &mut self,
-        _id: &String,
-        _working_dir: &str,
+        _cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {

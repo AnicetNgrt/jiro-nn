@@ -7,7 +7,7 @@ use crate::{
     vec_utils::min_vector,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation};
+use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
 
 pub struct LogScale10 {
     logged_features: HashMap<String, Scalar>,
@@ -24,8 +24,7 @@ impl LogScale10 {
 impl DataTransformation for LogScale10 {
     fn transform(
         &mut self,
-        id: &String,
-        working_dir: &str,
+        cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
@@ -68,7 +67,7 @@ impl DataTransformation for LogScale10 {
             ),
         );
 
-        extractor.transform(id, working_dir, spec, data)
+        extractor.transform(cached_config, spec, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

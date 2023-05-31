@@ -1,6 +1,6 @@
 use crate::{dataset::Dataset, datatable::DataTable};
 
-use super::DataTransformation;
+use super::{DataTransformation, CachedConfig};
 
 pub struct Sample {
     pub count: usize,
@@ -16,8 +16,7 @@ impl Sample {
 impl DataTransformation for Sample {
     fn transform(
         &mut self,
-        _id: &String,
-        _working_dir: &str,
+        _cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {

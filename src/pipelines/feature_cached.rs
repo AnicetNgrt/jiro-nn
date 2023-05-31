@@ -5,7 +5,7 @@ use crate::{
     datatable::DataTable,
 };
 
-use super::DataTransformation;
+use super::{CachedConfig, DataTransformation};
 
 pub struct FeatureExtractorCached {
     pub extracted_feature_spec: Box<dyn Fn(&Feature) -> Option<Feature>>,
@@ -58,53 +58,67 @@ impl FeatureExtractorCached {
             None
         }
     }
+
+    fn transform_no_cache(
+        &mut self,
+        mut dataset_table: DataTable,
+        feature: &Feature,
+        extracted_feature: &Feature,
+    ) -> DataTable {
+        let old_column = dataset_table.get_column_as_table(&feature.name);
+        dataset_table = (self.extract_feature)(&dataset_table, &extracted_feature, feature);
+        // if the transformation replaced the old column, we need to add it back
+        dataset_table =
+            if extracted_feature.name != feature.name && !dataset_table.has_column(&feature.name) {
+                dataset_table.append_table_as_column(&old_column)
+            } else {
+                dataset_table
+            };
+        dataset_table
+    }
 }
 
 impl DataTransformation for FeatureExtractorCached {
     fn transform(
         &mut self,
-        id: &String,
-        working_dir: &str,
+        cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut new_spec = spec.clone();
         let mut dataset_table = data.clone();
-        // create the dataset/cached directory if it does not exist
-        std::fs::create_dir_all(format!("{}/cached/", working_dir))
-            .expect("Failed to create cache directory");
+
+        if let CachedConfig::Cached { working_dir, .. } = cached_config {
+            // create the dataset/cached directory if it does not exist
+            std::fs::create_dir_all(format!("{}/cached/", working_dir))
+                .expect("Failed to create cache directory");
+        }
 
         for feature in &spec.features {
             if let Some(extracted_feature) = (self.extracted_feature_spec)(feature) {
-                if let Some(cached_data) =
-                    self.get_cached_feature(&id, working_dir, &extracted_feature)
-                {
-                    dataset_table = if extracted_feature.name == feature.name {
-                        dataset_table
-                            .drop_column(&feature.name)
-                            .append_table_as_column(&cached_data)
-                    } else {
-                        dataset_table.append_table_as_column(&cached_data)
-                    };
-                } else {
-                    let old_column = dataset_table.get_column_as_table(&feature.name);
-                    dataset_table =
-                        (self.extract_feature)(&dataset_table, &extracted_feature, feature);
-                    // if the transformation replaced the old column, we need to add it back
-                    dataset_table = if extracted_feature.name != feature.name
-                        && !dataset_table.has_column(&feature.name)
+                if let CachedConfig::Cached { id, working_dir } = cached_config {
+                    if let Some(cached_data) =
+                        self.get_cached_feature(&id, working_dir, &extracted_feature)
                     {
-                        dataset_table.append_table_as_column(&old_column)
+                        dataset_table = if extracted_feature.name == feature.name {
+                            dataset_table
+                                .drop_column(&feature.name)
+                                .append_table_as_column(&cached_data)
+                        } else {
+                            dataset_table.append_table_as_column(&cached_data)
+                        };
                     } else {
+                        dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
                         dataset_table
-                    };
-                    dataset_table
-                        .get_column_as_table(&extracted_feature.name)
-                        .to_csv_file(self.get_cached_feature_file_name(
-                            &id,
-                            working_dir,
-                            &extracted_feature,
-                        ));
+                            .get_column_as_table(&extracted_feature.name)
+                            .to_csv_file(self.get_cached_feature_file_name(
+                                &id,
+                                working_dir,
+                                &extracted_feature,
+                            ));
+                    }
+                } else {
+                    dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
                 }
 
                 new_spec = if extracted_feature.name == feature.name {

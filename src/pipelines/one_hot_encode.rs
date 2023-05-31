@@ -5,15 +5,14 @@ use crate::{
     datatable::DataTable, linalg::Scalar,
 };
 
-use super::{DataTransformation};
+use super::{DataTransformation, CachedConfig};
 
 pub struct OneHotEncode;
 
 impl DataTransformation for OneHotEncode {
     fn transform(
         &mut self,
-        _: &String,
-        _working_dir: &str,
+        _cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {

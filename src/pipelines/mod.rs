@@ -2,7 +2,8 @@ use std::{
     cell::RefCell,
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
-    rc::Rc, path::PathBuf,
+    path::PathBuf,
+    rc::Rc,
 };
 
 use crate::{dataset::Dataset, datatable::DataTable};
@@ -10,7 +11,7 @@ use crate::{dataset::Dataset, datatable::DataTable};
 use self::{
     extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
     filter_outliers::FilterOutliers, log_scale::LogScale10, map::Map, normalize::Normalize,
-    square::Square, one_hot_encode::OneHotEncode,
+    one_hot_encode::OneHotEncode, square::Square,
 };
 
 pub mod attach_ids;
@@ -21,23 +22,38 @@ pub mod filter_outliers;
 pub mod log_scale;
 pub mod map;
 pub mod normalize;
+pub mod one_hot_encode;
 pub mod sample;
 pub mod square;
-pub mod one_hot_encode;
 
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
+    cached_config: CachedConfig,
     spec: Option<Dataset>,
     data: Option<DataTable>,
+}
+
+pub enum CachedConfig {
+    NotCached,
+    Cached { id: String, working_dir: String },
 }
 
 impl Pipeline {
     pub fn new() -> Pipeline {
         Pipeline {
             transformations: Vec::new(),
+            cached_config: CachedConfig::NotCached,
             spec: None,
             data: None,
         }
+    }
+
+    pub fn cached(&mut self, working_dir: &str) -> &mut Self {
+        self.cached_config = CachedConfig::Cached {
+            id: "".to_string(),
+            working_dir: working_dir.to_string(),
+        };
+        self
     }
 
     /// Creates a pipeline that does every possible operations once.
@@ -92,20 +108,20 @@ impl Pipeline {
         self
     }
 
-    pub fn load_csv<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self 
+    pub fn load_csv<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self
     where
         P: Into<PathBuf>,
     {
-        let data = DataTable::from_csv_file(dataset_path)
-            .select_columns(spec.feature_names().as_slice());
-        
+        let data =
+            DataTable::from_csv_file(dataset_path).select_columns(spec.feature_names().as_slice());
+
         self.data = Some(data);
         self.spec = Some(spec.clone());
 
         self
     }
 
-    pub fn run(&mut self, working_dir: &str) -> (Dataset, DataTable) {
+    pub fn run(&mut self) -> (Dataset, DataTable) {
         let data = self.data.clone().unwrap();
         let spec = self.spec.clone().unwrap();
 
@@ -117,8 +133,8 @@ impl Pipeline {
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
             id = format!("{}-{}", id, transformation.get_name());
-            res = transformation.transform(&id, working_dir, &res.0, &res.1);
-        }   
+            res = transformation.transform(&self.cached_config, &res.0, &res.1);
+        }
         let (spec, data) = res;
 
         let used_features = spec
@@ -153,8 +169,7 @@ pub trait DataTransformation {
     fn get_name(&self) -> String;
     fn transform(
         &mut self,
-        id: &String,
-        working_dir: &str,
+        cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable);

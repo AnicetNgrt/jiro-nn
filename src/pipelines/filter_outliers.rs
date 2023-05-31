@@ -1,14 +1,13 @@
 use crate::{dataset::Dataset, datatable::DataTable, vec_utils::vector_quartiles_iqr};
 
-use super::DataTransformation;
+use super::{DataTransformation, CachedConfig};
 
 pub struct FilterOutliers;
 
 impl DataTransformation for FilterOutliers {
     fn transform(
         &mut self,
-        _id: &String,
-        _working_dir: &str,
+        _cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {

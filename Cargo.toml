@@ -23,6 +23,7 @@ exclude = [
 nalgebra-glm = "0.18.0"
 nalgebra = { version = "0.32.2", optional = true, features = ["rand", "rayon"] }
 libm = "0.2.6"
+# https://pola-rs.github.io/polars-book/user-guide/installation/#rust
 polars = { version = "0.28.0", features = ["lazy", "streaming", "parquet", "ipc"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"

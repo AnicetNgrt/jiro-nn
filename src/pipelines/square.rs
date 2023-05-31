@@ -5,7 +5,7 @@ use crate::{
     datatable::DataTable,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation};
+use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
 
 pub struct Square {
     squared_features: HashSet<String>,
@@ -22,8 +22,7 @@ impl Square {
 impl DataTransformation for Square {
     fn transform(
         &mut self,
-        id: &String,
-        working_dir: &str,
+        cached_config: &CachedConfig,
         spec: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
@@ -57,7 +56,7 @@ impl DataTransformation for Square {
             ),
         );
 
-        extractor.transform(id, working_dir, spec, data)
+        extractor.transform(cached_config, spec, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

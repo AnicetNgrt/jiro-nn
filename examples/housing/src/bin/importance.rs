@@ -18,7 +18,7 @@ pub fn main() {
     let (updated_dataset_spec, data) = pipeline
         .prepend(Sample::new(21000, true))
         .load_csv("./dataset/kc_house_data.csv", &model.dataset)
-        .run("./dataset");
+        .run();
 
     println!("Data: {:#?}", data);
 

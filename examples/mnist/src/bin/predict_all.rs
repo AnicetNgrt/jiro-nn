@@ -17,7 +17,8 @@ pub fn main() {
     let mut pipeline = Pipeline::basic_single_pass();
     let (updated_dataset_spec, data) = pipeline
         .push(AttachIds::new("id"))
-        .run("./dataset", &model.dataset);
+        .load_csv("./dataset/train.csv", &model.dataset)
+        .run();
 
     println!("data: {:#?}", data);
 
@@ -49,5 +50,5 @@ pub fn main() {
     let data = pipeline.revert_columnswise(&data);
     let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
-    data_and_preds.to_file(format!("models_stats/{}.csv", out_name));
+    data_and_preds.to_csv_file(format!("models_stats/{}.csv", out_name));
 }
