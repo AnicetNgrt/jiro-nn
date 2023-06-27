@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf}, fs::File,
+    fs::File,
+    path::{Path, PathBuf},
 };
 
 use crate::linalg::Scalar;
@@ -9,6 +10,8 @@ use polars::prelude::*;
 
 #[derive(Clone, Debug)]
 pub struct DataTable(DataFrame);
+
+pub type Series = polars::series::Series;
 
 impl DataTable {
     pub fn new_empty() -> Self {
@@ -72,35 +75,29 @@ impl DataTable {
         right_on: &str,
         prefix: Option<&str>,
     ) -> Self {
-        let columns = table.get_columns();
-        let (new_columns, right_on) = if let Some(prefix) = prefix {
-            let mut new_columns = Vec::new();
-            for mut column in columns {
-                let name = column.name();
-                if self.has_column(name) {
-                    let column = column.rename(&format!("{}_{}", prefix, name));
-                    new_columns.push(column.clone());
-                } else {
-                    new_columns.push(column);
-                }
-            }
-            (new_columns, format!("{}_{}", prefix, right_on))
-        } else {
-            (columns, right_on.to_string())
-        };
-
-        let table = DataFrame::new(new_columns).unwrap();
-
-        let df = self
-            .0
+        let prefix = prefix.map(|s| format!("{}_", s.to_string()));
+        let result = self.0
             .join(
-                &table,
+                table.df(),
                 [left_on],
-                [right_on.as_str()],
+                [right_on],
                 JoinType::Inner,
-                None,
+                prefix.clone(),
             )
             .unwrap();
+        
+        let mut df = result.clone();
+        let names = result.get_column_names();
+
+        if let Some(prefix) = prefix {
+            for column_name in names {
+                if column_name.ends_with(&prefix) {
+                    let new_name = format!("{}{}", prefix, column_name.replace(&prefix, ""));
+                    df.rename(column_name, &new_name).unwrap();
+                }
+            }
+        }
+
         Self(df)
     }
 
@@ -178,7 +175,11 @@ impl DataTable {
     where
         P: Into<PathBuf>,
     {
-        Self(IpcReader::new(File::open(path.into()).unwrap()).finish().unwrap())
+        Self(
+            IpcReader::new(File::open(path.into()).unwrap())
+                .finish()
+                .unwrap(),
+        )
     }
 
     pub fn to_ipc_file<P>(&self, path: P)
@@ -195,7 +196,11 @@ impl DataTable {
     where
         P: Into<PathBuf>,
     {
-        Self(ParquetReader::new(File::open(path.into()).unwrap()).finish().unwrap())
+        Self(
+            ParquetReader::new(File::open(path.into()).unwrap())
+                .finish()
+                .unwrap(),
+        )
     }
 
     pub fn to_parquet_file<P>(&self, path: P)

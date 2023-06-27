@@ -1062,6 +1062,7 @@ dependencies = [
  "assert_float_eq",
  "bincode",
  "flate2",
+ "lazy_static",
  "libm",
  "nalgebra",
  "nalgebra-glm",

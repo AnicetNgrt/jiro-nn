@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::{
     layer::{Layer, ParameterableLayer},
     linalg::{Matrix, MatrixTrait, Scalar},
-    loss::Loss,
+    loss::Loss, introspect::GlobalIntrospector,
 };
 
 use self::params::NetworkParams;
@@ -121,6 +121,7 @@ impl Network {
         loss: &Loss,
         batch_size: usize,
     ) -> Scalar {
+        GlobalIntrospector::start_task("network.train");
         self.layers.iter_mut().for_each(|l| {
             l.as_dropout_layer().map(|l| l.enable_dropout());
         });
@@ -129,13 +130,15 @@ impl Network {
         let mut i = 0;
         let x_train_batches: Vec<_> = x_train.chunks(batch_size).map(|c| c.to_vec()).collect();
         let y_train_batches: Vec<_> = y_train.chunks(batch_size).map(|c| c.to_vec()).collect();
-
+        
+        GlobalIntrospector::start_progress("network.batches", x_train_batches.len());
         for (input_batch, y_true_batch) in
             x_train_batches.into_iter().zip(y_train_batches.into_iter())
         {
             let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
-            let pred = self.layers.forward(input_batch_matrix);
 
+            let pred = self.layers.forward(input_batch_matrix);
+            
             let y_true_batch_matrix = Matrix::from_column_leading_matrix(&y_true_batch);
             let e = loss.loss(&y_true_batch_matrix, &pred);
 
@@ -144,26 +147,35 @@ impl Network {
             let error_gradient = loss.loss_prime(&y_true_batch_matrix, &pred);
             self.layers.backward(epoch, error_gradient);
             i += 1;
+
+            GlobalIntrospector::inc_progress("network.batches", 1);
         }
         error /= i as Scalar;
+        GlobalIntrospector::end_task("network.train");
         error
     }
 }
 
 impl Layer for Vec<Box<dyn NetworkLayer>> {
     fn forward(&mut self, input: Matrix) -> Matrix {
+        GlobalIntrospector::start_task("network.forward");
         let mut output = input;
+
         for (_, layer) in self.iter_mut().enumerate() {
             output = layer.forward(output);
         }
+
+        GlobalIntrospector::end_task("network.forward");
         output
     }
 
     fn backward(&mut self, epoch: usize, error_gradient: Matrix) -> Matrix {
+        GlobalIntrospector::start_task("network.backward");
         let mut error_gradient = error_gradient;
         for layer in self.iter_mut().rev() {
             error_gradient = layer.backward(epoch, error_gradient);
         }
+        GlobalIntrospector::end_task("network.backward");
         error_gradient
     }
 }

@@ -1,3 +1,4 @@
+use neural_networks_rust::introspect::GlobalIntrospector;
 use neural_networks_rust::model::Model;
 use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
@@ -6,6 +7,8 @@ use neural_networks_rust::trainers::Trainer;
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
+
+    GlobalIntrospector::toggle_printing();
 
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
 
