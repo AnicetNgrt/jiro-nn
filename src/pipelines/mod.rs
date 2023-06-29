@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{dataset::Dataset, datatable::DataTable};
+use crate::{dataset::Dataset, datatable::DataTable, introspect::GI};
 
 use self::{
     extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
@@ -122,6 +122,8 @@ impl Pipeline {
     }
 
     pub fn run(&mut self) -> (Dataset, DataTable) {
+        GI::start_task("pipeline");
+
         let data = self.data.clone().unwrap();
         let spec = self.spec.clone().unwrap();
 
@@ -132,8 +134,13 @@ impl Pipeline {
 
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
+
+            GI::start_task(&transformation.get_name());
+
             id = format!("{}-{}", id, transformation.get_name());
             res = transformation.transform(&self.cached_config, &res.0, &res.1);
+
+            GI::end_task();
         }
         let (spec, data) = res;
 
@@ -150,6 +157,8 @@ impl Pipeline {
         };
 
         let data = data.select_columns(spec.feature_names().as_slice());
+
+        GI::end_task();
 
         (spec, data)
     }

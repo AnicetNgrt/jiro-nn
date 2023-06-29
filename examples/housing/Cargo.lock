@@ -745,6 +745,7 @@ name = "housing"
 version = "0.1.0"
 dependencies = [
  "gnuplot",
+ "indicatif",
  "neural_networks_rust",
  "rand",
 ]

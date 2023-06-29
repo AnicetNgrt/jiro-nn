@@ -4,7 +4,7 @@ use crate::{
     layer::{DropoutLayer, Layer, LearnableLayer, ParameterableLayer},
     linalg::{Matrix, Scalar},
     network::NetworkLayer,
-    vision::{image::Image, image::ImageTrait}, introspect::GlobalIntrospector,
+    vision::{image::Image, image::ImageTrait}, introspect::GI,
 };
 
 use super::image_layer::ImageLayer;
@@ -24,30 +24,35 @@ impl ConvNetwork {
 
 impl Layer for ConvNetwork {
     fn forward(&mut self, input: Matrix) -> Matrix {
-        GlobalIntrospector::start_task("network.conv.forward");
+        GI::start_task("cnet.forw");
         let mut output = Image::from_samples(&input, self.channels);
-        
-        for (_, layer) in self.layers.iter_mut().enumerate() {
+        let n_layers = self.layers.len();
+
+        for (i, layer) in self.layers.iter_mut().enumerate() {
+            GI::start_task(format!("layer[{}/{}]", i+1, n_layers));
             output = layer.forward(output);
+            GI::end_task();
         }
         
         self.out_channels = Some(output.channels());
         
         let out = output.flatten();
-        GlobalIntrospector::end_task("network.conv.forward");
+        GI::end_task();
         out
     }
 
     fn backward(&mut self, epoch: usize, error_gradient: Matrix) -> Matrix {
-        GlobalIntrospector::start_task("network.conv.backward");
+        GI::start_task("cnet.back");
         let mut error_gradient = Image::from_samples(&error_gradient, self.out_channels.unwrap());
         
-        for layer in self.layers.iter_mut().rev() {
+        for (i, layer) in self.layers.iter_mut().enumerate().rev() {
+            GI::start_task(format!("layer[{}]", i+1));
             error_gradient = layer.backward(epoch, error_gradient);
+            GI::end_task();
         }
         
         let grad = error_gradient.flatten();
-        GlobalIntrospector::end_task("network.conv.backward");
+        GI::end_task();
         grad
     }
 }

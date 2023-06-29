@@ -1,4 +1,3 @@
-use neural_networks_rust::introspect::GlobalIntrospector;
 use neural_networks_rust::model::Model;
 use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
@@ -8,30 +7,25 @@ pub fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
 
-    GlobalIntrospector::toggle_printing();
-
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
 
     let mut pipeline = Pipeline::basic_single_pass();
-    let (updated_dataset_spec, data) = pipeline
+    let (dspec, data) = pipeline
         .push(AttachIds::new("id"))
         .load_csv("./dataset/train.csv", &model.dataset)
         .run();
 
-    println!("data: {:#?}", data);
-
-    let model = model.with_new_dataset(updated_dataset_spec);
+    let model = model.with_new_dataset(dspec);
     
     let mut training = model.trainer.maybe_split().expect("Only Split trainer is supported");
     let (validation_preds, model_eval) = training
         .attach_real_time_reporter(|epoch, report| {
-            println!("Perf report: {:4} {:#?}", epoch, report)
+            println!("Performance report: {:4} {:#?}", epoch, report)
         })
         .run(&model, &data);
 
-    let best_model_params = training.take_model();
-
-    best_model_params.to_json(format!("models_stats/{}_best_params.json", config_name));
+    let model_params = training.take_model();
+    model_params.to_json(format!("models_stats/{}_params.json", config_name));
 
     let validation_preds = pipeline.revert_columnswise(&validation_preds);
     let data = pipeline.revert_columnswise(&data);
