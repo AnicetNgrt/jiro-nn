@@ -1,7 +1,7 @@
 use neural_networks_rust::{
 	dataset::{Dataset, FeatureOptions::*},
 	model::ModelBuilder,
-	pipelines::map::{MapOp, MapSelector, MapValue}, trainers::Trainers,
+	pipelines::map::{MapOp, MapSelector, MapValue},
 };
 
 fn main() {
@@ -46,7 +46,6 @@ fn main() {
 			.end()
 		.end()
 		.batch_size(128)
-		.trainer(Trainers::KFolds(8))
 		.epochs(500)
 		.build();
 

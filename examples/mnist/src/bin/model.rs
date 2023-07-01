@@ -2,7 +2,7 @@ use neural_networks_rust::model::Model;
 use neural_networks_rust::monitor::TasksMonitor;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
 use neural_networks_rust::pipelines::Pipeline;
-use neural_networks_rust::trainers::Trainer;
+use neural_networks_rust::trainers::split::SplitTraining;
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -19,6 +19,7 @@ pub fn main() {
         .run();
 
     TasksMonitor::start("modelinit");
+    
     let model = model.with_new_dataset(dspec);
 
     TasksMonitor::end_with_message(format!(
@@ -26,10 +27,7 @@ pub fn main() {
         model.to_network().get_params().count()
     ));
 
-    let mut training = model
-        .trainer
-        .maybe_split()
-        .expect("Only Split trainer is supported");
+    let mut training = SplitTraining::new(0.8);
     let (validation_preds, model_eval) = training.run(&model, &data);
 
     TasksMonitor::stop_monitoring();

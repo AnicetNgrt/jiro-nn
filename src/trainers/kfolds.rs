@@ -13,8 +13,6 @@ use crate::{
     vec_utils::r2_score_matrix,
 };
 
-use super::Trainer;
-
 pub type ReporterClosure = dyn FnMut(usize, usize, EpochEvaluation) -> () + Send + Sync;
 
 /// K-Folds trainer
@@ -368,16 +366,14 @@ impl KFolds {
 
         handle
     }
-}
 
-impl Trainer for KFolds {
     /// Runs the k-fold cross validation
     ///
     /// Assumes the data has all the columns corresponding to the model's dataset.
     ///
     /// Assumes both the data and the model's dataset include an id feature.
-
-    fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
+    /// 
+    pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
         TasksMonitor::start("kfolds");
 
         // Init the data structures for parallel computing

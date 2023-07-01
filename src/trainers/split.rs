@@ -8,8 +8,6 @@ use crate::{
     vec_utils::r2_score_matrix,
 };
 
-use super::Trainer;
-
 pub type ReporterClosure = dyn FnMut(usize, EpochEvaluation) -> ();
 
 pub struct SplitTraining {
@@ -70,10 +68,8 @@ impl SplitTraining {
         self.real_time_reporter = Some(Box::new(reporter));
         self
     }
-}
 
-impl Trainer for SplitTraining {
-    fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
+    pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
         TasksMonitor::start("split");
 
         TasksMonitor::start("init");

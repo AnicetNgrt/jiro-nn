@@ -1,7 +1,7 @@
 use neural_networks_rust::{
     dataset::{Dataset, FeatureOptions::*},
     model::ModelBuilder,
-    trainers::Trainers, loss::Losses,
+    loss::Losses,
 };
 
 fn main() {
@@ -34,7 +34,6 @@ fn main() {
         .end()
         .epochs(10)
         .batch_size(128)
-        .trainer(Trainers::SplitTraining(0.8))
         .loss(Losses::BCE)
         .build();
 

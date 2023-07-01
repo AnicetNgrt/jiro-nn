@@ -1,7 +1,8 @@
 use neural_networks_rust::model::Model;
 use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
-use neural_networks_rust::trainers::Trainer;
+use neural_networks_rust::trainers::kfolds::KFolds;
+
 
 pub fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -19,7 +20,7 @@ pub fn main() {
 
     let model = model.with_new_dataset(updated_dataset_spec);
     
-    let mut kfold = model.trainer.maybe_kfold().expect("Only KFolds trainer is supported");
+    let mut kfold = KFolds::new(10);
     let (validation_preds, model_eval) = kfold
         .attach_real_time_reporter(|fold, epoch, report| {
             println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)

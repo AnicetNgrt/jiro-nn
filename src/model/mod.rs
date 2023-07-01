@@ -11,7 +11,6 @@ use crate::datatable::DataTable;
 use crate::linalg::Scalar;
 use crate::loss::Losses;
 use crate::network::{Network};
-use crate::trainers::Trainers;
 
 use self::network_model::{NetworkModel, NetworkModelBuilder};
 
@@ -30,22 +29,11 @@ impl ModelBuilder {
         Self {
             model: Model {
                 dataset,
-                trainer: Trainers::SplitTraining(0.8),
                 loss: Losses::MSE,
                 epochs: 100,
                 batch_size: Some(32),
                 network: None
             }
-        }
-    }
-
-    pub fn trainer(self, trainer: Trainers) -> Self {
-        Self {
-            model: Model {
-                trainer,
-                ..self.model
-            }, 
-            ..self
         }
     }
 
@@ -98,7 +86,6 @@ pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
     pub batch_size: Option<usize>,
-    pub trainer: Trainers,
     pub dataset: Dataset,
     pub network: Option<NetworkModel>
 }
