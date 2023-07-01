@@ -71,8 +71,31 @@ impl Network {
     /// `inputs` has shape `(n, i)` where `n` is the number of samples and `i` is the number of inputs.
     ///
     /// Returns `preds` which has shape `(n, j)` where `n` is the number of samples and `j` is the number of outputs.
-    pub fn predict_many(&mut self, inputs: &Vec<Vec<Scalar>>) -> Vec<Vec<Scalar>> {
-        let preds: Vec<_> = inputs.into_iter().map(|x| self.predict(x)).collect();
+    pub fn predict_many(&mut self, inputs: &Vec<Vec<Scalar>>, batch_size: usize) -> Vec<Vec<Scalar>> {
+        TasksMonitor::start("predmany");
+        TasksMonitor::start("init");
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| l.disable_dropout());
+        });
+
+        let mut preds = vec![];
+        let mut i = 0;
+        let x_batches: Vec<_> = inputs.chunks(batch_size).map(|c| c.to_vec()).collect();
+        let n_batches = x_batches.len();
+        TasksMonitor::end();
+
+        TasksMonitor::start("batches");
+        for input_batch in x_batches.into_iter()
+        {
+            TasksMonitor::start(format!("{}/{}", i, n_batches));
+            let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
+            let pred = self.layers.forward(input_batch_matrix);
+            preds.extend(pred.get_data_col_leading());
+            i += 1;
+            TasksMonitor::end();
+        }
+        TasksMonitor::end();
+        TasksMonitor::end();
 
         preds
     }
@@ -90,21 +113,48 @@ impl Network {
         inputs: &Vec<Vec<Scalar>>,
         ys: &Vec<Vec<Scalar>>,
         loss: &Loss,
+        batch_size: usize
     ) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
-        let preds_losses: Vec<_> = inputs
-            .into_iter()
-            .zip(ys.into_iter())
-            .map(|(x, y)| self.predict_evaluate(x.clone(), y.clone(), loss))
-            .collect();
+        TasksMonitor::start("predevmany");
+        TasksMonitor::start("init");
+        self.layers.iter_mut().for_each(|l| {
+            l.as_dropout_layer().map(|l| l.disable_dropout());
+        });
 
-        let preds = preds_losses.iter().map(|(p, _)| p.clone()).collect();
-        let losses: Vec<_> = preds_losses.iter().map(|(_, l)| *l).collect();
-        let avg_loss = losses.iter().sum::<Scalar>() / preds_losses.len() as Scalar;
+        let mut losses = vec![];
+        let mut preds = vec![];
+        let mut i = 0;
+        let x_batches: Vec<_> = inputs.chunks(batch_size).map(|c| c.to_vec()).collect();
+        let y_batches: Vec<_> = ys.chunks(batch_size).map(|c| c.to_vec()).collect();
+        let n_batches = x_batches.len();
+        TasksMonitor::end();
+        
+        TasksMonitor::start("batches");
+        for (input_batch, y_true_batch) in
+            x_batches.into_iter().zip(y_batches.into_iter())
+        {
+            TasksMonitor::start(format!("{}/{}", i, n_batches));
+            let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
+            let pred = self.layers.forward(input_batch_matrix);
+            let y_true_batch_matrix = Matrix::from_column_leading_matrix(&y_true_batch);
+            let e = loss.loss(&y_true_batch_matrix, &pred);
+
+            losses.push(e);
+            preds.extend(pred.get_data_col_leading());
+            i += 1;
+            TasksMonitor::end();
+        }
+        TasksMonitor::end();
+
+        TasksMonitor::start("stats");
+        let avg_loss = losses.iter().sum::<Scalar>() / losses.len() as Scalar;
         let std_loss = losses
             .iter()
             .fold(0., |acc, x| acc + (x - avg_loss).powi(2))
-            / preds_losses.len() as Scalar;
-
+            / losses.len() as Scalar;
+        TasksMonitor::end();
+        
+        TasksMonitor::end_with_message(format!("avg_loss: {}, std_loss: {}", avg_loss, std_loss));
         (preds, avg_loss, std_loss)
     }
 
@@ -121,6 +171,7 @@ impl Network {
         loss: &Loss,
         batch_size: usize,
     ) -> Scalar {
+        TasksMonitor::start("train");
         TasksMonitor::start("init");
         self.layers.iter_mut().for_each(|l| {
             l.as_dropout_layer().map(|l| l.enable_dropout());
@@ -154,6 +205,7 @@ impl Network {
         }
         error /= i as Scalar;
         TasksMonitor::end();
+        TasksMonitor::end_with_message(format!("avg_error: {:.4}", error));
         error
     }
 }

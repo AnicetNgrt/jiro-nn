@@ -116,7 +116,7 @@ pub trait MatrixTrait: Clone {
 
     fn transpose(&self) -> Self;
 
-    fn get_data(&self) -> Vec<Vec<Scalar>>;
+    fn get_data_col_leading(&self) -> Vec<Vec<Scalar>>;
 
     fn get_data_row_leading(&self) -> Vec<Vec<Scalar>>;
 

@@ -91,7 +91,7 @@ impl Layer for DenseLayer {
 impl LearnableLayer for DenseLayer {
     // returns a matrix of the (jxi) weights and the final column being the (j) biases
     fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        let mut params = self.weights.get_data();
+        let mut params = self.weights.get_data_col_leading();
         params.push(self.biases.get_column(0));
         params
     }

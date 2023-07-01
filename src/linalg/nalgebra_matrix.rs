@@ -169,7 +169,7 @@ impl MatrixTrait for Matrix {
         Self(self.0.transpose())
     }
 
-    fn get_data(&self) -> Vec<Vec<Scalar>> {
+    fn get_data_col_leading(&self) -> Vec<Vec<Scalar>> {
         let mut result = vec![vec![0.0; self.0.nrows()]; self.0.ncols()];
         for (j, col) in self.0.column_iter().enumerate() {
             for (i, row) in col.iter().enumerate() {

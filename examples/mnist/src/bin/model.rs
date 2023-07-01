@@ -1,7 +1,7 @@
 use neural_networks_rust::model::Model;
 use neural_networks_rust::monitor::TasksMonitor;
-use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
+use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::trainers::Trainer;
 
 pub fn main() {
@@ -18,14 +18,19 @@ pub fn main() {
         .load_csv("./dataset/train.csv", &model.dataset)
         .run();
 
+    TasksMonitor::start("modelinit");
     let model = model.with_new_dataset(dspec);
-    
-    let mut training = model.trainer.maybe_split().expect("Only Split trainer is supported");
-    let (validation_preds, model_eval) = training
-        .attach_real_time_reporter(|epoch, report| {
-            println!("Performance report: {:4} {:#?}", epoch, report)
-        })
-        .run(&model, &data);
+
+    TasksMonitor::end_with_message(format!(
+        "Model parameters count: {}",
+        model.to_network().get_params().count()
+    ));
+
+    let mut training = model
+        .trainer
+        .maybe_split()
+        .expect("Only Split trainer is supported");
+    let (validation_preds, model_eval) = training.run(&model, &data);
 
     TasksMonitor::stop_monitoring();
 

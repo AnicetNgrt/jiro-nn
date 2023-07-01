@@ -22,7 +22,7 @@ impl NetworkParams {
                 layer_params = layer_params.component_add(&other_params).scalar_div(2.0);
             }
 
-            params.push(layer_params.get_data());
+            params.push(layer_params.get_data_col_leading());
         }
 
         NetworkParams(params)
@@ -57,7 +57,7 @@ impl NetworkParams {
         bincode::deserialize(buffer.as_slice()).unwrap()
     }
 
-    pub fn params_count(&self) -> usize {
+    pub fn count(&self) -> usize {
         self.0.iter().map(|l| l.iter().map(|l| l.len()).sum::<usize>()).sum()
     }
 }

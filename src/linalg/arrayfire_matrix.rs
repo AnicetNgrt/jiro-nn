@@ -202,7 +202,7 @@ impl MatrixTrait for Matrix {
         Self(transpose(&self.0, false))
     }
 
-    fn get_data(&self) -> Vec<Vec<Scalar>> {
+    fn get_data_col_leading(&self) -> Vec<Vec<Scalar>> {
         let mut cols = Vec::new();
         for i in 0..self.dim().1 {
             cols.push(self.get_column(i));
@@ -304,7 +304,7 @@ impl Matrix {
 impl fmt::Debug for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = String::new();
-        for row in self.get_data() {
+        for row in self.get_data_col_leading() {
             result.push_str(&format!("{:?}\n", row));
         }
 

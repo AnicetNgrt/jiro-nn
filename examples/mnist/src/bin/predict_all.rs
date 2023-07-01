@@ -34,7 +34,7 @@ pub fn main() {
     let mut network = model.to_network();
     network.load_params(&weights);
 
-    let (preds, avg_loss, std_loss) = network.predict_evaluate_many(&x, &y, &model.loss.to_loss());
+    let (preds, avg_loss, std_loss) = network.predict_evaluate_many(&x, &y, &model.loss.to_loss(), 1);
 
     println!("avg_loss: {:#?}", avg_loss);
     println!("std_loss: {:#?}", std_loss);

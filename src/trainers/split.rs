@@ -1,9 +1,11 @@
 use crate::{
-    benchmarking::{EpochEvaluation, TrainingEvaluation, ModelEvaluation},
+    benchmarking::{EpochEvaluation, ModelEvaluation, TrainingEvaluation},
     datatable::DataTable,
+    linalg::Scalar,
     model::Model,
-    network::{params::NetworkParams},
-    vec_utils::r2_score_matrix, linalg::Scalar, monitor::TasksMonitor,
+    monitor::TasksMonitor,
+    network::params::NetworkParams,
+    vec_utils::r2_score_matrix,
 };
 
 use super::Trainer;
@@ -25,7 +27,7 @@ impl SplitTraining {
             real_time_reporter: None,
             all_epochs_validation: false,
             all_epochs_r2: false,
-            model: None
+            model: None,
         }
     }
 
@@ -60,7 +62,7 @@ impl SplitTraining {
     /// The reporter is a closure that takes as arguments:
     /// - the current epoch
     /// - the evaluation of the current epoch
-    /// 
+    ///
     pub fn attach_real_time_reporter<F>(&mut self, reporter: F) -> &mut Self
     where
         F: FnMut(usize, EpochEvaluation) -> () + 'static,
@@ -75,7 +77,7 @@ impl Trainer for SplitTraining {
         TasksMonitor::start("split");
 
         TasksMonitor::start("init");
-        
+
         let mut validation_preds = DataTable::new_empty();
         let mut model_eval = ModelEvaluation::new_empty();
 
@@ -95,8 +97,7 @@ impl Trainer for SplitTraining {
         let validation_y = validation_y_table.to_vectors();
 
         TasksMonitor::end_with_message(format!(
-            "Initialized network with {} parameters\nInitialized training with {} samples\nInitialized validation with {} samples",
-            network.get_params().params_count(),
+            "Initialized training with {} samples\nInitialized validation with {} samples",
             train_table.num_rows(),
             validation_x_table.num_rows()
         ));
@@ -106,16 +107,19 @@ impl Trainer for SplitTraining {
         let mut eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
-            TasksMonitor::start(&format!("{}/{}", e, epochs));
+            TasksMonitor::start(&format!("{}/{}", e+1, epochs));
 
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
             let loss_fn = model.loss.to_loss();
             let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation
             {
-                TasksMonitor::start("vloss");
-                let vloss = network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn);
-                TasksMonitor::end_with_message(format!("Validation loss: {}", vloss.1));
+                let vloss = network.predict_evaluate_many(
+                    &validation_x,
+                    &validation_y,
+                    &loss_fn,
+                    model.batch_size.unwrap_or(validation_x.len()),
+                );
                 vloss
             } else {
                 (vec![], -1.0, -1.0)
@@ -131,7 +135,7 @@ impl Trainer for SplitTraining {
             };
 
             let epoch_eval = EpochEvaluation::new(train_loss, loss_avg, loss_std, r2);
-            
+
             // Report the benchmark in real time if expected
             if let Some(reporter) = self.real_time_reporter.as_mut() {
                 reporter(e, epoch_eval.clone());
@@ -144,12 +148,12 @@ impl Trainer for SplitTraining {
                         .add_column_from(&validation_x_table, id_column),
                 );
             };
-            
+
             TasksMonitor::end_with_message(format!("Training Loss: {}\n ", train_loss));
 
             eval.add_epoch(epoch_eval);
         }
-        TasksMonitor::end_with_message(format!("Final performance: {:#?}", eval));
+        TasksMonitor::end_with_message(format!("Final performance: {:#?}", eval.get_final_epoch()));
 
         model_eval.add_fold(eval);
         self.model = Some(network.get_params());

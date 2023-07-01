@@ -34,7 +34,7 @@ pub fn main() {
     let mut network = model.to_network();
     network.load_params(&weights);
 
-    let preds = network.predict_many(&x);
+    let preds = network.predict_many(&x, 1);
 
     let ref_score = r2_score_matrix(&y, &preds);
 
@@ -55,7 +55,7 @@ pub fn main() {
         let mut metric_list = Vec::new();
         for _ in 0..shuffles_count {
             shuffle_column(&mut x_cp, c);
-            let preds = network.predict_many(&x_cp);
+            let preds = network.predict_many(&x_cp, 1);
             let score = r2_score_matrix(&y, &preds);
             println!("score: {:#?}", score);
             metric_list.push(ref_score - score);

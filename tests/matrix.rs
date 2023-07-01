@@ -47,15 +47,15 @@ fn test_random_normal() {
 fn test_from_iter() {
     let data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     let m = Matrix::from_iter(2, 3, data.iter().cloned());
-    assert_float_relative_eq!(m.get_data()[0][0], 1.0, 0.00001);
-    assert_float_relative_eq!(m.get_data()[2][1], 6.0, 0.00001);
+    assert_float_relative_eq!(m.get_data_col_leading()[0][0], 1.0, 0.00001);
+    assert_float_relative_eq!(m.get_data_col_leading()[2][1], 6.0, 0.00001);
 }
 
 #[test]
 fn test_from_row_leading_matrix() {
     let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    assert_float_relative_eq!(m.get_data()[0][0], 1.0, 0.00001);
-    assert_float_relative_eq!(m.get_data()[2][1], 6.0, 0.00001);
+    assert_float_relative_eq!(m.get_data_col_leading()[0][0], 1.0, 0.00001);
+    assert_float_relative_eq!(m.get_data_col_leading()[2][1], 6.0, 0.00001);
 }
 
 #[test]

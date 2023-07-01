@@ -59,7 +59,7 @@ fn main() {
 
     let train_x = Matrix::random_uniform(input_size, batch_size * batch_count, -1.0, 1.0);
     let train_y = train_x
-        .get_data()
+        .get_data_col_leading()
         .iter()
         .map(|col| f(col))
         .collect::<Vec<_>>();
@@ -73,7 +73,7 @@ fn main() {
 
     let test_x = Matrix::random_uniform(input_size, 128, -1.0, 1.0);
     let test_y = test_x
-        .get_data()
+        .get_data_col_leading()
         .iter()
         .map(|col| f(col))
         .collect::<Vec<_>>();
@@ -91,8 +91,8 @@ fn main() {
         let start = Instant::now();
         let train_loss = network.train(
             0,
-            &train_x.get_data(),
-            &train_y.get_data(),
+            &train_x.get_data_col_leading(),
+            &train_y.get_data_col_leading(),
             &Losses::MSE.to_loss(),
             batch_size,
         );
@@ -107,8 +107,8 @@ fn main() {
 
         let start = Instant::now();
         let (_preds, loss_avg, _loss_std) = network.predict_evaluate_many(
-            &test_x.get_data(),
-            &test_y.get_data(),
+            &test_x.get_data_col_leading(),
+            &test_y.get_data_col_leading(),
             &Losses::MSE.to_loss(),
         );
         let end = Instant::now();

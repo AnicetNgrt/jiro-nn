@@ -120,7 +120,7 @@ impl ImageLayer for DenseConvLayer {
 
 impl LearnableLayer for DenseConvLayer {
     fn get_learnable_parameters(&self) -> Vec<Vec<Scalar>> {
-        let mut params = self.kernels.flatten().get_data();
+        let mut params = self.kernels.flatten().get_data_col_leading();
         params.push(self.biases.flatten().get_column(0));
         params
     }
