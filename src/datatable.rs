@@ -14,6 +14,10 @@ pub struct DataTable(DataFrame);
 pub type Series = polars::series::Series;
 
 impl DataTable {
+    pub fn describe(&self) -> Self {
+        Self(self.0.describe(None).unwrap())
+    }
+
     pub fn new_empty() -> Self {
         Self(DataFrame::new(Vec::<Series>::new()).unwrap())
     }

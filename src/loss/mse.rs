@@ -3,7 +3,7 @@ use crate::{
     loss::Loss,
 };
 
-pub fn mse_vec(y_pred: &Vec<Scalar>, y_true: &Vec<Scalar>) -> Scalar {
+pub fn mse_vec(y_true: &Vec<Scalar>, y_pred: &Vec<Scalar>) -> Scalar {
     let n_samples = y_pred.len();
     let mut sum = 0.0;
     for j in 0..n_samples {

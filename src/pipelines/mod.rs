@@ -3,10 +3,10 @@ use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     path::PathBuf,
-    rc::Rc,
+    rc::Rc
 };
 
-use crate::{dataset::Dataset, datatable::DataTable, introspect::GI};
+use crate::{dataset::Dataset, datatable::DataTable, monitor::TasksMonitor};
 
 use self::{
     extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
@@ -110,19 +110,25 @@ impl Pipeline {
 
     pub fn load_csv<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self
     where
-        P: Into<PathBuf>,
+        P: Into<PathBuf> + ToString,
     {
+        TasksMonitor::start("load_csv");
+
+        let pathname = dataset_path.to_string();
+
         let data =
             DataTable::from_csv_file(dataset_path).select_columns(spec.feature_names().as_slice());
 
         self.data = Some(data);
         self.spec = Some(spec.clone());
 
+        TasksMonitor::end_with_message(format!("Successfully loaded {:?}: {:?}", pathname, self.data.as_ref().unwrap().describe()));
+
         self
     }
 
     pub fn run(&mut self) -> (Dataset, DataTable) {
-        GI::start_task("pipeline");
+        TasksMonitor::start("pipeline");
 
         let data = self.data.clone().unwrap();
         let spec = self.spec.clone().unwrap();
@@ -135,12 +141,12 @@ impl Pipeline {
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
 
-            GI::start_task(&transformation.get_name());
+            TasksMonitor::start(&transformation.get_name());
 
             id = format!("{}-{}", id, transformation.get_name());
             res = transformation.transform(&self.cached_config, &res.0, &res.1);
 
-            GI::end_task();
+            TasksMonitor::end();
         }
         let (spec, data) = res;
 
@@ -158,7 +164,7 @@ impl Pipeline {
 
         let data = data.select_columns(spec.feature_names().as_slice());
 
-        GI::end_task();
+        TasksMonitor::end_with_message(format!("{:?}", data.describe()));
 
         (spec, data)
     }

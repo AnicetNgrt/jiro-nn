@@ -1,4 +1,5 @@
 use neural_networks_rust::model::Model;
+use neural_networks_rust::monitor::TasksMonitor;
 use neural_networks_rust::pipelines::Pipeline;
 use neural_networks_rust::pipelines::attach_ids::AttachIds;
 use neural_networks_rust::trainers::Trainer;
@@ -8,6 +9,8 @@ pub fn main() {
     let config_name = &args[1];
 
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
+
+    TasksMonitor::start_monitoring();
 
     let mut pipeline = Pipeline::basic_single_pass();
     let (dspec, data) = pipeline
@@ -23,6 +26,8 @@ pub fn main() {
             println!("Performance report: {:4} {:#?}", epoch, report)
         })
         .run(&model, &data);
+
+    TasksMonitor::stop_monitoring();
 
     let model_params = training.take_model();
     model_params.to_json(format!("models_stats/{}_params.json", config_name));

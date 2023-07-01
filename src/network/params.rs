@@ -56,4 +56,8 @@ impl NetworkParams {
         decoder.read_to_end(&mut buffer).unwrap();
         bincode::deserialize(buffer.as_slice()).unwrap()
     }
+
+    pub fn params_count(&self) -> usize {
+        self.0.iter().map(|l| l.iter().map(|l| l.len()).sum::<usize>()).sum()
+    }
 }

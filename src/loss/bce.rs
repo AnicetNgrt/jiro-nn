@@ -12,17 +12,17 @@ pub fn bce_vec(y_pred: &Vec<Scalar>, y_true: &Vec<Scalar>) -> Scalar {
     sum / ((n_samples) as Scalar)
 }
 
-fn bce(y_pred: &Matrix, y_true: &Matrix) -> Scalar {
+fn bce(y_true: &Matrix, y_pred: &Matrix) -> Scalar {
     let ones = Matrix::constant(y_true.dim().0, y_true.dim().1, 1.);
     (y_true.component_mul(&y_pred.log()).component_add(
         &ones
             .component_sub(&y_true)
             .component_mul(&ones.component_sub(&y_pred).log()),
     ))
-    .mean()
+    .mean() * -1.
 }
 
-fn bce_prime(y_pred: &Matrix, y_true: &Matrix) -> Matrix {
+fn bce_prime(y_true: &Matrix, y_pred: &Matrix) -> Matrix {
     let ones = Matrix::constant(y_true.dim().0, y_true.dim().1, 1.);
     let ones_m_yt = ones.component_sub(&y_true);
     let ones_m_yp = ones.component_sub(&y_pred);

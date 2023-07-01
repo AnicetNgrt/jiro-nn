@@ -3,7 +3,7 @@ use crate::{
     datatable::DataTable,
     model::Model,
     network::{params::NetworkParams},
-    vec_utils::r2_score_matrix, linalg::Scalar, introspect::GI,
+    vec_utils::r2_score_matrix, linalg::Scalar, monitor::TasksMonitor,
 };
 
 use super::Trainer;
@@ -72,9 +72,9 @@ impl SplitTraining {
 
 impl Trainer for SplitTraining {
     fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
-        GI::start_task("split");
+        TasksMonitor::start("split");
 
-        GI::start_task("init");
+        TasksMonitor::start("init");
         
         let mut validation_preds = DataTable::new_empty();
         let mut model_eval = ModelEvaluation::new_empty();
@@ -94,38 +94,44 @@ impl Trainer for SplitTraining {
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
         let validation_y = validation_y_table.to_vectors();
 
-        GI::end_task();
+        TasksMonitor::end_with_message(format!(
+            "Initialized network with {} parameters\nInitialized training with {} samples\nInitialized validation with {} samples",
+            network.get_params().params_count(),
+            train_table.num_rows(),
+            validation_x_table.num_rows()
+        ));
+
+        TasksMonitor::start("epochs");
 
         let mut eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
-            GI::start_task(&format!("epoch[{}/{}]", e, epochs));
+            TasksMonitor::start(&format!("{}/{}", e, epochs));
 
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
             let loss_fn = model.loss.to_loss();
             let (preds, loss_avg, loss_std) = if e == model.epochs - 1 || self.all_epochs_validation
             {
-                GI::start_task("vloss");
+                TasksMonitor::start("vloss");
                 let vloss = network.predict_evaluate_many(&validation_x, &validation_y, &loss_fn);
-                GI::end_task();
+                TasksMonitor::end_with_message(format!("Validation loss: {}", vloss.1));
                 vloss
             } else {
                 (vec![], -1.0, -1.0)
             };
 
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
-                GI::start_task("r2");
+                TasksMonitor::start("r2");
                 let r2 = r2_score_matrix(&validation_y, &preds);
-                GI::end_task();
+                TasksMonitor::end_with_message(format!("R2: {}", r2));
                 r2
             } else {
                 -1.0
             };
 
-            println!("Epoch {} done", e);
             let epoch_eval = EpochEvaluation::new(train_loss, loss_avg, loss_std, r2);
-
+            
             // Report the benchmark in real time if expected
             if let Some(reporter) = self.real_time_reporter.as_mut() {
                 reporter(e, epoch_eval.clone());
@@ -138,17 +144,17 @@ impl Trainer for SplitTraining {
                         .add_column_from(&validation_x_table, id_column),
                 );
             };
+            
+            TasksMonitor::end_with_message(format!("Training Loss: {}\n ", train_loss));
 
             eval.add_epoch(epoch_eval);
-
-            GI::end_task();
         }
+        TasksMonitor::end_with_message(format!("Final performance: {:#?}", eval));
 
         model_eval.add_fold(eval);
-
         self.model = Some(network.get_params());
 
-        GI::end_task();
+        TasksMonitor::end();
 
         (validation_preds, model_eval)
     }

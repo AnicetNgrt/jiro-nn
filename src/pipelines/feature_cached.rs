@@ -1,8 +1,8 @@
-use std::hash::{Hash, Hasher};
+use std::{hash::{Hash, Hasher}, path::Path};
 
 use crate::{
     dataset::{Dataset, Feature},
-    datatable::DataTable,
+    datatable::DataTable, monitor::TasksMonitor,
 };
 
 use super::{CachedConfig, DataTransformation};
@@ -35,12 +35,12 @@ impl FeatureExtractorCached {
         working_dir: &str,
         feature: &Feature,
     ) -> String {
-        let file_name = format!(
-            "{}/cached/{}_{}.csv",
-            working_dir,
-            Self::get_hashed_id(id),
-            feature.name
-        );
+        let file_name = Path::new(&working_dir)
+            .join("cached")
+            .join(format!("{}_{}.csv", Self::get_hashed_id(id), feature.name))
+            .to_str()
+            .unwrap()
+            .to_string();
         file_name
     }
 
@@ -49,11 +49,11 @@ impl FeatureExtractorCached {
         id: &String,
         working_dir: &str,
         feature: &Feature,
-    ) -> Option<DataTable> {
+    ) -> Option<(DataTable, String)> {
         let file_name = self.get_cached_feature_file_name(id, working_dir, feature);
         if std::path::Path::new(&file_name).exists() {
-            let dataset_table = DataTable::from_csv_file(file_name);
-            Some(dataset_table.get_column_as_table(&feature.name))
+            let dataset_table = DataTable::from_csv_file(file_name.clone());
+            Some((dataset_table.get_column_as_table(&feature.name), file_name))
         } else {
             None
         }
@@ -97,9 +97,10 @@ impl DataTransformation for FeatureExtractorCached {
         for feature in &spec.features {
             if let Some(extracted_feature) = (self.extracted_feature_spec)(feature) {
                 if let CachedConfig::Cached { id, working_dir } = cached_config {
-                    if let Some(cached_data) =
+                    if let Some((cached_data, cachefile_name)) =
                         self.get_cached_feature(&id, working_dir, &extracted_feature)
                     {
+                        TasksMonitor::start("loadcache");
                         dataset_table = if extracted_feature.name == feature.name {
                             dataset_table
                                 .drop_column(&feature.name)
@@ -107,6 +108,11 @@ impl DataTransformation for FeatureExtractorCached {
                         } else {
                             dataset_table.append_table_as_column(&cached_data)
                         };
+                        TasksMonitor::end_with_message(format!(
+                            "Loaded {} from cache {}",
+                            extracted_feature.name,
+                            cachefile_name
+                        ));
                     } else {
                         dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
                         dataset_table

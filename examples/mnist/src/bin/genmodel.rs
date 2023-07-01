@@ -33,7 +33,7 @@ fn main() {
                 .momentum()
             .end()
             .full_dense(10)
-                .linear()
+                .sigmoid()
                 .momentum()
             .end()
         .end()
