@@ -3,7 +3,7 @@ use core::fmt;
 use arrayfire::{
     add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq, log, get_active_backend, Backend,
+    RandomEngine, Seq, log, get_active_backend, Backend, max_all, min_all, join,
 };
 use rand::Rng;
 
@@ -133,6 +133,23 @@ impl MatrixTrait for Matrix {
         ))
     }
 
+    fn from_matrix_column(&self, idx: usize) -> Self {
+        let res = index(
+            &self.0,
+            &[Seq::default(), Seq::new(idx as u32, idx as u32, 1)],
+        );
+        Self(res)
+    }
+
+    fn from_column_matrices(columns: &[Self]) -> Self {
+        assert!(columns.len() > 0);
+        let mut result = columns[0].0.clone();
+        for i in 1..columns.len() {
+            result = join(2, &result, &columns[i].0);
+        }
+        Self(result)
+    }
+
     fn get_column(&self, idx: usize) -> Vec<Scalar> {
         let res = index(
             &self.0,
@@ -156,15 +173,15 @@ impl MatrixTrait for Matrix {
     }
 
     fn columns_map(&self, _f: impl Fn(usize, &Vec<Scalar>) -> Vec<Scalar>) -> Self {
-        unimplemented!("Deprecated")
+        unimplemented!("Incompatible")
     }
 
     fn map_indexed_mut(&mut self, _f: impl Fn(usize, usize, Scalar) -> Scalar + Sync) -> &mut Self {
-        unimplemented!("Deprecated")
+        unimplemented!("Incompatible")
     }
 
     fn map(&self, _f: impl Fn(Scalar) -> Scalar + Sync) -> Self {
-        unimplemented!("Deprecated")
+        unimplemented!("Incompatible")
     }
 
     fn dot(&self, other: &Self) -> Self {
@@ -240,11 +257,11 @@ impl MatrixTrait for Matrix {
     }
 
     fn index(&self, _row: usize, _col: usize) -> Scalar {
-        unimplemented!("Deprecated")
+        unimplemented!("Incompatible")
     }
 
     fn index_mut(&mut self, _row: usize, _col: usize) -> &mut Scalar {
-        unimplemented!("Deprecated")
+        unimplemented!("Incompatible")
     }
 
     fn square(&self) -> Self {
@@ -285,6 +302,14 @@ impl MatrixTrait for Matrix {
 
     fn sqrt(&self) -> Self {
         Self(sqrt(&self.0))
+    }
+
+    fn max(&self) -> Scalar {
+        max_all(&self.0).1
+    }
+
+    fn min(&self) -> Scalar {
+        min_all(&self.0).1
     }
 }
 

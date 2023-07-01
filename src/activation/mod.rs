@@ -9,6 +9,7 @@ pub mod linear;
 pub mod relu;
 pub mod sigmoid;
 pub mod tanh;
+pub mod softmax;
 
 pub type ActivationFn = fn(&Matrix) -> Matrix;
 

@@ -110,6 +110,15 @@ impl MatrixTrait for Matrix {
         Self(DMatrix::from_row_slice(1, v.len(), v))
     }
 
+    fn from_matrix_column(&self, idx: usize) -> Self {
+        Self(self.0.columns(idx, 1).into())
+    }
+
+    fn from_column_matrices(columns: &[Self]) -> Self {
+        let columns: Vec<DVector<Scalar>> = columns.into_iter().map(|m| m.0.column(0).into_owned()).collect();
+        Self(DMatrix::from_columns(columns.as_slice()))
+    }
+
     fn get_column(&self, index: usize) -> Vec<Scalar> {
         self.0.column(index).iter().map(|x| *x).collect()
     }
@@ -252,6 +261,14 @@ impl MatrixTrait for Matrix {
 
     fn log(&self) -> Self {
         Self(self.0.clone().map(|x| x.ln()))
+    }
+
+    fn max(&self) -> Scalar {
+        self.0.max()
+    }
+
+    fn min(&self) -> Scalar {
+        self.0.min()
     }
 }
 

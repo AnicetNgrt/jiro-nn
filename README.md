@@ -178,7 +178,7 @@ model.to_json_file("my_model_spec.json");
 
 ### Preprocessing
 
-- Layer-based data pipelines abstraction
+- Layer-based data preprocessing abstraction
     - Cached & revertible feature mapping/feature extraction layers
         - Normalize
         - Square

@@ -100,6 +100,10 @@ pub trait MatrixTrait: Clone {
     where
         F: FnMut(usize, usize) -> Scalar;
 
+    fn from_matrix_column(&self, idx: usize) -> Self;
+
+    fn from_column_matrices(columns: &[Self]) -> Self;
+
     fn columns_map(&self, f: impl Fn(usize, &Vec<Scalar>) -> Vec<Scalar>) -> Self;
 
     fn get_column(&self, index: usize) -> Vec<Scalar>;
@@ -146,6 +150,10 @@ pub trait MatrixTrait: Clone {
     fn mean(&self) -> Scalar;
 
     fn exp(&self) -> Self;
+
+    fn max(&self) -> Scalar;
+
+    fn min(&self) -> Scalar;
 
     fn maxof(&self, other: &Self) -> Self;
 

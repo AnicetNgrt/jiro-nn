@@ -16,7 +16,7 @@ pub mod loss;
 pub mod model;
 pub mod network;
 pub mod optimizer;
-pub mod pipelines;
+pub mod preprocessing;
 pub mod trainers;
 pub mod vec_utils;
 pub mod vision;

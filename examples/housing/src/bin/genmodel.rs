@@ -1,7 +1,7 @@
 use neural_networks_rust::{
 	dataset::{Dataset, FeatureOptions::*},
 	model::ModelBuilder,
-	pipelines::map::{MapOp, MapSelector, MapValue},
+	preprocessing::map::{MapOp, MapSelector, MapValue},
 };
 
 fn main() {

@@ -1,6 +1,6 @@
 use neural_networks_rust::model::Model;
-use neural_networks_rust::pipelines::Pipeline;
-use neural_networks_rust::pipelines::attach_ids::AttachIds;
+use neural_networks_rust::preprocessing::Pipeline;
+use neural_networks_rust::preprocessing::attach_ids::AttachIds;
 use neural_networks_rust::trainers::kfolds::KFolds;
 
 

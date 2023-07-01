@@ -6,7 +6,7 @@ use gnuplot::{
 };
 use neural_networks_rust::{
     model::Model,
-    pipelines::{
+    preprocessing::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, normalize::Normalize, Pipeline,
     },
     vec_utils::{vector_quartiles_iqr},

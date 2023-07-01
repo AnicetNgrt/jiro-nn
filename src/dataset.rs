@@ -5,7 +5,7 @@ use serde_aux::field_attributes::bool_true;
 
 use crate::{
     datatable::DataTable,
-    pipelines::map::{MapOp, MapSelector},
+    preprocessing::map::{MapOp, MapSelector},
 };
 
 #[derive(Serialize, Debug, Deserialize, Clone, Hash, Default)]

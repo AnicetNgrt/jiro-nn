@@ -348,7 +348,7 @@ After that, I got rid of the average proportional distance metric I was using so
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
-        == *Specifying input features and preprocessing pipelines*
+        == *Specifying input features and preprocessing preprocessing*
     ]
 ]
 

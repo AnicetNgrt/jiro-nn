@@ -2,7 +2,7 @@ use neural_networks_rust::{
     datatable::DataTable,
     model::Model,
     network::params::NetworkParams,
-    pipelines::{attach_ids::AttachIds, Pipeline},
+    preprocessing::{attach_ids::AttachIds, Pipeline},
     vec_utils::r2_score_matrix,
 };
 
