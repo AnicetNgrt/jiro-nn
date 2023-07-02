@@ -228,8 +228,9 @@ impl TM {
             }
         }
 
+        let mut last_refresh = Instant::now();
         loop {
-            if let Ok(message) = rx.recv_timeout(Duration::from_millis(200)) {
+            if let Ok(message) = rx.recv_timeout(Duration::from_millis(500) - last_refresh.elapsed()) {
                 match message.clone() {
                     Messages::Start => {}
                     Messages::StartTask { name, thread_id } => {
@@ -249,7 +250,10 @@ impl TM {
                 };
             }
 
-            self.pretty_print_tasks()
+            if last_refresh.elapsed() > Duration::from_millis(500) {
+                self.pretty_print_tasks();
+                last_refresh = Instant::now();
+            }
         }
     }
 
