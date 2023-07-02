@@ -24,12 +24,12 @@ fn main() {
         .push(ExtractMonths)
         .push(ExtractTimestamps)
         .push(Normalize::new())
-        .load_csv("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
         .run();
 
     let mut pipeline = Pipeline::basic_single_pass();
     let (after_spec, data) = pipeline
-        .load_csv("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
         .run();
 
     println!("{:#?}", data);

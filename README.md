@@ -30,7 +30,7 @@ let model = model.with_new_dataset(updated_dataset_spec);
 // + extracting test & training metrics per folds & per epochs
 // + extracting all predictions made during final epoch
 let mut kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
-let (validation_preds, model_eval) = kfold
+let (preds_and_ids, model_eval) = kfold
     .attach_real_time_reporter(|fold, epoch, report| {
         println!("Perf report: {} {} {:#?}", fold, epoch, report)
     })
@@ -45,11 +45,11 @@ let best_model_params = kfold.take_best_model();
 best_model_params.to_json("my_model_params.csv");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
-let validation_preds = pipeline.revert(&validation_preds);
+let preds_and_ids = pipeline.revert(&preds_and_ids);
 let data = pipeline.revert(&data);
 
 // Joining the data and the predictions together
-let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
+let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
 // Saving it all to disk
 data_and_preds.to_file("my_model_preds.csv");

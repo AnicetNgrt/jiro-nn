@@ -8,7 +8,7 @@ use crate::{
     datatable::DataTable,
     linalg::{Matrix, MatrixTrait},
     model::Model,
-    monitor::TasksMonitor,
+    monitor::TM,
     network::{params::NetworkParams, Network},
     vec_utils::r2_score_matrix,
 };
@@ -114,7 +114,7 @@ impl KFolds {
 
     fn compute_best(&mut self, model_eval: &ModelEvaluation, trained_models: &Vec<Network>) {
         if self.return_best {
-            TasksMonitor::start("bestfold");
+            TM::start("bestfold");
             let mut best_fold = 0;
             let mut best_fold_r2 = 0.0;
 
@@ -127,7 +127,7 @@ impl KFolds {
             }
 
             let best_params = trained_models[best_fold].get_params();
-            TasksMonitor::end_with_message(format!(
+            TM::end_with_message(format!(
                 "Best fold: {} with R2: {} and {} parameters",
                 best_fold,
                 best_fold_r2,
@@ -155,13 +155,13 @@ impl KFolds {
         i: usize,
         model: &Model,
         data: &DataTable,
-        validation_preds: &Arc<Mutex<DataTable>>,
+        preds_and_ids: &Arc<Mutex<DataTable>>,
         model_eval: &Arc<Mutex<ModelEvaluation>>,
         trained_models: &Arc<Mutex<Vec<Network>>>,
         k: usize,
     ) {
-        TasksMonitor::start(format!("{}/{}", i+1, k));
-        TasksMonitor::start("init");
+        TM::start(format!("{}/{}", i+1, k));
+        TM::start("init");
         let out_features = model.dataset.out_features_names();
         let id_column = model.dataset.get_id_column().unwrap();
         let mut network = model.to_network();
@@ -180,15 +180,15 @@ impl KFolds {
         let mut fold_eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
 
-        TasksMonitor::end_with_message(format!(
+        TM::end_with_message(format!(
             "Initialized training with {} samples\nInitialized validation with {} samples",
             train_table.num_rows(),
             validation_x_table.num_rows()
         ));
 
-        TasksMonitor::start("epochs");
+        TM::start("epochs");
         for e in 0..epochs {
-            TasksMonitor::start(&format!("{}/{}", e+1, epochs));
+            TM::start(&format!("{}/{}", e+1, epochs));
             // Train the model with the k-th folds except the i-th
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
@@ -210,9 +210,9 @@ impl KFolds {
             // Compute the R2 score	if it is the last epoch
             // (it would be very costly to do it every time)
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
-                TasksMonitor::start("r2");
+                TM::start("r2");
                 let r2 = r2_score_matrix(&validation_y, &preds);
-                TasksMonitor::end_with_message(format!("R2: {}", r2));
+                TM::end_with_message(format!("R2: {}", r2));
                 r2
             } else {
                 -1.0
@@ -229,17 +229,17 @@ impl KFolds {
 
             // Save the predictions if it is the last epoch
             if e == model.epochs - 1 {
-                let mut vp = validation_preds.lock().unwrap();
+                let mut vp = preds_and_ids.lock().unwrap();
                 *vp = vp.apppend(
                     &DataTable::from_vectors(&out_features, &preds)
                         .add_column_from(&validation_x_table, id_column),
                 );
             };
-            TasksMonitor::end_with_message(format!("Training Loss: {}\n ", train_loss));
+            TM::end_with_message(format!("Training Loss: {}\n ", train_loss));
 
             fold_eval.add_epoch(eval);
         }
-        TasksMonitor::end_with_message(format!("Final performance: {:#?}", fold_eval.get_final_epoch()));
+        TM::end_with_message(format!("Final performance: {:#?}", fold_eval.get_final_epoch()));
 
         trained_models.lock().unwrap().push(network);
         model_eval.lock().unwrap().add_fold(fold_eval);
@@ -251,24 +251,24 @@ impl KFolds {
         i: usize,
         model: &Model,
         data: &DataTable,
-        validation_preds: &Arc<Mutex<DataTable>>,
+        preds_and_ids: &Arc<Mutex<DataTable>>,
         model_eval: &Arc<Mutex<ModelEvaluation>>,
         trained_models: &Arc<Mutex<Vec<Network>>>,
         k: usize,
     ) -> thread::JoinHandle<()> {
-        TasksMonitor::start("parr");
-        TasksMonitor::start("init");
+        TM::start("parr");
+        TM::start("init");
         let i = i.clone();
         let model = model.clone();
         let data = data.clone();
-        let validation_preds = validation_preds.clone();
+        let preds_and_ids = preds_and_ids.clone();
         let model_eval = model_eval.clone();
         let all_epochs_r2 = self.all_epochs_r2;
         let all_epochs_validation = self.all_epochs_validation;
         let reporter = self.real_time_reporter.clone();
         let trained_models = trained_models.clone();
 
-        TasksMonitor::end_with_message(format!(
+        TM::end_with_message(format!(
             "Will train {} networks with each:\n{} training samples\n{} validation samples",
             k,
             data.num_rows() - data.num_rows() / k,
@@ -276,8 +276,8 @@ impl KFolds {
         ));
 
         let handle = thread::spawn(move || {
-            TasksMonitor::start(&format!("parrfolds[{}]", i));
-            TasksMonitor::start("init");
+            TM::start(&format!("parrfolds[{}]", i));
+            TM::start("init");
             let out_features = model.dataset.out_features_names();
             let id_column = model.dataset.get_id_column().unwrap();
             let mut network = model.to_network();
@@ -293,13 +293,13 @@ impl KFolds {
             let validation_x = validation_x_table.drop_column(id_column).to_vectors();
             let validation_y = validation_y_table.to_vectors();
 
-            TasksMonitor::end();
+            TM::end();
 
-            TasksMonitor::start("epochs");
+            TM::start("epochs");
             let mut fold_eval = TrainingEvaluation::new_empty();
             let epochs = model.epochs;
             for e in 0..epochs {
-                TasksMonitor::start(&format!("{}/{}", e+1, epochs));
+                TM::start(&format!("{}/{}", e+1, epochs));
                 // Train the model with the k-th folds except the i-th
                 let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
@@ -323,9 +323,9 @@ impl KFolds {
                 // Compute the R2 score	if it is the last epoch
                 // (it would be very costly to do it every time)
                 let r2 = if e == model.epochs - 1 || all_epochs_r2 {
-                    TasksMonitor::start("r2");
+                    TM::start("r2");
                     let r2 = r2_score_matrix(&validation_y, &preds);
-                    TasksMonitor::end_with_message(format!("R2: {}", r2));
+                    TM::end_with_message(format!("R2: {}", r2));
                     r2
                 } else {
                     -1.0
@@ -342,18 +342,18 @@ impl KFolds {
 
                 // Save the predictions if it is the last epoch
                 if e == model.epochs - 1 {
-                    let mut vp = validation_preds.lock().unwrap();
+                    let mut vp = preds_and_ids.lock().unwrap();
                     *vp = vp.apppend(
                         &DataTable::from_vectors(&out_features, &preds)
                             .add_column_from(&validation_x_table, id_column),
                     );
                 };
 
-                TasksMonitor::end_with_message(format!("Training Loss: {}\n ", train_loss));
+                TM::end_with_message(format!("Training Loss: {}\n ", train_loss));
 
                 fold_eval.add_epoch(eval);
             }
-            TasksMonitor::end_with_message(format!(
+            TM::end_with_message(format!(
                 "Final performance: {:#?}",
                 fold_eval.get_final_epoch()
             ));
@@ -362,7 +362,7 @@ impl KFolds {
             model_eval.lock().unwrap().add_fold(fold_eval);
         });
 
-        TasksMonitor::end();
+        TM::end();
 
         handle
     }
@@ -374,23 +374,23 @@ impl KFolds {
     /// Assumes both the data and the model's dataset include an id feature.
     /// 
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
-        TasksMonitor::start("kfolds");
+        TM::start("kfolds");
 
         // Init the data structures for parallel computing
-        let validation_preds = Arc::new(Mutex::new(DataTable::new_empty()));
+        let preds_and_ids = Arc::new(Mutex::new(DataTable::new_empty()));
         let model_eval = Arc::new(Mutex::new(ModelEvaluation::new_empty()));
         let trained_models = Arc::new(Mutex::new(Vec::new()));
         let mut handles = Vec::new();
         let k = self.k;
 
-        TasksMonitor::start("folds");
+        TM::start("folds");
         for i in 0..k {
             if Matrix::is_backend_thread_safe() {
                 let handle = self.parallel_k_fold(
                     i,
                     model,
                     data,
-                    &validation_preds,
+                    &preds_and_ids,
                     &model_eval,
                     &trained_models,
                     k,
@@ -401,21 +401,21 @@ impl KFolds {
                     i,
                     model,
                     data,
-                    &validation_preds,
+                    &preds_and_ids,
                     &model_eval,
                     &trained_models,
                     k,
                 );
             }
         }
-        TasksMonitor::start("end");
+        TM::start("end");
 
         for handle in handles.into_iter() {
             handle.join().unwrap();
         }
 
         // Destroy the datastructures for parallel computing
-        let validation_preds = Arc::try_unwrap(validation_preds)
+        let preds_and_ids = Arc::try_unwrap(preds_and_ids)
             .unwrap()
             .into_inner()
             .unwrap();
@@ -430,8 +430,8 @@ impl KFolds {
         self.compute_best(&model_eval, &trained_models);
         self.compute_avg(&trained_models);
 
-        TasksMonitor::end();
+        TM::end();
 
-        (validation_preds, model_eval)
+        (preds_and_ids, model_eval)
     }
 }

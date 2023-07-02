@@ -2,7 +2,7 @@ use std::{hash::{Hash, Hasher}, path::Path};
 
 use crate::{
     dataset::{Dataset, Feature},
-    datatable::DataTable, monitor::TasksMonitor,
+    datatable::DataTable, monitor::TM,
 };
 
 use super::{CachedConfig, DataTransformation};
@@ -100,7 +100,7 @@ impl DataTransformation for FeatureExtractorCached {
                     if let Some((cached_data, cachefile_name)) =
                         self.get_cached_feature(&id, working_dir, &extracted_feature)
                     {
-                        TasksMonitor::start("loadcache");
+                        TM::start("loadcache");
                         dataset_table = if extracted_feature.name == feature.name {
                             dataset_table
                                 .drop_column(&feature.name)
@@ -108,7 +108,7 @@ impl DataTransformation for FeatureExtractorCached {
                         } else {
                             dataset_table.append_table_as_column(&cached_data)
                         };
-                        TasksMonitor::end_with_message(format!(
+                        TM::end_with_message(format!(
                             "Loaded {} from cache {}",
                             extracted_feature.name,
                             cachefile_name

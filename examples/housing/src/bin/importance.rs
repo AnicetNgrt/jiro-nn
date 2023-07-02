@@ -17,7 +17,7 @@ pub fn main() {
     let mut pipeline = Pipeline::basic_single_pass();
     let (updated_dataset_spec, data) = pipeline
         .prepend(Sample::new(21000, true))
-        .load_csv("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
         .run();
 
     println!("Data: {:#?}", data);

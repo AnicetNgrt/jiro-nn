@@ -11,7 +11,7 @@ use std::{
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref SENDER_TO_GI: Mutex<Sender<Messages>> = Mutex::new(TasksMonitor::run());
+    static ref SENDER_TO_GI: Mutex<Sender<Messages>> = Mutex::new(TM::run());
 }
 
 const TERMINAL_HEIGHT: usize = 40;
@@ -23,8 +23,46 @@ struct Task {
     end: Option<Instant>,
 }
 
+/// # TM (Tasks Monitor)
+/// 
 /// Keeps track of tasks in another thread in order to measure and report their progress in real time.
-pub struct TasksMonitor {
+/// 
+/// Displays the progress in a TUI, prints therefore are not visible anymore once activated. Other options will come later. 
+/// 
+/// Stacks the tasks so that every task has its own parent task.
+/// 
+/// Tasks stacks from different threads are separated. One thread's task cannot be a parent of another thread's task.
+/// 
+/// ```rust
+/// TM::start_monitoring();
+///    
+/// TM::start("task1");
+/// 
+/// // do something long
+/// 
+/// TM::end();
+/// 
+/// TM::start("task2");
+/// 
+/// // do something long
+/// 
+/// TM::start("subtask"); // creating the child task of task2
+/// 
+/// // do something long
+/// 
+/// TM::end(); // ending subtask
+/// 
+/// TM::start("subtask2"); // you can create subtasks, but only one at a given time
+/// 
+/// // do something long
+/// 
+/// TM::end(); // ending subtask2
+/// 
+/// TM::end_with_message("Task 2 and its subtasks are finished :-)"); // ending task2
+/// 
+/// TM::stop_monitoring();
+/// ```
+pub struct TM {
     threads_stacks: HashMap<ThreadId, Vec<Task>>,
     thread_ids_order: Vec<ThreadId>,
     recently_finished_long_tasks: Vec<Task>,
@@ -45,7 +83,7 @@ enum Messages {
     Stop,
 }
 
-impl TasksMonitor {
+impl TM {
     fn new() -> Self {
         Self {
             threads_stacks: HashMap::new(),
@@ -218,7 +256,7 @@ impl TasksMonitor {
     fn run() -> Sender<Messages> {
         let (tx, rx) = mpsc::channel::<Messages>();
         thread::spawn(move || {
-            let gi = TasksMonitor::new();
+            let gi = TM::new();
             gi.introspect(rx);
         });
 

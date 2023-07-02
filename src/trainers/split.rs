@@ -3,7 +3,7 @@ use crate::{
     datatable::DataTable,
     linalg::Scalar,
     model::Model,
-    monitor::TasksMonitor,
+    monitor::TM,
     network::params::NetworkParams,
     vec_utils::r2_score_matrix,
 };
@@ -70,11 +70,11 @@ impl SplitTraining {
     }
 
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
-        TasksMonitor::start("split");
+        TM::start("split");
 
-        TasksMonitor::start("init");
+        TM::start("init");
 
-        let mut validation_preds = DataTable::new_empty();
+        let mut preds_and_ids = DataTable::new_empty();
         let mut model_eval = ModelEvaluation::new_empty();
 
         let out_features = model.dataset.out_features_names();
@@ -92,18 +92,18 @@ impl SplitTraining {
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
         let validation_y = validation_y_table.to_vectors();
 
-        TasksMonitor::end_with_message(format!(
+        TM::end_with_message(format!(
             "Initialized training with {} samples\nInitialized validation with {} samples",
             train_table.num_rows(),
             validation_x_table.num_rows()
         ));
 
-        TasksMonitor::start("epochs");
+        TM::start("epochs");
 
         let mut eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
-            TasksMonitor::start(&format!("{}/{}", e+1, epochs));
+            TM::start(&format!("{}/{}", e+1, epochs));
 
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
@@ -122,9 +122,9 @@ impl SplitTraining {
             };
 
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
-                TasksMonitor::start("r2");
+                TM::start("r2");
                 let r2 = r2_score_matrix(&validation_y, &preds);
-                TasksMonitor::end_with_message(format!("R2: {}", r2));
+                TM::end_with_message(format!("R2: {}", r2));
                 r2
             } else {
                 -1.0
@@ -139,23 +139,23 @@ impl SplitTraining {
 
             // Save the predictions if it is the last epoch
             if e == model.epochs - 1 {
-                validation_preds = validation_preds.apppend(
+                preds_and_ids = preds_and_ids.apppend(
                     &DataTable::from_vectors(&out_features, &preds)
                         .add_column_from(&validation_x_table, id_column),
                 );
             };
 
-            TasksMonitor::end_with_message(format!("Training Loss: {}\n ", train_loss));
+            TM::end_with_message(format!("Training Loss: {}\n ", train_loss));
 
             eval.add_epoch(epoch_eval);
         }
-        TasksMonitor::end_with_message(format!("Final performance: {:#?}", eval.get_final_epoch()));
+        TM::end_with_message(format!("Final performance: {:#?}", eval.get_final_epoch()));
 
         model_eval.add_fold(eval);
         self.model = Some(network.get_params());
 
-        TasksMonitor::end();
+        TM::end();
 
-        (validation_preds, model_eval)
+        (preds_and_ids, model_eval)
     }
 }

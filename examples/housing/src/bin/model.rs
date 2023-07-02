@@ -13,7 +13,7 @@ pub fn main() {
     let mut pipeline = Pipeline::basic_single_pass();
     let (updated_dataset_spec, data) = pipeline
         .push(AttachIds::new("id"))
-        .load_csv("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
         .run();
 
     println!("data: {:#?}", data);
@@ -21,7 +21,7 @@ pub fn main() {
     let model = model.with_new_dataset(updated_dataset_spec);
     
     let mut kfold = KFolds::new(10);
-    let (validation_preds, model_eval) = kfold
+    let (preds_and_ids, model_eval) = kfold
         .attach_real_time_reporter(|fold, epoch, report| {
             println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
         })
@@ -38,9 +38,9 @@ pub fn main() {
     best_model_params.to_binary_compressed(format!("models_weights/{}_best_params.gz", config_name));
     //avg_model_params.to_json(format!("models_stats/{}_avg_params.json", config_name));
 
-    let validation_preds = pipeline.revert(&validation_preds);
+    let preds_and_ids = pipeline.revert(&preds_and_ids);
     let data = pipeline.revert(&data);
-    let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
+    let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
     data_and_preds.to_csv_file(format!("models_stats/{}.csv", config_name));
 

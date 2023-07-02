@@ -835,7 +835,7 @@ let model = model.with_new_dataset(updated_dataset_spec);
 // + extracting test & all training metrics per folds & per epochs
 // + joining all the predictions made on each fold during the final epoch
 let kfold = model.trainer.maybe_kfold().expect("We only do k-folds here!");
-let (validation_preds, model_eval) = kfold
+let (preds_and_ids, model_eval) = kfold
     .attach_real_time_reporter(|fold, epoch, report| {
         println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
     })
@@ -849,11 +849,11 @@ let best_model_params = kfold.take_best_model();
 best_model_params.to_json("my_model_best_params.json");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
-let validation_preds = pipeline.revert(&validation_preds);
+let preds_and_ids = pipeline.revert(&preds_and_ids);
 let data = pipeline.revert(&data);
 
 // Joining the data and the predictions together
-let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
+let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
 // Saving the predictions and evaluations (train/test losses, R²...)
 data_and_preds.to_file("my_model_preds.csv");
@@ -932,7 +932,7 @@ fn parallel_k_fold(
     // mutability
     // Arcs are thread-safe reference counted pointers
     // for the compiler to have memory safety guarantees
-    validation_preds: &Arc<Mutex<DataTable>>,
+    preds_and_ids: &Arc<Mutex<DataTable>>,
     model_eval: &Arc<Mutex<ModelEvaluation>>,
     trained_models: &Arc<Mutex<Vec<Network>>>,
     k: usize,
@@ -940,7 +940,7 @@ fn parallel_k_fold(
     let i = i.clone();
     let model = model.clone();
     let data = data.clone();
-    let validation_preds = validation_preds.clone();
+    let preds_and_ids = preds_and_ids.clone();
     let model_eval = model_eval.clone();
     let all_epochs_r2 = self.all_epochs_r2;
     let reporter = self.real_time_reporter.clone();
@@ -997,7 +997,7 @@ fn parallel_k_fold(
 
             // Save the predictions if it is the last epoch
             if e == model.epochs - 1 {
-                let mut vp = validation_preds.lock().unwrap();
+                let mut vp = preds_and_ids.lock().unwrap();
                 *vp = vp.apppend(
                     &DataTable::from_vectors(&out_features, &preds)
                         .add_column_from(&validation_x_table, id_column),

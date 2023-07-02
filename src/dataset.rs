@@ -10,7 +10,6 @@ use crate::{
 
 #[derive(Serialize, Debug, Deserialize, Clone, Hash, Default)]
 pub struct Dataset {
-    pub name: String,
     pub features: Vec<Feature>,
 }
 
@@ -20,7 +19,6 @@ impl Dataset {
         let mut features = self.features.clone();
         features.push(feature);
         Self {
-            name: self.name.clone(),
             features,
         }
     }
@@ -29,7 +27,6 @@ impl Dataset {
         let mut features = self.features.clone();
         features.retain(|f| f.name != feature_name);
         Self {
-            name: self.name.clone(),
             features,
         }
     }
@@ -43,7 +40,6 @@ impl Dataset {
             .unwrap();
         features[index] = feature;
         Self {
-            name: self.name.clone(),
             features,
         }
     }
@@ -89,9 +85,8 @@ impl Dataset {
         names
     }
 
-    pub fn new(name: &str, features: &[Feature]) -> Self {
+    pub fn new(features: &[Feature]) -> Self {
         Self {
-            name: name.to_string(),
             features: features.to_vec(),
         }
     }
@@ -100,9 +95,6 @@ impl Dataset {
     pub fn from_csv<P: Into<PathBuf>>(path: P) -> Self {
         let path = Into::<PathBuf>::into(path);
 
-        let binding = path.clone();
-        let file_name = binding.file_stem().unwrap().to_str().unwrap();
-
         let table = DataTable::from_csv_file(path);
         let feature_names = table.get_columns_names();
         let mut features = Vec::new();
@@ -110,7 +102,7 @@ impl Dataset {
             let feature = Feature::from_options(&[FeatureOptions::Name(feature_name)]);
             features.push(feature);
         }
-        Self::new(file_name, &features)
+        Self::new(&features)
     }
 
     pub fn remove_features(&mut self, feature_names: &[&str]) -> &mut Self {
@@ -165,9 +157,8 @@ impl Dataset {
     /// let dataset = from_features_options("my_dataset", &[&features1, &features2]);
     /// ```
 
-    pub fn from_features_options(name: &str, features: &[&[FeatureOptions]]) -> Self {
+    pub fn from_features_options(features: &[&[FeatureOptions]]) -> Self {
         let mut dataset = Self::default();
-        dataset.name = name.to_string();
         for feature_options in features {
             let feature = Feature::from_options(feature_options);
             dataset.features.push(feature);

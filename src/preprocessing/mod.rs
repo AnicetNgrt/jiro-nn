@@ -6,7 +6,7 @@ use std::{
     rc::Rc
 };
 
-use crate::{dataset::Dataset, datatable::DataTable, monitor::TasksMonitor};
+use crate::{dataset::Dataset, datatable::DataTable, monitor::TM};
 
 use self::{
     extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps,
@@ -108,11 +108,22 @@ impl Pipeline {
         self
     }
 
-    pub fn load_csv<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self
+    pub fn load_data<P>(&mut self, dataset_path: P) -> &mut Self
+    where
+        P: Into<PathBuf> + ToString + Clone,
+    {
+        TM::start("gen_dataset_spec");
+        let spec = Dataset::from_csv(dataset_path.clone());
+        TM::end();
+
+        self.load_data_and_spec(dataset_path, &spec)
+    }
+
+    pub fn load_data_and_spec<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self
     where
         P: Into<PathBuf> + ToString,
     {
-        TasksMonitor::start("load_csv");
+        TM::start("load_data");
 
         let pathname = dataset_path.to_string();
 
@@ -122,13 +133,13 @@ impl Pipeline {
         self.data = Some(data);
         self.spec = Some(spec.clone());
 
-        TasksMonitor::end_with_message(format!("Successfully loaded {:?}: {:?}", pathname, self.data.as_ref().unwrap().describe()));
+        TM::end_with_message(format!("Successfully loaded {:?}: {:?}", pathname, self.data.as_ref().unwrap().describe()));
 
         self
     }
 
     pub fn run(&mut self) -> (Dataset, DataTable) {
-        TasksMonitor::start("pipeline");
+        TM::start("pipeline");
 
         let data = self.data.clone().unwrap();
         let spec = self.spec.clone().unwrap();
@@ -141,12 +152,12 @@ impl Pipeline {
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
 
-            TasksMonitor::start(&transformation.get_name());
+            TM::start(&transformation.get_name());
 
             id = format!("{}-{}", id, transformation.get_name());
             res = transformation.transform(&self.cached_config, &res.0, &res.1);
 
-            TasksMonitor::end();
+            TM::end();
         }
         let (spec, data) = res;
 
@@ -164,7 +175,7 @@ impl Pipeline {
 
         let data = data.select_columns(spec.feature_names().as_slice());
 
-        TasksMonitor::end_with_message(format!("{:?}", data.describe()));
+        TM::end_with_message(format!("{:?}", data.describe()));
 
         (spec, data)
     }

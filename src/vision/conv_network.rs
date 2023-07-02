@@ -4,7 +4,7 @@ use crate::{
     layer::{DropoutLayer, Layer, LearnableLayer, ParameterableLayer},
     linalg::{Matrix, Scalar},
     network::NetworkLayer,
-    vision::{image::Image, image::ImageTrait}, monitor::TasksMonitor,
+    vision::{image::Image, image::ImageTrait}, monitor::TM,
 };
 
 use super::image_layer::ImageLayer;
@@ -24,35 +24,35 @@ impl ConvNetwork {
 
 impl Layer for ConvNetwork {
     fn forward(&mut self, input: Matrix) -> Matrix {
-        TasksMonitor::start("cnet.forw");
+        TM::start("cnet.forw");
         let mut output = Image::from_samples(&input, self.channels);
         let n_layers = self.layers.len();
 
         for (i, layer) in self.layers.iter_mut().enumerate() {
-            TasksMonitor::start(format!("layer[{}/{}]", i+1, n_layers));
+            TM::start(format!("layer[{}/{}]", i+1, n_layers));
             output = layer.forward(output);
-            TasksMonitor::end();
+            TM::end();
         }
         
         self.out_channels = Some(output.channels());
         
         let out = output.flatten();
-        TasksMonitor::end();
+        TM::end();
         out
     }
 
     fn backward(&mut self, epoch: usize, error_gradient: Matrix) -> Matrix {
-        TasksMonitor::start("cnet.back");
+        TM::start("cnet.back");
         let mut error_gradient = Image::from_samples(&error_gradient, self.out_channels.unwrap());
         
         for (i, layer) in self.layers.iter_mut().enumerate().rev() {
-            TasksMonitor::start(format!("layer[{}]", i+1));
+            TM::start(format!("layer[{}]", i+1));
             error_gradient = layer.backward(epoch, error_gradient);
-            TasksMonitor::end();
+            TM::end();
         }
         
         let grad = error_gradient.flatten();
-        TasksMonitor::end();
+        TM::end();
         grad
     }
 }
