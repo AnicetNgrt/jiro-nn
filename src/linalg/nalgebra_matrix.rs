@@ -24,6 +24,11 @@ impl MatrixTrait for Matrix {
         Self(DMatrix::from_element(nrow, ncol, value))
     }
 
+    fn identity(n: usize) -> Self {
+        let id = DMatrix::identity(n, n);
+        Self(id)
+    }
+
     /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self {
         let mut rng = rand::thread_rng();
@@ -110,7 +115,7 @@ impl MatrixTrait for Matrix {
         Self(DMatrix::from_row_slice(1, v.len(), v))
     }
 
-    fn from_matrix_column(&self, idx: usize) -> Self {
+    fn get_column_as_matrix(&self, idx: usize) -> Self {
         Self(self.0.columns(idx, 1).into())
     }
 

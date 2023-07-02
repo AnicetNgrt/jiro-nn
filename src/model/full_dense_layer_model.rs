@@ -98,6 +98,10 @@ impl FullDenseLayerModelBuilder {
         self.activation(Activation::Linear)
     }
 
+    pub fn softmax(self) -> Self {
+        self.activation(Activation::Softmax)
+    }
+
     pub fn init_zeros(self) -> Self {
         self.init(Initializers::Zeros)
     }

@@ -28,7 +28,7 @@ fn main() {
                 .end()
             .end()
             .full_dense(10)
-                .sigmoid()
+                .softmax()
                 .momentum()
             .end()
         .end()

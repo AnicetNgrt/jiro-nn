@@ -3,7 +3,7 @@ use core::fmt;
 use arrayfire::{
     add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
     random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq, log, get_active_backend, Backend, max_all, min_all, join,
+    RandomEngine, Seq, log, get_active_backend, Backend, max_all, min_all, join, identity,
 };
 use rand::Rng;
 
@@ -25,6 +25,11 @@ impl MatrixTrait for Matrix {
 
     fn constant(nrow: usize, ncol: usize, value: Scalar) -> Self {
         Self(constant!(value; nrow.try_into().unwrap(), ncol.try_into().unwrap()))
+    }
+
+    fn identity(n: usize) -> Self {
+        let id = identity(Dim4::new(&[n.try_into().unwrap(), n.try_into().unwrap(), 1, 1]));
+        Self(id)
     }
 
     /// Creates a matrix with random values between min and max (excluded).
@@ -133,7 +138,7 @@ impl MatrixTrait for Matrix {
         ))
     }
 
-    fn from_matrix_column(&self, idx: usize) -> Self {
+    fn get_column_as_matrix(&self, idx: usize) -> Self {
         let res = index(
             &self.0,
             &[Seq::default(), Seq::new(idx as u32, idx as u32, 1)],
@@ -145,7 +150,7 @@ impl MatrixTrait for Matrix {
         assert!(columns.len() > 0);
         let mut result = columns[0].0.clone();
         for i in 1..columns.len() {
-            result = join(2, &result, &columns[i].0);
+            result = join(1, &result, &columns[i].0);
         }
         Self(result)
     }

@@ -50,6 +50,8 @@ pub trait MatrixTrait: Clone {
 
     fn constant(nrow: usize, ncol: usize, value: Scalar) -> Self;
 
+    fn identity(n: usize) -> Self;
+
     /// Creates a matrix with random values between min and max (excluded).
     fn random_uniform(nrow: usize, ncol: usize, min: Scalar, max: Scalar) -> Self;
 
@@ -100,7 +102,7 @@ pub trait MatrixTrait: Clone {
     where
         F: FnMut(usize, usize) -> Scalar;
 
-    fn from_matrix_column(&self, idx: usize) -> Self;
+    fn get_column_as_matrix(&self, idx: usize) -> Self;
 
     fn from_column_matrices(columns: &[Self]) -> Self;
 
