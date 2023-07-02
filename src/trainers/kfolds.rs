@@ -163,7 +163,9 @@ impl KFolds {
         TM::start(format!("{}/{}", i+1, k));
         TM::start("init");
         let out_features = model.dataset.out_features_names();
-        let id_column = model.dataset.get_id_column().unwrap();
+        let id_column = model.dataset
+            .get_id_column()
+            .expect("One feature must be specified as an id in the dataset specification.");
         let mut network = model.to_network();
 
         // Split the data between validation and training

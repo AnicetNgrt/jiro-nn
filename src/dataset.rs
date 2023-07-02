@@ -91,15 +91,12 @@ impl Dataset {
         }
     }
 
-    /// Create a new dataset from a csv file by adding all its columns as default features.
-    pub fn from_csv<P: Into<PathBuf>>(path: P) -> Self {
-        let path = Into::<PathBuf>::into(path);
-
-        let table = DataTable::from_csv_file(path);
-        let feature_names = table.get_columns_names();
+    /// Create a new dataset from a data file (csv, parquet...) by adding all its columns as default features.
+    pub fn from_file<P: Into<PathBuf>>(path: P) -> Self {
+        let feature_names = DataTable::columns_names_from_file(path);
         let mut features = Vec::new();
         for feature_name in feature_names {
-            let feature = Feature::from_options(&[FeatureOptions::Name(feature_name)]);
+            let feature = Feature::from_options(&[FeatureOptions::Name(feature_name.as_str())]);
             features.push(feature);
         }
         Self::new(&features)

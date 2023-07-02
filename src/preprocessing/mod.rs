@@ -113,7 +113,7 @@ impl Pipeline {
         P: Into<PathBuf> + ToString + Clone,
     {
         TM::start("gen_dataset_spec");
-        let spec = Dataset::from_csv(dataset_path.clone());
+        let spec = Dataset::from_file(dataset_path.clone());
         TM::end();
 
         self.load_data_and_spec(dataset_path, &spec)
@@ -128,7 +128,7 @@ impl Pipeline {
         let pathname = dataset_path.to_string();
 
         let data =
-            DataTable::from_csv_file(dataset_path).select_columns(spec.feature_names().as_slice());
+            DataTable::from_file(dataset_path).select_columns(spec.feature_names().as_slice());
 
         self.data = Some(data);
         self.spec = Some(spec.clone());

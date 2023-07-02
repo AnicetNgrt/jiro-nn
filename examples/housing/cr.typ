@@ -753,7 +753,7 @@ Here are some code snippets that you might find useful. They are excerpts from, 
 
 ```rs
 // Including all features from some CSV dataset
-let mut dataset_spec = Dataset::from_csv("kc_house_data.csv");
+let mut dataset_spec = Dataset::from_file("kc_house_data.csv");
 dataset_spec
     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
     // Add descriptive properties to the data features

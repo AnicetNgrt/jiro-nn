@@ -8,7 +8,7 @@ fn main() {
 	let args: Vec<String> = std::env::args().collect();
 	let config_name = &args[1];
 
-	let mut dataset_spec = Dataset::from_csv("dataset/kc_house_data.csv");
+	let mut dataset_spec = Dataset::from_file("dataset/kc_house_data.csv");
 	dataset_spec
 		.remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
 		.add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))

@@ -78,7 +78,10 @@ impl SplitTraining {
         let mut model_eval = ModelEvaluation::new_empty();
 
         let out_features = model.dataset.out_features_names();
-        let id_column = model.dataset.get_id_column().unwrap();
+        let id_column = model
+            .dataset
+            .get_id_column()
+            .expect("One feature must be specified as an id in the dataset specification.");
         let mut network = model.to_network();
 
         // Split the data between validation and training
@@ -103,7 +106,7 @@ impl SplitTraining {
         let mut eval = TrainingEvaluation::new_empty();
         let epochs = model.epochs;
         for e in 0..epochs {
-            TM::start(&format!("{}/{}", e+1, epochs));
+            TM::start(&format!("{}/{}", e + 1, epochs));
 
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 

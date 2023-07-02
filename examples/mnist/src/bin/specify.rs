@@ -8,9 +8,10 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
 
-    let mut dataset_spec = Dataset::from_csv("dataset/train.csv");
+    let mut dataset_spec = Dataset::from_file("dataset/train_cleaned.parquet");
     dataset_spec
         .add_opt(Normalized.except(&["label"]))
+        .add_opt_to("id", IsId)
         .add_opt_to("label", Out)
         .add_opt_to("label", OneHotEncode);
 
@@ -32,7 +33,7 @@ fn main() {
                 .momentum()
             .end()
         .end()
-        .epochs(10)
+        .epochs(20)
         .batch_size(128)
         .loss(Losses::BCE)
         .build();

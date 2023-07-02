@@ -2,7 +2,7 @@ use neural_networks_rust::{
     datatable::DataTable,
     model::Model,
     network::params::NetworkParams,
-    preprocessing::{attach_ids::AttachIds, Pipeline},
+    preprocessing::{Pipeline},
 };
 
 pub fn main() {
@@ -14,8 +14,7 @@ pub fn main() {
 
     let mut pipeline = Pipeline::basic_single_pass();
     let (updated_dataset_spec, data) = pipeline
-        .push(AttachIds::new("id"))
-        .load_data_and_spec("./dataset/train.csv", &model.dataset)
+        .load_data_and_spec("./dataset/train_cleaned.csv", &model.dataset)
         .run();
 
     println!("data: {:#?}", data);

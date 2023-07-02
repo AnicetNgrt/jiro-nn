@@ -64,7 +64,7 @@ Here is an example generating it with code *(recommended)*:
 
 ```rust
 // Including all features from some CSV dataset
-let mut dataset_spec = Dataset::from_csv("kc_house_data.csv");
+let mut dataset_spec = Dataset::from_file("kc_house_data.csv");
 dataset_spec
     // Removing useless features for both the model & derived features
     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])

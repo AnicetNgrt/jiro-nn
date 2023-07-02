@@ -177,6 +177,61 @@ impl DataTable {
         Self(self.0.sort(&[column], false).unwrap())
     }
 
+    pub fn from_file<P>(path: P) -> Self
+    where
+        P: Into<PathBuf>,
+    {
+        let path = path.into();
+        let extension = path.extension().unwrap().to_str().unwrap();
+        match extension {
+            "csv" => Self::from_csv_file(path),
+            "ipc" => Self::from_ipc_file(path),
+            "parquet" => Self::from_parquet_file(path),
+            _ => panic!("Unsupported file format: {}", extension),
+        }
+    }
+
+    pub fn columns_names_from_file<P>(path: P) -> Vec<String>
+    where
+        P: Into<PathBuf>,
+    {
+        let path = path.into();
+        let extension = path.extension().unwrap().to_str().unwrap();
+        match extension {
+            "csv" => Self::columns_names_from_csv_file(path),
+            "ipc" => Self::columns_names_from_ipc_file(path),
+            "parquet" => Self::columns_names_from_parquet_file(path),
+            _ => panic!("Unsupported file format: {}", extension),
+        }
+    }
+
+    pub fn columns_names_from_csv_file<P>(path: P) -> Vec<String>
+    where
+        P: Into<PathBuf>,
+    {
+        let data = CsvReader::from_path(path.into()).unwrap().with_n_rows(Some(1)).finish().unwrap();
+        let headers = data.get_column_names();
+        headers.iter().map(|s| s.to_string()).collect()
+    }
+
+    pub fn columns_names_from_ipc_file<P>(path: P) -> Vec<String>
+    where
+        P: Into<PathBuf>,
+    {
+        let data = IpcReader::new(File::open(path.into()).unwrap()).finish().unwrap();
+        let headers = data.get_column_names();
+        headers.iter().map(|s| s.to_string()).collect()
+    }
+
+    pub fn columns_names_from_parquet_file<P>(path: P) -> Vec<String>
+    where
+        P: Into<PathBuf>,
+    {
+        let data = ParquetReader::new(File::open(path.into()).unwrap()).finish().unwrap();
+        let headers = data.get_column_names();
+        headers.iter().map(|s| s.to_string()).collect()
+    }
+
     pub fn from_ipc_file<P>(path: P) -> Self
     where
         P: Into<PathBuf>,

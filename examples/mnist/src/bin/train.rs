@@ -13,7 +13,7 @@ pub fn main() {
 
     let mut pipeline = Pipeline::basic_single_pass();
     let (dspec, data) = pipeline
-        .load_data_and_spec("./dataset/train.csv", &model.dataset)
+        .load_data_and_spec("./dataset/train_cleaned.parquet", &model.dataset)
         .run();
 
     TM::start("modelinit");
@@ -39,8 +39,8 @@ pub fn main() {
     let values = data.select_columns(&["id", "label"]);
     let values_and_preds = values.inner_join(&preds_and_ids, "id", "id", None);
 
-    data.to_csv_file(format!("models_stats/{}_data_for_values_and_preds.csv", config_name));
-    values_and_preds.to_csv_file(format!("models_stats/{}_values_and_preds.csv", config_name));
+    data.to_csv_file(format!("models_stats/{}_data_for_values_and_preds.parquet", config_name));
+    values_and_preds.to_csv_file(format!("models_stats/{}_values_and_preds.parquet", config_name));
 
     println!("{:#?}", values_and_preds);
 
