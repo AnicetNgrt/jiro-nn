@@ -46,8 +46,8 @@ pub fn main() {
     let preds_and_ids =
         DataTable::from_vectors(&out_features, &preds).add_column_from(&x_table, "id");
 
-    let preds_and_ids = pipeline.revert_columnswise(&preds_and_ids);
-    let data = pipeline.revert_columnswise(&data);
+    let preds_and_ids = pipeline.revert(&preds_and_ids);
+    let data = pipeline.revert(&data);
     let data_and_preds = data.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
     data_and_preds.to_csv_file(format!("models_stats/{}.csv", out_name));

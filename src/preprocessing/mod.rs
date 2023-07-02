@@ -169,7 +169,7 @@ impl Pipeline {
         (spec, data)
     }
 
-    pub fn revert_columnswise(&mut self, data: &DataTable) -> DataTable {
+    pub fn revert(&mut self, data: &DataTable) -> DataTable {
         let mut res = data.clone();
 
         for transformation in &mut self.transformations.iter().rev() {

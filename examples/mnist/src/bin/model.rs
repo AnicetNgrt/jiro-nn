@@ -35,8 +35,8 @@ pub fn main() {
     let model_params = training.take_model();
     model_params.to_json(format!("models_stats/{}_params.json", config_name));
 
-    let validation_preds = pipeline.revert_columnswise(&validation_preds);
-    let data = pipeline.revert_columnswise(&data);
+    let validation_preds = pipeline.revert(&validation_preds);
+    let data = pipeline.revert(&data);
     let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
 
     data_and_preds.to_csv_file(format!("models_stats/{}.csv", config_name));

@@ -2,10 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{
     dataset::{Dataset, Feature},
-    datatable::DataTable, linalg::Scalar,
+    datatable::DataTable,
+    linalg::Scalar,
 };
 
-use super::{DataTransformation, CachedConfig};
+use super::{CachedConfig, DataTransformation};
 
 pub struct OneHotEncode;
 
@@ -22,7 +23,9 @@ impl DataTransformation for OneHotEncode {
             let feature = spec.features.iter().find(|f| f.name == *name).unwrap();
             if feature.one_hot_encoded {
                 let mut values_set = HashSet::new();
-                values.iter().for_each(|v| { values_set.insert(*v as i64); });
+                values.iter().for_each(|v| {
+                    values_set.insert(*v as i64);
+                });
                 features_values.insert(feature.clone(), values_set);
             }
         });
@@ -65,7 +68,64 @@ impl DataTransformation for OneHotEncode {
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {
-        data.clone()
+        let mut classes: HashMap<String, Vec<String>> = HashMap::new();
+        let mut one_hot_encoded: HashMap<String, Vec<(usize, Scalar)>> = HashMap::new();
+
+        // extract any column name like xxxx=yyyy which is a one hot encoded value for yyyy of column xxxx
+        data.as_scalar_hashmap().iter().for_each(|(name, values)| {
+            let parts: Vec<&str> = name.split("=").collect();
+            if parts.len() == 2 {
+                let column_name = parts[0].to_string();
+                let class = parts[1].to_string();
+
+                if !one_hot_encoded.contains_key(&column_name) {
+                    classes.insert(column_name.clone(), vec![class.clone()]);
+                    let class_idx = 0;
+
+                    let mut idmaxes = Vec::new();
+                    for i in 0..values.len() {
+                        idmaxes.push((class_idx, values[i]));
+                    }
+                    one_hot_encoded.insert(column_name, idmaxes);
+                } else {
+                    let column_classes = classes.get_mut(&column_name).unwrap();
+                    let class_idx = column_classes.len();
+                    column_classes.push(class.clone());
+
+                    let idmaxes = one_hot_encoded.get_mut(&column_name).unwrap();
+                    for i in 0..values.len() {
+                        idmaxes[i].1 = idmaxes[i].1.max(values[i]);
+                        if idmaxes[i].1 == values[i] {
+                            idmaxes[i].0 = class_idx;
+                        }
+                    }
+                }
+            }
+        });
+
+        let mut new_data = data.clone();
+
+        // remove old column=class columns for all classes in classes for that column
+        for (column_name, classes) in classes.iter() {
+            for class in classes.iter() {
+                new_data = new_data.drop_column(&format!("{}={}", column_name, class));
+            }
+        }
+
+        // add new column columns for all columns and put the most likely class in there
+        for (column_name, idmaxes) in one_hot_encoded.iter() {
+            let mut column_class_values = Vec::new();
+            let mut column_confidence_value = Vec::new();
+            for (class_idx, confidence) in idmaxes {
+                let class_name = classes.get(column_name).unwrap()[*class_idx].clone();
+                column_class_values.push(class_name);
+                column_confidence_value.push(*confidence);
+            }
+            new_data = new_data.with_column_string(&column_name, column_class_values.as_slice());
+            new_data = new_data.with_column_scalar(&format!("{}-confidence", column_name), column_confidence_value.as_slice());
+        }
+        
+        new_data
     }
 
     fn get_name(&self) -> String {

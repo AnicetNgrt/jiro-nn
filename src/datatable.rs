@@ -8,6 +8,8 @@ use crate::linalg::Scalar;
 
 use polars::prelude::*;
 
+pub type DataFrame = polars::frame::DataFrame;
+
 #[derive(Clone, Debug)]
 pub struct DataTable(DataFrame);
 

@@ -45,8 +45,8 @@ let best_model_params = kfold.take_best_model();
 best_model_params.to_json("my_model_params.csv");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
-let validation_preds = pipeline.revert_columnswise(&validation_preds);
-let data = pipeline.revert_columnswise(&data);
+let validation_preds = pipeline.revert(&validation_preds);
+let data = pipeline.revert(&data);
 
 // Joining the data and the predictions together
 let data_and_preds = data.inner_join(&validation_preds, "id", "id", Some("pred"));
