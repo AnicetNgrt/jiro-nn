@@ -11,15 +11,15 @@ Feel free to give feedback.
 MNIST (hand-written digits recognition) workflow example:
 
 ```rust
-// Step 1: Enrich the features of your data (eg. the "columns") with metadata using Tags
-// The tags are necessary for guiding further steps (preprocessing, training...)
+// Step 1: Enrich the features of your data (eg. the "columns") with metadata using a Dataset Specification
+// The specification is necessary for guiding further steps (preprocessing, training...)
 
-// Extract columns from a CSV (or parquet, ipc...) file to start building a dataset specification
+// Extract features from a spreadsheet to start building a dataset specification
 // You could also start blank and add the columns and metadata manually
 let mut dataset_spec = Dataset::from_file("dataset/train.csv");
-// Now we refine it
+// Now we can add metadata to our features
 dataset_spec
-    // Remove useless features
+    // Flag useless features for removal
     .remove_features(&["size"])
     // Tell the framework which column is an ID (so it can be ignored in training, used in joins, and so on)
     .tag_feature("id", IsId)
