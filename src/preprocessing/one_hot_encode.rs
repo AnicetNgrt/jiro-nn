@@ -122,7 +122,7 @@ impl DataTransformation for OneHotEncode {
                 column_confidence_value.push(*confidence);
             }
             new_data = new_data.with_column_string(&column_name, column_class_values.as_slice());
-            new_data = new_data.with_column_scalar(&format!("{}-confidence", column_name), column_confidence_value.as_slice());
+            new_data = new_data.with_column_scalar(&format!("{}.confidence", column_name), column_confidence_value.as_slice());
         }
         
         new_data

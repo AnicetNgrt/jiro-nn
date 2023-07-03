@@ -36,8 +36,8 @@ pub fn main() {
     let preds_and_ids = pipeline.revert(&preds_and_ids);
     let data = pipeline.revert(&data);
 
-    let values = data.select_columns(&["id", "label"]);
-    let values_and_preds = values.inner_join(&preds_and_ids, "id", "id", None);
+    let values = data.select_columns(&["id", "label"]).rename_column("label", "true_label");
+    let values_and_preds = values.inner_join(&preds_and_ids, "id", "id", Some("pred"));
 
     data.to_csv_file(format!("models_stats/{}_data_for_values_and_preds.parquet", config_name));
     values_and_preds.to_csv_file(format!("models_stats/{}_values_and_preds.parquet", config_name));
