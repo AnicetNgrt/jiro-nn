@@ -1,11 +1,9 @@
-# King County House price regression
+# MNIST
 
-Standard looking results by doing roughly [the same approach as a user named frederico on Kaggle using Pytorch](https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook). Involving data manipulation with preprocessing, and a 8 layers of ~20 inputs each model using ReLU & Adam. Training over 300 epochs with 8 folds k-folds.
+## Workflow
 
-Charts made with the gnuplot crate.
-
-![loss according to training epochs](../visuals/full_lt_8ReLU-Adam-Lin-Adam_loss.png)
-
-![prices according to predicted prices](../visuals/full_lt_8ReLU-Adam-Lin-Adam_price.png)
-
-![prices & predicted prices according to lat & long](../visuals/full_lt_8ReLU-Adam-Lin-Adam_latlong.png)
+1. Download the dataset from [Kaggle](https://www.kaggle.com/c/digit-recognizer/data) and extract it in the `dataset` folder.
+2. Clean the data with `cargo run --bin clean`.
+3. (Optional) edit `specify.rs` to change the specification as code.
+4. Generate specification files with `cargo run --bin specify -- <spec_name>`.
+5. Train the model with `cargo run --bin train -- <spec_name>`.
