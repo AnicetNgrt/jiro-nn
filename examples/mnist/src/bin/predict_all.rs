@@ -20,9 +20,9 @@ pub fn main() {
     println!("data: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_spec);
-    let out_features = model.dataset.out_features_names();
+    let predicted_features = model.dataset.predicted_features_names();
 
-    let (x_table, _) = data.random_order_in_out(&out_features);
+    let (x_table, _) = data.random_order_in_out(&predicted_features);
 
     let x = x_table.drop_column("id").to_vectors();
 
@@ -33,7 +33,7 @@ pub fn main() {
     let preds = network.predict_many(&x, model.batch_size.unwrap_or(x.len()));
 
     let preds_and_ids =
-        DataTable::from_vectors(&out_features, &preds).add_column_from(&x_table, "id");
+        DataTable::from_vectors(&predicted_features, &preds).add_column_from(&x_table, "id");
 
     let preds_and_ids = pipeline.revert(&preds_and_ids);
     let data = pipeline.revert(&data);

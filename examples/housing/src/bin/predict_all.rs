@@ -23,9 +23,9 @@ pub fn main() {
     println!("data: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_spec);
-    let out_features = model.dataset.out_features_names();
+    let predicted_features = model.dataset.predicted_features_names();
 
-    let (x_table, y_table) = data.random_order_in_out(&out_features);
+    let (x_table, y_table) = data.random_order_in_out(&predicted_features);
 
     let x = x_table.drop_column("id").to_vectors();
     let y = y_table.to_vectors();
@@ -34,7 +34,8 @@ pub fn main() {
     let mut network = model.to_network();
     network.load_params(&weights);
 
-    let (preds, avg_loss, std_loss) = network.predict_evaluate_many(&x, &y, &model.loss.to_loss());
+    let (preds, avg_loss, std_loss) =
+        network.predict_evaluate_many(&x, &y, &model.loss.to_loss(), 1);
 
     println!("avg_loss: {:#?}", avg_loss);
     println!("std_loss: {:#?}", std_loss);
@@ -44,7 +45,7 @@ pub fn main() {
     println!("r2: {:#?}", r2);
 
     let preds_and_ids =
-        DataTable::from_vectors(&out_features, &preds).add_column_from(&x_table, "id");
+        DataTable::from_vectors(&predicted_features, &preds).add_column_from(&x_table, "id");
 
     let preds_and_ids = pipeline.revert(&preds_and_ids);
     let data = pipeline.revert(&data);

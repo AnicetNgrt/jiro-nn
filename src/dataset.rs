@@ -8,6 +8,56 @@ use crate::{
     preprocessing::map::{MapOp, MapSelector},
 };
 
+/// A structure that specifies _features_ (aka "columns") that will be fed to the network
+/// and the preprocessing pipeline. **This is not the actual data**, it is only metadata for the framework.
+/// 
+/// Features are described via the `Feature` struct. See its documentation for more information.
+/// 
+/// Example:
+/// 
+/// ```rust
+/// // This will create a Dataset with default metadata for all of the spreadsheet's columns
+/// let mut dataset_spec = Dataset::from_file("data.csv");
+/// 
+/// dataset_spec
+///     // Adds a "tag" to all features via `tag_all`
+///     // The tag used here `Normalized` tells the framework that all the columns
+///     // that have it will need to be normalized in preprocessing pipeline later.
+///     // The tags can be modified with methods such as `except`, which tells to
+///     // skip applying the tag for the "label" column.
+///     .tag_all(Normalized.except(&["label"]))
+///     // Tags don't always mean preprocessing. Here we simply indicate which column
+///     // can be used as an id. Which is important for some parts of the framework.
+///     // Here `tag_feature` applies the tag to only one feature.
+///     .tag_feature("id", IsId)
+///     // Other tags examples below:
+///     .tag_feature("label", Predicted)
+///     .tag_feature("label", OneHotEncode);
+/// ```
+/// 
+/// More in-depth example:
+/// 
+/// ```rust
+/// let mut dataset_spec = Dataset::from_file("dataset/kc_house_data.csv");
+/// dataset_spec
+///     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
+///     .tag_feature("date", DateFormat("%Y%m%dT%H%M%S"))
+///     .tag_feature("date", AddExtractedMonth)
+///     .tag_feature("date", AddExtractedTimestamp)
+///     .tag_feature("date", Not(&UsedInModel))
+///     .tag_feature(
+///         "yr_renovated",
+///         Mapped(
+///             MapSelector::equal(MapValue::f64(0.0)),
+///             MapOp::replace_with(MapValue::take_from_feature("yr_built")),
+///         ),
+///     )
+///     .tag_feature("price", Predicted)
+///     .tag_all(Log10.only(&["sqft_living", "sqft_above", "price"]))
+///     .tag_all(AddSquared.except(&["price", "date"]).incl_added_features())
+///     .tag_all(FilterOutliers.except(&["date"]).incl_added_features())
+///     .tag_all(Normalized.except(&["date"]).incl_added_features());
+/// ```
 #[derive(Serialize, Debug, Deserialize, Clone, Hash, Default)]
 pub struct Dataset {
     pub features: Vec<Feature>,
@@ -56,7 +106,7 @@ impl Dataset {
     pub fn in_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
-            if !feature.out && !feature.is_id && !feature.date_format.is_some() {
+            if !feature.predicted && !feature.is_id && !feature.date_format.is_some() {
                 names.push(feature.name.as_str());
             }
         }
@@ -64,22 +114,11 @@ impl Dataset {
     }
 
     /// Return the names of the features that are specified as outputs.
-    pub fn out_features_names(&self) -> Vec<&str> {
+    pub fn predicted_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
-            if feature.out {
+            if feature.predicted {
                 names.push(feature.name.as_str());
-            }
-        }
-        names
-    }
-
-    /// Return the names of the features that are specified as outputs with a `"pred"` prefix added.
-    pub fn pred_out_features_names(&self) -> Vec<String> {
-        let mut names = Vec::new();
-        for feature in &self.features {
-            if feature.out {
-                names.push(format!("pred_{}", feature.name));
             }
         }
         names
@@ -96,7 +135,7 @@ impl Dataset {
         let feature_names = DataTable::columns_names_from_file(path);
         let mut features = Vec::new();
         for feature_name in feature_names {
-            let feature = Feature::from_options(&[FeatureOptions::Name(feature_name.as_str())]);
+            let feature = Feature::from_tags(&[FeatureTags::Name(feature_name.as_str())]);
             features.push(feature);
         }
         Self::new(&features)
@@ -113,51 +152,53 @@ impl Dataset {
         self
     }
 
-    /// The `add_opt_to` method adds a `FeatureOptions` to a specific feature in the dataset.
-    pub fn add_opt_to(&mut self, feature_name: &str, option: FeatureOptions) -> &mut Self {
+    /// The `tag_feature` is a way to tag a specific dataset's feature with a `FeatureTags`, in order to specify its properties and preprocessing requirements.
+    /// 
+    /// See the `FeatureTags` documentation for more information on the available tags.
+    pub fn tag_feature(&mut self, feature_name: &str, tag: FeatureTags) -> &mut Self {
         for feature in &mut self.features {
             if feature.name == feature_name {
-                option.apply(feature);
+                tag.apply(feature);
             }
         }
         self
     }
 
-    /// The `add_opt` method adds a `FeatureOptions` to all features in the dataset.
-    pub fn add_opt(&mut self, option: FeatureOptions) -> &mut Self {
+    /// The `tag_all` method adds a `FeatureTags` to all features in the dataset.
+    pub fn tag_all(&mut self, tag: FeatureTags) -> &mut Self {
         for feature in &mut self.features {
-            option.apply(feature);
+            tag.apply(feature);
         }
         self
     }
 
-    /// The `from_features_options` method is a constructor function for creating a `Dataset` object from a collection of `FeatureOptions`.
+    /// The `from_features_tags` method is a constructor function for creating a `Dataset` object from a collection of `FeatureTags`.
     ///
-    /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureOptions` representing the individual features to be included in the dataset. The `FeatureOptions` for each feature specify how that feature should be preprocessed before being included in the dataset.
+    /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureTags` representing the individual features to be included in the dataset. The `FeatureTags` for each feature specify how that feature should be preprocessed before being included in the dataset.
     ///
-    /// See the `FeatureOptions` documentation for more information on the available options.
+    /// See the `FeatureTags` documentation for more information on the available tags.
     ///
     /// Example:
     ///
     /// ```
     /// let features1 = &[
-    ///     FeatureOptions::Name("age"),
-    ///     FeatureOptions::Normalized(true),
-    ///     FeatureOptions::Squared(true),
+    ///     FeatureTags::Name("age"),
+    ///     FeatureTags::Normalized(true),
+    ///     FeatureTags::Squared(true),
     /// ];
     /// let features2 = &[
-    ///     FeatureOptions::Name("income"),
-    ///     FeatureOptions::Log10(true),
-    ///     FeatureOptions::FilterOutliers(true),
+    ///     FeatureTags::Name("income"),
+    ///     FeatureTags::Log10(true),
+    ///     FeatureTags::FilterOutliers(true),
     /// ];
     ///
-    /// let dataset = from_features_options("my_dataset", &[&features1, &features2]);
+    /// let dataset = from_features_tags("my_dataset", &[&features1, &features2]);
     /// ```
 
-    pub fn from_features_options(features: &[&[FeatureOptions]]) -> Self {
+    pub fn from_features_tags(features: &[&[FeatureTags]]) -> Self {
         let mut dataset = Self::default();
-        for feature_options in features {
-            let feature = Feature::from_options(feature_options);
+        for feature_tags in features {
+            let feature = Feature::from_tags(feature_tags);
             dataset.features.push(feature);
         }
         dataset
@@ -173,11 +214,12 @@ impl Dataset {
     }
 }
 
+/// A structure that holds metadata of a _feature_ (aka. a "column") of a data table.
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub struct Feature {
     pub name: String,
     #[serde(default)]
-    pub out: bool,
+    pub predicted: bool,
     pub date_format: Option<String>,
     #[serde(default)]
     pub to_timestamp: bool,
@@ -207,15 +249,15 @@ pub struct Feature {
 }
 
 impl Feature {
-    /// The `from_options` method is a constructor function for creating a `Feature` object from a list of `FeatureOptions`.
+    /// The `from_tags` method is a constructor function for creating a `Feature` object from a list of `FeatureTags`.
     ///
-    /// See the documentation for `FeatureOptions` for more information on available options.
+    /// See the documentation for `FeatureTags` for more information on available tags.
 
-    pub fn from_options(feature_options: &[FeatureOptions]) -> Self {
+    pub fn from_tags(feature_tags: &[FeatureTags]) -> Self {
         let mut feature = Feature::default();
         feature.used_in_model = true;
-        for feature_option in feature_options {
-            feature_option.apply(&mut feature);
+        for feature_tag in feature_tags {
+            feature_tag.apply(&mut feature);
         }
         feature
     }
@@ -241,17 +283,17 @@ impl Feature {
     }
 }
 
-/// Options to be used to describe a feature and its related preprocessing.
+/// Tags to be used to describe a feature and its related preprocessing.
 ///
-/// **Feature description options**:
+/// **Feature description tags**:
 ///
 /// - `Name`: The name of the feature.
-/// - `UsedInModel`: Disables the pruning of the feature at the end of the pipeline. All features are used in the model by default.
-/// - `Out`: Sets the feature as an output feature. All features are input features by default.
-/// - `IsId`: Identifies the feature as an id. All features are not ids by default.
+/// - `UsedInModel`: Disables the pruning of the feature at the end of the pipeline. Features are all not pruned by default.
+/// - `Predicted`: Sets the feature as a _predicted feature_. Features are all not _predicted features_ by default.
+/// - `IsId`: Identifies the feature as an id. Features are all not ids by default.
 /// - `DateFormat`: The date format to use for date/time features.
 ///
-/// **Feature replacement/mapping options**:
+/// **Feature replacement/mapping tags**:
 ///
 /// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
 /// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` specified.
@@ -262,11 +304,11 @@ impl Feature {
 /// - `Squared`: Enables squaring the feature.
 /// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
 ///
-/// **Feature row filtering options**:
+/// **Feature row filtering tags**:
 ///
 /// - `FilterOutliers`: Enables filtering outlier rows from the feature's column using Tukey's fence method.
 ///
-/// **Automatic feature extraction options**:
+/// **Automatic feature extraction tags**:
 ///
 /// - `AddExtractedMonth`: Enables the extracted month feature extraction from that feature. The extracted feature will be named `"<feature_name>_month"`.
 /// - `AddExtractedTimestamp`: Enables the extracted Unix timestamp feature extraction from that feature. The extracted feature will be named `"<feature_name>_timestamp"`.
@@ -274,178 +316,178 @@ impl Feature {
 /// - `AddNormalized`: Enables the extracted normalized feature extraction from that feature. The extracted feature will be named `"<feature_name>_normalized"`.
 /// - `AddSquared`: Enables the extracted squared feature extraction from that feature. The extracted feature will be named `"<feature_name>^2"`.
 ///
-/// **"Semi-automatic" feature extraction options**:
+/// **"Semi-automatic" feature extraction tags**:
 ///
-/// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureOptions`).
-/// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureOptions`).
-/// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureOptions`).
-/// - `AddFeatureNormalized`: Enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureOptions`).
-/// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
+/// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureNormalized`: Enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
 ///
-/// **Meta options**:
+/// **Meta tags**:
 ///
-/// - `Not`: Negates the effect of the following option.
+/// - `Not`: Negates the effect of the following tag.
 /// - Some others that are internal and should not be used there.
 #[derive(Debug)]
-pub enum FeatureOptions<'a> {
-    /// The `Name` option specifies the name of the feature.
+pub enum FeatureTags<'a> {
+    /// The `Name` tag specifies the name of the feature.
     Name(&'a str),
-    /// The `Out` option specifies that the feature is an output feature.
-    Out,
-    /// The `DateFormat` option specifies the date format to use for date/time features.
+    /// The `Predicted` tag specifies that the feature is an output feature.
+    Predicted,
+    /// The `DateFormat` tag specifies the date format to use for date/time features.
     DateFormat(&'a str),
-    /// The `OneHotEncod` option enables conversion to one-hot encoding of the feature.
+    /// The `OneHotEncod` tag enables conversion to one-hot encoding of the feature.
     OneHotEncode,
-    /// The `ToTimestamp` option enables conversion of the date/time feature to a Unix timestamp.
+    /// The `ToTimestamp` tag enables conversion of the date/time feature to a Unix timestamp.
     ToTimestamp,
-    /// The `ExtractMonth` option enables conversion of the date/time to its month.
+    /// The `ExtractMonth` tag enables conversion of the date/time to its month.
     ExtractMonth,
-    /// The `Log10` option enables applying base-10 logarithm to the feature.
+    /// The `Log10` tag enables applying base-10 logarithm to the feature.
     Log10,
-    /// The `Normalized` option enables normalizing the feature.
+    /// The `Normalized` tag enables normalizing the feature.
     Normalized,
-    /// The `FilterOutliers` option enables filtering outliers from the feature using Tukey's fence method.
+    /// The `FilterOutliers` tag enables filtering outliers from the feature using Tukey's fence method.
     FilterOutliers,
-    /// The `Squared` option enables squaring the feature.
+    /// The `Squared` tag enables squaring the feature.
     Squared,
-    /// The `UsedInModel` option enables the feature in the model.
+    /// The `UsedInModel` tag enables the feature in the model.
     UsedInModel,
-    /// The `IsId` option identifies the feature as an id.
+    /// The `IsId` tag identifies the feature as an id.
     IsId,
-    /// The `AddExtractedMonth` option enables the extracted month feature extraction from that feature.
+    /// The `AddExtractedMonth` tag enables the extracted month feature extraction from that feature.
     AddExtractedMonth,
-    /// The `AddExtractedTimestamp` option enables the extracted Unix timestamp feature extraction from that feature.
+    /// The `AddExtractedTimestamp` tag enables the extracted Unix timestamp feature extraction from that feature.
     AddExtractedTimestamp,
-    /// The `AddLog10` option enables the extracted base-10 logarithm feature extraction from that feature.
+    /// The `AddLog10` tag enables the extracted base-10 logarithm feature extraction from that feature.
     AddLog10,
-    /// The `AddNormalized` option enables the extracted normalized feature extraction from that feature.
+    /// The `AddNormalized` tag enables the extracted normalized feature extraction from that feature.
     AddNormalized,
-    /// The `AddSquared` option enables the extracted squared feature extraction from that feature.
+    /// The `AddSquared` tag enables the extracted squared feature extraction from that feature.
     AddSquared,
-    /// The `Mapped` option enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
-    AddFeatureExtractedMonth(&'a [FeatureOptions<'a>]),
-    /// The `AddFeatureExtractedTimestamp` option enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureOptions`).
-    AddFeatureExtractedTimestamp(&'a [FeatureOptions<'a>]),
-    /// The `AddFeatureLog10` option enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureOptions`).
-    AddFeatureLog10(&'a [FeatureOptions<'a>]),
-    /// The `AddFeatureNormalized` option enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureOptions`).
-    AddFeatureNormalized(&'a [FeatureOptions<'a>]),
-    /// The `AddFeatureSquared` option enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureOptions`).
-    AddFeatureSquared(&'a [FeatureOptions<'a>]),
-    /// The `Mapped` option enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+    AddFeatureExtractedMonth(&'a [FeatureTags<'a>]),
+    /// The `AddFeatureExtractedTimestamp` tag enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
+    AddFeatureExtractedTimestamp(&'a [FeatureTags<'a>]),
+    /// The `AddFeatureLog10` tag enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
+    AddFeatureLog10(&'a [FeatureTags<'a>]),
+    /// The `AddFeatureNormalized` tag enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
+    AddFeatureNormalized(&'a [FeatureTags<'a>]),
+    /// The `AddFeatureSquared` tag enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
+    AddFeatureSquared(&'a [FeatureTags<'a>]),
+    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
     Mapped(MapSelector, MapOp),
-    /// The `Not` option negates the effect of the following option.
-    Not(&'a FeatureOptions<'a>),
-    /// The `RecurseAdded` option enables the feature option to be applied to all added features extracted from the feature option.
-    RecurseAdded(&'a FeatureOptions<'a>),
-    /// The `ExceptFeatures` option enables the feature option to be applied to all features except some features.
-    ExceptFeatures(&'a FeatureOptions<'a>, &'a [&'a str]),
-    /// The `OnlyFeatures` option enables the feature option to be applied to only some features.
-    OnlyFeatures(&'a FeatureOptions<'a>, &'a [&'a str]),
+    /// The `Not` tag negates the effect of the following tag.
+    Not(&'a FeatureTags<'a>),
+    /// The `RecurseAdded` tag enables the feature tag to be applied to all added features extracted from the feature tag.
+    RecurseAdded(&'a FeatureTags<'a>),
+    /// The `ExceptFeatures` tag enables the feature tag to be applied to all features except some features.
+    ExceptFeatures(&'a FeatureTags<'a>, &'a [&'a str]),
+    /// The `OnlyFeatures` tag enables the feature tag to be applied to only some features.
+    OnlyFeatures(&'a FeatureTags<'a>, &'a [&'a str]),
 }
 
-impl<'a> FeatureOptions<'a> {
-    /// Applies the feature option to the feature.
+impl<'a> FeatureTags<'a> {
+    /// Applies the feature tag to the feature.
     pub fn apply(&self, feature: &mut Feature) {
         self.apply_bool(feature, true)
     }
 
-    /// Applies the feature option to all features except some features.
-    pub fn except(&'a self, exceptions: &'a [&'a str]) -> FeatureOptions<'a> {
-        FeatureOptions::ExceptFeatures(self, exceptions)
+    /// Applies the feature tag to all features except some features.
+    pub fn except(&'a self, exceptions: &'a [&'a str]) -> FeatureTags<'a> {
+        FeatureTags::ExceptFeatures(self, exceptions)
     }
 
-    /// Applies the feature option to only some features.
-    pub fn only(&'a self, features: &'a [&'a str]) -> FeatureOptions<'a> {
-        FeatureOptions::OnlyFeatures(self, features)
+    /// Applies the feature tag to only some features.
+    pub fn only(&'a self, features: &'a [&'a str]) -> FeatureTags<'a> {
+        FeatureTags::OnlyFeatures(self, features)
     }
 
-    /// Applies the feature option to all features and their extracted features.
-    pub fn incl_added_features(&'a self) -> FeatureOptions<'a> {
-        FeatureOptions::RecurseAdded(self)
+    /// Applies the feature tag to all features and their extracted features.
+    pub fn incl_added_features(&'a self) -> FeatureTags<'a> {
+        FeatureTags::RecurseAdded(self)
     }
 
     fn apply_bool(&self, feature: &mut Feature, value: bool) {
         match self {
-            FeatureOptions::Name(name) => feature.name = name.to_string(),
-            FeatureOptions::Out => feature.out = value,
-            FeatureOptions::DateFormat(date_format) => {
+            FeatureTags::Name(name) => feature.name = name.to_string(),
+            FeatureTags::Predicted => feature.predicted = value,
+            FeatureTags::DateFormat(date_format) => {
                 feature.date_format = Some(date_format.to_string())
             }
-            FeatureOptions::ToTimestamp => feature.to_timestamp = value,
-            FeatureOptions::ExtractMonth => feature.extract_month = value,
-            FeatureOptions::Log10 => feature.log10 = value,
-            FeatureOptions::Normalized => feature.normalized = value,
-            FeatureOptions::FilterOutliers => feature.filter_outliers = value,
-            FeatureOptions::Squared => feature.squared = value,
-            FeatureOptions::OneHotEncode => feature.one_hot_encoded = value,
-            FeatureOptions::UsedInModel => feature.used_in_model = value,
-            FeatureOptions::IsId => feature.is_id = value,
-            FeatureOptions::AddFeatureExtractedMonth(with_extracted_month) => {
+            FeatureTags::ToTimestamp => feature.to_timestamp = value,
+            FeatureTags::ExtractMonth => feature.extract_month = value,
+            FeatureTags::Log10 => feature.log10 = value,
+            FeatureTags::Normalized => feature.normalized = value,
+            FeatureTags::FilterOutliers => feature.filter_outliers = value,
+            FeatureTags::Squared => feature.squared = value,
+            FeatureTags::OneHotEncode => feature.one_hot_encoded = value,
+            FeatureTags::UsedInModel => feature.used_in_model = value,
+            FeatureTags::IsId => feature.is_id = value,
+            FeatureTags::AddFeatureExtractedMonth(with_extracted_month) => {
                 feature.with_extracted_month =
-                    Some(Box::new(Feature::from_options(with_extracted_month)))
+                    Some(Box::new(Feature::from_tags(with_extracted_month)))
             }
-            FeatureOptions::AddFeatureExtractedTimestamp(with_extracted_timestamp) => {
+            FeatureTags::AddFeatureExtractedTimestamp(with_extracted_timestamp) => {
                 feature.with_extracted_timestamp =
-                    Some(Box::new(Feature::from_options(with_extracted_timestamp)))
+                    Some(Box::new(Feature::from_tags(with_extracted_timestamp)))
             }
-            FeatureOptions::AddFeatureLog10(with_log10) => {
-                feature.with_log10 = Some(Box::new(Feature::from_options(with_log10)))
+            FeatureTags::AddFeatureLog10(with_log10) => {
+                feature.with_log10 = Some(Box::new(Feature::from_tags(with_log10)))
             }
-            FeatureOptions::AddFeatureNormalized(with_normalized) => {
-                feature.with_normalized = Some(Box::new(Feature::from_options(with_normalized)))
+            FeatureTags::AddFeatureNormalized(with_normalized) => {
+                feature.with_normalized = Some(Box::new(Feature::from_tags(with_normalized)))
             }
-            FeatureOptions::AddFeatureSquared(with_squared) => {
-                feature.with_squared = Some(Box::new(Feature::from_options(with_squared)))
+            FeatureTags::AddFeatureSquared(with_squared) => {
+                feature.with_squared = Some(Box::new(Feature::from_tags(with_squared)))
             }
-            FeatureOptions::Mapped(map_selector, map_op) => {
+            FeatureTags::Mapped(map_selector, map_op) => {
                 feature.mapped = Some((map_selector.clone(), map_op.clone()))
             }
-            FeatureOptions::Not(feature_option) => feature_option.apply_bool(feature, !value),
-            FeatureOptions::ExceptFeatures(feature_option, exceptions) => {
+            FeatureTags::Not(feature_tag) => feature_tag.apply_bool(feature, !value),
+            FeatureTags::ExceptFeatures(feature_tag, exceptions) => {
                 if !exceptions.contains(&feature.name.as_str()) {
-                    feature_option.apply_bool(feature, value)
+                    feature_tag.apply_bool(feature, value)
                 }
             }
-            FeatureOptions::OnlyFeatures(feature_option, inclusions) => {
+            FeatureTags::OnlyFeatures(feature_tag, inclusions) => {
                 if inclusions.contains(&feature.name.as_str()) {
-                    feature_option.apply_bool(feature, value)
+                    feature_tag.apply_bool(feature, value)
                 }
             }
-            FeatureOptions::AddExtractedMonth => {
+            FeatureTags::AddExtractedMonth => {
                 feature.with_extracted_month =
-                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
                         &format!("{}_month", feature.name),
                     )])))
             }
-            FeatureOptions::AddExtractedTimestamp => {
+            FeatureTags::AddExtractedTimestamp => {
                 feature.with_extracted_timestamp =
-                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
                         &format!("{}_timestamp", feature.name),
                     )])))
             }
-            FeatureOptions::AddLog10 => {
-                feature.with_log10 = Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+            FeatureTags::AddLog10 => {
+                feature.with_log10 = Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
                     &format!("log10({})", feature.name),
                 )])))
             }
-            FeatureOptions::AddNormalized => {
+            FeatureTags::AddNormalized => {
                 feature.with_normalized =
-                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
                         &format!("{}_normalized", feature.name),
                     )])))
             }
-            FeatureOptions::AddSquared => {
+            FeatureTags::AddSquared => {
                 feature.with_squared =
-                    Some(Box::new(Feature::from_options(&[FeatureOptions::Name(
+                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
                         &format!("{}^2", feature.name),
                     )])))
             }
-            FeatureOptions::RecurseAdded(feature_option) => {
+            FeatureTags::RecurseAdded(feature_tag) => {
                 for extracted_feature in feature.get_extracted_features_mut().into_iter() {
                     self.apply_bool(extracted_feature, value)
                 }
-                feature_option.apply_bool(feature, value);
+                feature_tag.apply_bool(feature, value);
             }
         };
     }

@@ -23,9 +23,9 @@ pub fn main() {
     println!("Data: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_spec);
-    let out_features = model.dataset.out_features_names();
+    let predicted_features = model.dataset.predicted_features_names();
 
-    let (x_table, y_table) = data.random_order_in_out(&out_features);
+    let (x_table, y_table) = data.random_order_in_out(&predicted_features);
 
     let x = x_table.to_vectors();
     let y = y_table.to_vectors();

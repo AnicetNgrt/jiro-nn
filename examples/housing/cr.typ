@@ -592,7 +592,7 @@ To the workflow's defense: it did not pick the best model out of a k-folds train
 
 Also, the workflow used Adam optimization (Keras' default) and outliers filtering, both I found to not benefit the model. And it used $35$ features while I used $34$. Its features included an engineered feature based on the house's grade and year built which I couldn't replicate, which the author found out had a $3%$ relative importance in predicting the price (I'll explain that metric later, but $3%$ is quite significant). But unlike me it didn't use the timestamp not the month of the sale, which ended up being relatively very unimportant ($<0.5%$).
 
-Out of curiosity I also tried averaging my $8$ models' weights and biases. It gave me a model predicting always the same statistically average price. I wonder whether merging the folds models can be done in a different way in order to extract the best performing weights and biases from all the models.
+Predicted of curiosity I also tried averaging my $8$ models' weights and biases. It gave me a model predicting always the same statistically average price. I wonder whether merging the folds models can be done in a different way in order to extract the best performing weights and biases from all the models.
 
 #align(left)[
     #box(inset: (top: 7.5pt, bottom: 3pt))[
@@ -769,7 +769,7 @@ dataset_spec
             MapOp::ReplaceWith(MapValue::Feature("yr_built".to_string())),
         ),
     )
-    .add_opt_to("price", Out)
+    .add_opt_to("price", Predicted)
     .add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
     // inc_added_features makes sure the instruction is added to features
     // that were previously extracted during the pipeline
@@ -871,7 +871,7 @@ model_eval.to_json_file("my_model_evals.json");
 let mut network = model.to_network();
 
 // Splitting the x and y
-let (x_table, y_table) = data.random_order_in_out(&out_features);
+let (x_table, y_table) = data.random_order_in_out(&predicted_features);
 let x = x_table.to_vectors();
 let y = y_table.to_vectors();
 
@@ -947,7 +947,7 @@ fn parallel_k_fold(
     let trained_models = trained_models.clone();
 
     let handle = thread::spawn(move || {
-        let out_features = model.dataset.out_features_names();
+        let predicted_features = model.dataset.predicted_features_names();
         let id_column = model.dataset.get_id_column().unwrap();
         let mut network = model.to_network();
 
@@ -956,7 +956,7 @@ fn parallel_k_fold(
 
         // Shuffle the validation and training set and split it between x and y
         let (validation_x_table, validation_y_table) =
-            validation.random_order_in_out(&out_features);
+            validation.random_order_in_out(&predicted_features);
 
         // Convert the validation set to vectors
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
@@ -999,7 +999,7 @@ fn parallel_k_fold(
             if e == model.epochs - 1 {
                 let mut vp = preds_and_ids.lock().unwrap();
                 *vp = vp.apppend(
-                    &DataTable::from_vectors(&out_features, &preds)
+                    &DataTable::from_vectors(&predicted_features, &preds)
                         .add_column_from(&validation_x_table, id_column),
                 );
             };

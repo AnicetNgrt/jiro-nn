@@ -18,6 +18,14 @@ pub enum MapSelector {
 }
 
 impl MapSelector {
+    pub fn all() -> Self {
+        Self::All
+    }
+
+    pub fn equal(value: MapValue) -> Self {
+        Self::Equal(value)
+    }
+
     pub fn find_all_corresponding(&self, data: &DataTable, column: &str) -> Vec<(Scalar, bool)> {
         let mut values = Vec::new();
 
@@ -53,6 +61,10 @@ pub enum MapOp {
 }
 
 impl MapOp {
+    pub fn replace_with(value: MapValue) -> Self {
+        Self::ReplaceWith(value)
+    }
+
     pub fn apply(&self, data: &DataTable, corresponding_in: Vec<(Scalar, bool)>) -> Vec<Scalar> {
         let mut values = Vec::new();
 
@@ -77,7 +89,7 @@ impl MapOp {
         values
     }
 }
-
+ 
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapValue {
     #[default]
@@ -86,13 +98,19 @@ pub enum MapValue {
     Feature(String),
 }
 
-impl From<f64> for MapValue {
-    fn from(value: f64) -> Self {
+impl MapValue {
+    pub fn zero() -> Self {
+        Self::Zero
+    }
+
+    pub fn f64(value: f64) -> Self {
         Self::ConstantF64(value.to_string())
     }
-}
 
-impl MapValue {
+    pub fn take_from_feature<S: ToString>(feature_name: S) -> Self {
+        Self::Feature(feature_name.to_string())
+    }
+
     pub fn find_all_corresponding(&self, data: &DataTable) -> Vec<Scalar> {
         let mut values = Vec::new();
 

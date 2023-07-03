@@ -1,5 +1,5 @@
 use neural_networks_rust::{
-    dataset::{Dataset, FeatureOptions::*},
+    dataset::{Dataset, FeatureTags::*},
     model::ModelBuilder,
     loss::Losses,
 };
@@ -10,10 +10,10 @@ fn main() {
 
     let mut dataset_spec = Dataset::from_file("dataset/train_cleaned.parquet");
     dataset_spec
-        .add_opt(Normalized.except(&["label"]))
-        .add_opt_to("id", IsId)
-        .add_opt_to("label", Out)
-        .add_opt_to("label", OneHotEncode);
+        .tag_all(Normalized.except(&["label"]))
+        .tag_feature("id", IsId)
+        .tag_feature("label", Predicted)
+        .tag_feature("label", OneHotEncode);
 
     let model = ModelBuilder::new(dataset_spec)
         .neural_network()

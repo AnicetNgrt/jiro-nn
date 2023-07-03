@@ -69,7 +69,7 @@ dataset_spec
     // Removing useless features for both the model & derived features
     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
     // Setting up the price as the "output" predicted feature
-    .add_opt_to("price", Out)
+    .add_opt_to("price", Predicted)
     // Setting up the date format
     .add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
     // Converting the date to a date_timestamp feature

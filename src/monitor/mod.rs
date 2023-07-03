@@ -23,43 +23,28 @@ struct Task {
     end: Option<Instant>,
 }
 
-/// # TM (Tasks Monitor)
+/// The Tasks Monitor (TM) keeps track of tasks in another thread in order to measure and report their progress in real time.
 /// 
-/// Keeps track of tasks in another thread in order to measure and report their progress in real time.
+/// It displays the progress in a TUI. Therefore once activated prints to the terminal are not visible anymore. Other options will come later. 
 /// 
-/// Displays the progress in a TUI, prints therefore are not visible anymore once activated. Other options will come later. 
+/// It stacks the tasks so that every task has its own parent task.
 /// 
-/// Stacks the tasks so that every task has its own parent task.
-/// 
-/// Tasks stacks from different threads are separated. One thread's task cannot be a parent of another thread's task.
+/// The tasks stacks from different threads are separated. One thread's task cannot be a parent of another thread's task.
 /// 
 /// ```rust
-/// TM::start_monitoring();
-///    
+/// TM::start_monitoring(); 
 /// TM::start("task1");
-/// 
 /// // do something long
-/// 
 /// TM::end();
-/// 
 /// TM::start("task2");
-/// 
 /// // do something long
-/// 
 /// TM::start("subtask"); // creating the child task of task2
-/// 
 /// // do something long
-/// 
 /// TM::end(); // ending subtask
-/// 
 /// TM::start("subtask2"); // you can create subtasks, but only one at a given time
-/// 
 /// // do something long
-/// 
 /// TM::end(); // ending subtask2
-/// 
 /// TM::end_with_message("Task 2 and its subtasks are finished :-)"); // ending task2
-/// 
 /// TM::stop_monitoring();
 /// ```
 pub struct TM {

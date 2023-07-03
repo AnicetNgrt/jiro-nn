@@ -130,7 +130,7 @@ impl Model {
         id_column: &str,
     ) -> Scalar {
         let (train_x_table, train_y_table) =
-            train_data.random_order_in_out(&self.dataset.out_features_names());
+            train_data.random_order_in_out(&self.dataset.predicted_features_names());
 
         let train_x = train_x_table.drop_column(id_column).to_vectors();
         let train_y = train_y_table.to_vectors();
@@ -155,7 +155,7 @@ impl Model {
     /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
     pub fn preds_to_table(&self, preds: Vec<Vec<Scalar>>) -> DataTable {
         let mut table = DataTable::new_empty();
-        let names = self.dataset.out_features_names();
+        let names = self.dataset.predicted_features_names();
         let mut preds_columns: Vec<Vec<Scalar>> = Vec::new();
 
         // inverse the transpose

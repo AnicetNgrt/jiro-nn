@@ -77,7 +77,7 @@ impl SplitTraining {
         let mut preds_and_ids = DataTable::new_empty();
         let mut model_eval = ModelEvaluation::new_empty();
 
-        let out_features = model.dataset.out_features_names();
+        let predicted_features = model.dataset.predicted_features_names();
         let id_column = model
             .dataset
             .get_id_column()
@@ -89,7 +89,7 @@ impl SplitTraining {
 
         // Shuffle the validation and training set and split it between x and y
         let (validation_x_table, validation_y_table) =
-            validation.random_order_in_out(&out_features);
+            validation.random_order_in_out(&predicted_features);
 
         // Convert the validation set to vectors
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
@@ -143,7 +143,7 @@ impl SplitTraining {
             // Save the predictions if it is the last epoch
             if e == model.epochs - 1 {
                 preds_and_ids = preds_and_ids.apppend(
-                    &DataTable::from_vectors(&out_features, &preds)
+                    &DataTable::from_vectors(&predicted_features, &preds)
                         .add_column_from(&validation_x_table, id_column),
                 );
             };

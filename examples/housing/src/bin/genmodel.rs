@@ -1,5 +1,5 @@
 use neural_networks_rust::{
-	dataset::{Dataset, FeatureOptions::*},
+	dataset::{Dataset, FeatureTags::*},
 	model::ModelBuilder,
 	preprocessing::map::{MapOp, MapSelector, MapValue},
 };
@@ -11,22 +11,22 @@ fn main() {
 	let mut dataset_spec = Dataset::from_file("dataset/kc_house_data.csv");
 	dataset_spec
 		.remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
-		.add_opt_to("date", DateFormat("%Y%m%dT%H%M%S"))
-		.add_opt_to("date", AddExtractedMonth)
-		.add_opt_to("date", AddExtractedTimestamp)
-		.add_opt_to("date", Not(&UsedInModel))
-		.add_opt_to(
+		.tag_feature("date", DateFormat("%Y%m%dT%H%M%S"))
+		.tag_feature("date", AddExtractedMonth)
+		.tag_feature("date", AddExtractedTimestamp)
+		.tag_feature("date", Not(&UsedInModel))
+		.tag_feature(
 			"yr_renovated",
 			Mapped(
-				MapSelector::Equal(0.0.into()),
-				MapOp::ReplaceWith(MapValue::Feature("yr_built".to_string())),
+				MapSelector::equal(MapValue::f64(0.0)),
+				MapOp::replace_with(MapValue::take_from_feature("yr_built")),
 			),
 		)
-		.add_opt_to("price", Out)
-		.add_opt(Log10.only(&["sqft_living", "sqft_above", "price"]))
-		.add_opt(AddSquared.except(&["price", "date"]).incl_added_features())
-		//.add_opt(FilterOutliers.except(&["date"]).incl_added_features())
-		.add_opt(Normalized.except(&["date"]).incl_added_features());
+		.tag_feature("price", Predicted)
+		.tag_all(Log10.only(&["sqft_living", "sqft_above", "price"]))
+		.tag_all(AddSquared.except(&["price", "date"]).incl_added_features())
+		//.tag_all(FilterOutliers.except(&["date"]).incl_added_features())
+		.tag_all(Normalized.except(&["date"]).incl_added_features());
 
 	let h_size = dataset_spec.in_features_names().len() + 1;
 	let nh = 8;

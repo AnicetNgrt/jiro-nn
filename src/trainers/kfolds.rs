@@ -162,7 +162,7 @@ impl KFolds {
     ) {
         TM::start(format!("{}/{}", i+1, k));
         TM::start("init");
-        let out_features = model.dataset.out_features_names();
+        let predicted_features = model.dataset.predicted_features_names();
         let id_column = model.dataset
             .get_id_column()
             .expect("One feature must be specified as an id in the dataset specification.");
@@ -173,7 +173,7 @@ impl KFolds {
 
         // Shuffle the validation and training set and split it between x and y
         let (validation_x_table, validation_y_table) =
-            validation.random_order_in_out(&out_features);
+            validation.random_order_in_out(&predicted_features);
 
         // Convert the validation set to vectors
         let validation_x = validation_x_table.drop_column(id_column).to_vectors();
@@ -233,7 +233,7 @@ impl KFolds {
             if e == model.epochs - 1 {
                 let mut vp = preds_and_ids.lock().unwrap();
                 *vp = vp.apppend(
-                    &DataTable::from_vectors(&out_features, &preds)
+                    &DataTable::from_vectors(&predicted_features, &preds)
                         .add_column_from(&validation_x_table, id_column),
                 );
             };
@@ -280,7 +280,7 @@ impl KFolds {
         let handle = thread::spawn(move || {
             TM::start(&format!("parrfolds[{}]", i));
             TM::start("init");
-            let out_features = model.dataset.out_features_names();
+            let predicted_features = model.dataset.predicted_features_names();
             let id_column = model.dataset.get_id_column().unwrap();
             let mut network = model.to_network();
 
@@ -289,7 +289,7 @@ impl KFolds {
 
             // Shuffle the validation and training set and split it between x and y
             let (validation_x_table, validation_y_table) =
-                validation.random_order_in_out(&out_features);
+                validation.random_order_in_out(&predicted_features);
 
             // Convert the validation set to vectors
             let validation_x = validation_x_table.drop_column(id_column).to_vectors();
@@ -346,7 +346,7 @@ impl KFolds {
                 if e == model.epochs - 1 {
                     let mut vp = preds_and_ids.lock().unwrap();
                     *vp = vp.apppend(
-                        &DataTable::from_vectors(&out_features, &preds)
+                        &DataTable::from_vectors(&predicted_features, &preds)
                             .add_column_from(&validation_x_table, id_column),
                     );
                 };
