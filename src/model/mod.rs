@@ -71,7 +71,7 @@ impl ModelBuilder {
         NetworkModelBuilder::new(self)
     }
 
-    pub fn accept_neural_network(mut self, network: NetworkModel) -> Self {
+    pub(crate) fn accept_neural_network(mut self, network: NetworkModel) -> Self {
         self.model.network = Some(network);
         self
     }

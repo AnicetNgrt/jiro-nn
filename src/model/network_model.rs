@@ -21,7 +21,7 @@ impl NetworkModelBuilder {
         ConvNetworkModelBuilder::new(self, in_channels)
     }
 
-    pub fn accept_conv_network(mut self, layer: ConvNetworkModel) -> Self {
+    pub(crate) fn accept_conv_network(mut self, layer: ConvNetworkModel) -> Self {
         self.model.layers.push(NetworkLayerModels::Convolution(layer));
         self
     }
@@ -30,7 +30,7 @@ impl NetworkModelBuilder {
         FullDenseLayerModelBuilder::new(self, size)
     }
 
-    pub fn accept_full_dense(mut self, layer: FullDenseLayerModel) -> Self {
+    pub(crate) fn accept_full_dense(mut self, layer: FullDenseLayerModel) -> Self {
         self.model.layers.push(NetworkLayerModels::FullDense(layer));
         self
     }

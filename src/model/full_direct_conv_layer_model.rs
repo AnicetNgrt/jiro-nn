@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::vision::{conv_initializers::ConvInitializers, image_activation::ConvActivation, conv_optimizer::{ConvOptimizers, conv_sgd, conv_momentum, conv_adam}, conv_network::ConvNetworkLayer, conv_layer::{direct_conv_layer::DirectConvLayer, full_conv_layer::FullConvLayer}};
+use crate::vision::{conv_initializers::ConvInitializers, conv_activation::ConvActivation, conv_optimizer::{ConvOptimizers, conv_sgd, conv_momentum, conv_adam}, conv_network::ConvNetworkLayer, conv_layer::{direct_conv_layer::DirectConvLayer, full_conv_layer::FullConvLayer}};
 
 use super::conv_network_model::ConvNetworkModelBuilder;
 
