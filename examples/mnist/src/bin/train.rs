@@ -31,7 +31,7 @@ pub fn main() {
     TM::stop_monitoring();
 
     let model_params = training.take_model();
-    model_params.to_json(format!("models_stats/{}_params.json", config_name));
+    model_params.to_json_file(format!("models_stats/{}_params.json", config_name));
 
     let preds_and_ids = pipeline.revert(&preds_and_ids);
     let data = pipeline.revert(&data);

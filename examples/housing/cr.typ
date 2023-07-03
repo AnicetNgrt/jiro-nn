@@ -846,7 +846,7 @@ let (preds_and_ids, model_eval) = kfold
 
 // Saving the weights and biases of the best model
 let best_model_params = kfold.take_best_model();
-best_model_params.to_json("my_model_best_params.json");
+best_model_params.to_json_file("my_model_best_params.json");
 
 // Reverting the pipeline on the predictions & data to get interpretable values
 let preds_and_ids = pipeline.revert(&preds_and_ids);

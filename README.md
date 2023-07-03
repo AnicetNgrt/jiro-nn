@@ -37,7 +37,7 @@ dataset_spec
 let mut pipeline = Pipeline::basic_single_pass();
 // Run it on the data
 let (dataset_spec, data) = pipeline
-    .load_data_and_spec("./dataset/train_cleaned.parquet", dataset_spec)
+    .load_data_and_spec("dataset/train.csv", dataset_spec)
     .run();
 
 // Step 3: Specify and build your model
@@ -99,18 +99,18 @@ TM::stop_monitoring();
 // Step 5: Save the resulting predictions, weights and model evaluation
 
 // Save the model evaluation per epoch
-model_eval.to_json_file(format!("models_stats/{}.json", config_name));
+model_eval.to_json_file("mnist_eval.json");
 
 // Save the weights
 let model_params = training.take_model();
-model_params.to_json(format!("models_stats/{}_params.json", config_name));
+model_params.to_json_file("mnist_weights.json");
 
 // Save the predictions alongside the original data
 let preds_and_ids = pipeline.revert(&preds_and_ids);
 pipeline
     .revert(&data)
     .inner_join(&preds_and_ids, "id", "id", Some("pred"))
-    .to_csv_file("mnist_values_and_preds.parquet");
+    .to_csv_file("mnist_values_and_preds.csv");
 ```
 
 You can then plot the results using a third-party crate like `gnuplot` *(recommended)*, `plotly` *(also recommended)* or even `plotters`.
