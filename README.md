@@ -1,4 +1,4 @@
-# jiro-nn
+# 🐟 jiro-nn
 
 A framework for building and training efficient Neural Networks in pure Rust with support for both the CPU and the GPU.
 
