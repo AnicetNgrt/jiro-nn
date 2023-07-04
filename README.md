@@ -1,4 +1,6 @@
-# Neural Networks in Rust
+# Neural Networks in Rust [Moved]
+
+**This project has been replaced by the [`jiro-nn`](https://github.com/AnicetNgrt/jiro-nn) crate.**
 
 Implementing GPU-bound Neural Networks in Rust from scratch + utils for data manipulation.
 
