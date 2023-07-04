@@ -1,6 +1,6 @@
 use std::{ops::Add, time::Instant};
 
-use neural_networks_rust::{
+use jiro_nn::{
     activation::Activation,
     datatable::DataTable,
     layer::{

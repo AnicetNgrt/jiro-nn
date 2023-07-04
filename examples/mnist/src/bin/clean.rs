@@ -1,7 +1,7 @@
-use neural_networks_rust::datatable::DataTable;
-use neural_networks_rust::monitor::TM;
-use neural_networks_rust::preprocessing::attach_ids::AttachIds;
-use neural_networks_rust::preprocessing::Pipeline;
+use jiro_nn::datatable::DataTable;
+use jiro_nn::monitor::TM;
+use jiro_nn::preprocessing::attach_ids::AttachIds;
+use jiro_nn::preprocessing::Pipeline;
 
 pub fn main() {
     TM::start_monitoring();

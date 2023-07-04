@@ -1,8 +1,8 @@
-use neural_networks_rust::model::Model;
-use neural_networks_rust::monitor::TM;
-use neural_networks_rust::preprocessing::Pipeline;
-use neural_networks_rust::preprocessing::attach_ids::AttachIds;
-use neural_networks_rust::trainers::kfolds::KFolds;
+use jiro_nn::model::Model;
+use jiro_nn::monitor::TM;
+use jiro_nn::preprocessing::Pipeline;
+use jiro_nn::preprocessing::attach_ids::AttachIds;
+use jiro_nn::trainers::kfolds::KFolds;
 
 
 pub fn main() {

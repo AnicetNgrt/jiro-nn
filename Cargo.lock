@@ -802,6 +802,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
+name = "jiro_nn"
+version = "0.5.0"
+dependencies = [
+ "arrayfire",
+ "assert_float_eq",
+ "bincode",
+ "convolutions-rs",
+ "flate2",
+ "globset",
+ "lazy_static",
+ "libm",
+ "nalgebra",
+ "nalgebra-glm",
+ "ndarray",
+ "polars",
+ "rand",
+ "rand_distr",
+ "serde",
+ "serde-aux",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "jobserver"
 version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1101,30 +1125,6 @@ dependencies = [
  "num-traits",
  "py_literal",
  "zip",
-]
-
-[[package]]
-name = "neural_networks_rust"
-version = "0.5.0"
-dependencies = [
- "arrayfire",
- "assert_float_eq",
- "bincode",
- "convolutions-rs",
- "flate2",
- "globset",
- "lazy_static",
- "libm",
- "nalgebra",
- "nalgebra-glm",
- "ndarray",
- "polars",
- "rand",
- "rand_distr",
- "serde",
- "serde-aux",
- "serde_json",
- "sha2",
 ]
 
 [[package]]

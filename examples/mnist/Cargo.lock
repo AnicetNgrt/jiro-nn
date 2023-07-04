@@ -1015,7 +1015,7 @@ name = "mnist"
 version = "0.1.0"
 dependencies = [
  "gnuplot",
- "neural_networks_rust",
+ "jiro_nn",
  "rand",
 ]
 
@@ -1084,7 +1084,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "neural_networks_rust"
+name = "jiro_nn"
 version = "0.3.1"
 dependencies = [
  "arrayfire",

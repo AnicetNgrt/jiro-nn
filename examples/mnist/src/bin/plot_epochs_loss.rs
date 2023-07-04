@@ -1,5 +1,5 @@
 use gnuplot::{Figure, AxesCommon, PlotOption::{Color, Caption, LineStyle}};
-use neural_networks_rust::{benchmarking::ModelEvaluation};
+use jiro_nn::{benchmarking::ModelEvaluation};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

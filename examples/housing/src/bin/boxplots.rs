@@ -4,7 +4,7 @@ use gnuplot::{
     LabelOption::Rotate,
     PlotOption::{Color, PointSymbol}, MarginSide::MarginBottom,
 };
-use neural_networks_rust::{
+use jiro_nn::{
     model::Model,
     preprocessing::{
         extract_months::ExtractMonths, extract_timestamps::ExtractTimestamps, normalize::Normalize, Pipeline,

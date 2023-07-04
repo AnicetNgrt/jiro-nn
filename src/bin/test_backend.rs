@@ -1,6 +1,6 @@
 #[cfg(feature = "arrayfire")]
 use arrayfire::get_available_backends;
-use neural_networks_rust::linalg::{Matrix, MatrixTrait, Scalar};
+use jiro_nn::linalg::{Matrix, MatrixTrait, Scalar};
 
 pub fn print_mat(m: &Matrix) {
     println!("[");

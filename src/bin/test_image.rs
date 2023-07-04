@@ -1,12 +1,13 @@
 #[cfg(feature = "arrayfire")]
 use arrayfire::print;
 
-use neural_networks_rust::{
+use jiro_nn::{
     linalg::{Matrix, MatrixTrait},
     vision::{image::Image, image::ImageTrait},
 };
 
 pub fn main() {
+    #[allow(unused_variables)]
     let image = Image::from_samples(
         &Matrix::from_column_leading_matrix(&vec![
             vec![1.0, 2.0, 3.0, 4.0],
@@ -25,6 +26,7 @@ pub fn main() {
         vec![vec![9.0, 8.0], vec![7.0, 6.0]],
     ];
 
+    #[allow(unused_variables)]
     let image = Image::from_fn(2, 2, 1, 3, |x, y, z, s| {
         println!("{} {} {} {}", x, y, z, s);
         matrix[s][y][x]
@@ -56,6 +58,7 @@ pub fn main() {
         ],
     ];
 
+    #[allow(unused_variables)]
     let image = Image::from_fn(2, 3, 3, 4, |x, y, z, s| {
         //println!("{} {} {} {}", x, y, z, s);
         matrix[s][z][y][x]

@@ -1,5 +1,5 @@
 use gnuplot::*;
-use neural_networks_rust::{
+use jiro_nn::{
     linalg::Scalar,
     model::Model,
     network::params::NetworkParams,

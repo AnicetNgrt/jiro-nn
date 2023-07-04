@@ -1,4 +1,4 @@
-use neural_networks_rust::{
+use jiro_nn::{
 	dataset::{Dataset, FeatureTags::*},
 	model::ModelBuilder,
 	preprocessing::map::{MapOp, MapSelector, MapValue},

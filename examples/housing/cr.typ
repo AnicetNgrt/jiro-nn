@@ -743,7 +743,7 @@ But most importantly perhaps, I got to hack, experiment and build my own underst
     ]
 ]
 
-Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.2.0` version, which can be installed on any Rust project by adding: `neural_networks_rust = "0.2.0"` below `[dependencies]` in the project's `Cargo.toml` file. 
+Here are some code snippets that you might find useful. They are excerpts from, or depend on, the framework's `0.2.0` version, which can be installed on any Rust project by adding: `jiro_nn = "0.2.0"` below `[dependencies]` in the project's `Cargo.toml` file. 
 
 #align(left)[
     #box(inset: (top: 10pt, bottom: 5pt))[
@@ -1156,9 +1156,9 @@ impl Layer for DenseLayer {
 
 #align(left)[
     #box(inset: (top: 20pt, bottom: 10pt, left: 20pt, right: 10pt))[
-        - #link("https://github.com/AnicetNgrt/neural_networks_rust")[My framework's source code on Github]
-        - #link("https://github.com/AnicetNgrt/neural_networks_rust/tree/main/examples/housing")[My King County House solution source code on Github]
-        - #link("https://docs.rs/neural_networks_rust/latest/neural_networks_rust/index.html")[The online documentation of my framework].
+        - #link("https://github.com/AnicetNgrt/jiro_nn")[My framework's source code on Github]
+        - #link("https://github.com/AnicetNgrt/jiro_nn/tree/main/examples/housing")[My King County House solution source code on Github]
+        - #link("https://docs.rs/jiro_nn/latest/jiro_nn/index.html")[The online documentation of my framework].
     ]
 ]
 

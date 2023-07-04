@@ -1,4 +1,4 @@
-use neural_networks_rust::{
+use jiro_nn::{
     datatable::DataTable,
     model::Model,
     network::params::NetworkParams,

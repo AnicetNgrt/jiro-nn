@@ -1,7 +1,10 @@
+
 #[cfg(feature = "arrayfire")]
 use arrayfire::{convolve3, flip, index, print, Seq};
 
-use neural_networks_rust::{
+#[allow(unused_imports)]
+#[allow(unused_variables)]
+use jiro_nn::{
     linalg::{Matrix, MatrixTrait},
     vision::{image::Image, image::ImageTrait},
 };

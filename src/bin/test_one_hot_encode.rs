@@ -1,4 +1,4 @@
-use neural_networks_rust::{linalg::{Matrix, MatrixTrait}, activation::Activation, layer::Layer, loss::Losses};
+use jiro_nn::{linalg::{Matrix, MatrixTrait}, activation::Activation, layer::Layer, loss::Losses};
 
 pub fn main() {
     let m = Matrix::from_column_leading_matrix(&vec![

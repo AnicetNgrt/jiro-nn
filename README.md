@@ -1,8 +1,6 @@
-# Neural Networks in Rust [Moved]
+# jiro-nn
 
-**This project has been replaced by the [`jiro-nn`](https://github.com/AnicetNgrt/jiro-nn) crate.**
-
-Implementing GPU-bound Neural Networks in Rust from scratch + utils for data manipulation.
+A framework for building and training efficient Neural Networks in pure Rust with support for both the CPU and the GPU.
 
 It is not a production-ready framework by any means. 
 
@@ -18,11 +16,15 @@ Feel free to give feedback.
 
 ## Usage
 
-Add this in your project's `Cargo.toml` file:
+Add this in your project's `Cargo.toml` file, by replacing `<BACKEND>` with the backend you want to use (see [Backends](#backends)):
 
 ```toml
 [dependencies]
-neural_networks_rust = "*"
+jiro_nn = { 
+    version = "*", 
+    default-features = false, 
+    features = ["<BACKEND>"] 
+}
 ```
 
 ### Preprocessing + CNNs example
@@ -211,7 +213,7 @@ Once you installed Arrayfire, you:
 
 ```toml
 [dependencies]
-neural_networks_rust = { 
+jiro_nn = { 
     version = "*", 
     default_features = false, 
     features = ["arrayfire"] 

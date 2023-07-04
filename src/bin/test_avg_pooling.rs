@@ -1,7 +1,10 @@
 #[cfg(feature = "arrayfire")]
 use arrayfire::print;
 
-use neural_networks_rust::vision::{
+#[allow(unused_imports)]
+#[allow(unused_variables)]
+
+use jiro_nn::vision::{
     conv_layer::avg_pooling_layer::AvgPoolingLayer, image::Image, image::ImageTrait,
     image_layer::ImageLayer,
 };
@@ -14,6 +17,7 @@ pub fn main() {
 
     let mut layer = AvgPoolingLayer::new(2);
 
+    #[allow(unused_variables)]
     let image = layer.forward(image);
 
     #[cfg(feature = "arrayfire")]
@@ -24,6 +28,7 @@ pub fn main() {
     #[cfg(feature = "arrayfire")]
     print(&gradient.0);
 
+    #[allow(unused_variables)]
     let gradient = layer.backward(0, gradient);
 
     #[cfg(feature = "arrayfire")]

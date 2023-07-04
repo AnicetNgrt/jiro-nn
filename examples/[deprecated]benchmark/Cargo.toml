@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-neural_networks_rust = { path = "../../", default-features = false }
+jiro_nn = { path = "../../", default-features = false }
 
 [features]
-nalgebra = ["neural_networks_rust/nalgebra"]
-arrayfire = ["neural_networks_rust/arrayfire"]
-# linalg = ["neural_networks_rust/linalg"]
-# linalg-rayon = ["neural_networks_rust/linalg-rayon"]
-# faer = ["neural_networks_rust/faer"]
-f64 = ["neural_networks_rust/f64"]
+nalgebra = ["jiro_nn/nalgebra"]
+arrayfire = ["jiro_nn/arrayfire"]
+# linalg = ["jiro_nn/linalg"]
+# linalg-rayon = ["jiro_nn/linalg-rayon"]
+# faer = ["jiro_nn/faer"]
+f64 = ["jiro_nn/f64"]

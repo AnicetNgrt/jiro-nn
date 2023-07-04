@@ -6,14 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-neural_networks_rust = { path = "../../", default_features = false }
+jiro_nn = { path = "../../", default_features = false }
 gnuplot = "0.0.37"
 rand = "0.8.5"
 indicatif = "0.17.5"
 
 [features]
-f64 = ["neural_networks_rust/f64"]
+f64 = ["jiro_nn/f64"]
 default = ["ndarray"]
-nalgebra = ["neural_networks_rust/nalgebra"]
-arrayfire = ["neural_networks_rust/arrayfire"]
-ndarray = ["neural_networks_rust/ndarray"]
+nalgebra = ["jiro_nn/nalgebra"]
+arrayfire = ["jiro_nn/arrayfire"]
+ndarray = ["jiro_nn/ndarray"]

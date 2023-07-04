@@ -1,11 +1,11 @@
 [package]
-name = "neural_networks_rust"
+name = "jiro_nn"
 version = "0.5.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Neural Networks framework with model specification & data preprocessing features."
 readme = "README.md"
-repository = "https://github.com/AnicetNgrt/neural_networks_rust"
+repository = "https://github.com/AnicetNgrt/jiro-nn"
 keywords = [
     "machine-learning",
     "neural-networks",
