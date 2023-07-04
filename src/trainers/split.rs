@@ -36,6 +36,8 @@ impl SplitTraining {
     /// Enables computing the R2 score of the model at the end of each epoch
     /// and reporting it if a real time reporter is attached.
     ///
+    /// /!\ Requires `all_epochs_validation` to be enabled.
+    ///
     /// /!\ Is time consuming.
     ///
     /// Otherwise computes it only at the end of the final epoch
@@ -70,6 +72,8 @@ impl SplitTraining {
     }
 
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
+        assert!(!self.all_epochs_r2 || self.all_epochs_validation);
+        
         TM::start("split");
 
         TM::start("init");

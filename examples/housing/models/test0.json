@@ -1,16 +1,12 @@
 {
-  "epochs": 5,
+  "epochs": 100,
   "loss": "MSE",
   "batch_size": 128,
-  "trainer": {
-    "KFolds": 8
-  },
   "dataset": {
-    "name": "kc_house_data",
     "features": [
       {
         "name": "date",
-        "out": false,
+        "predicted": false,
         "date_format": "%Y%m%dT%H%M%S",
         "to_timestamp": false,
         "extract_month": false,
@@ -21,7 +17,7 @@
         "squared": false,
         "with_extracted_timestamp": {
           "name": "date_timestamp",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -36,7 +32,7 @@
           "with_normalized": null,
           "with_squared": {
             "name": "date_timestamp^2",
-            "out": false,
+            "predicted": false,
             "date_format": null,
             "to_timestamp": false,
             "extract_month": false,
@@ -60,7 +56,7 @@
         },
         "with_extracted_month": {
           "name": "date_month",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -75,7 +71,7 @@
           "with_normalized": null,
           "with_squared": {
             "name": "date_month^2",
-            "out": false,
+            "predicted": false,
             "date_format": null,
             "to_timestamp": false,
             "extract_month": false,
@@ -106,7 +102,7 @@
       },
       {
         "name": "price",
-        "out": true,
+        "predicted": true,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -126,7 +122,7 @@
       },
       {
         "name": "bedrooms",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -141,7 +137,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "bedrooms^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -165,7 +161,7 @@
       },
       {
         "name": "bathrooms",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -180,7 +176,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "bathrooms^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -204,7 +200,7 @@
       },
       {
         "name": "sqft_living",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -219,7 +215,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "sqft_living^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -243,7 +239,7 @@
       },
       {
         "name": "sqft_lot",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -258,7 +254,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "sqft_lot^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -282,7 +278,7 @@
       },
       {
         "name": "floors",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -297,7 +293,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "floors^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -321,7 +317,7 @@
       },
       {
         "name": "waterfront",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -336,7 +332,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "waterfront^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -360,7 +356,7 @@
       },
       {
         "name": "view",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -375,7 +371,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "view^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -399,7 +395,7 @@
       },
       {
         "name": "condition",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -414,7 +410,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "condition^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -438,7 +434,7 @@
       },
       {
         "name": "grade",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -453,7 +449,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "grade^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -477,7 +473,7 @@
       },
       {
         "name": "sqft_above",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -492,7 +488,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "sqft_above^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -516,7 +512,7 @@
       },
       {
         "name": "sqft_basement",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -531,7 +527,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "sqft_basement^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -555,7 +551,7 @@
       },
       {
         "name": "yr_built",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -570,7 +566,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "yr_built^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -594,7 +590,7 @@
       },
       {
         "name": "yr_renovated",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -620,7 +616,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "yr_renovated^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -644,7 +640,7 @@
       },
       {
         "name": "lat",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -659,7 +655,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "lat^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,
@@ -683,7 +679,7 @@
       },
       {
         "name": "long",
-        "out": false,
+        "predicted": false,
         "date_format": null,
         "to_timestamp": false,
         "extract_month": false,
@@ -698,7 +694,7 @@
         "with_normalized": null,
         "with_squared": {
           "name": "long^2",
-          "out": false,
+          "predicted": false,
           "date_format": null,
           "to_timestamp": false,
           "extract_month": false,

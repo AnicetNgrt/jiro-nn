@@ -75,6 +75,8 @@ impl KFolds {
 
     /// Enables computing the R2 score of the model at the end of each epoch
     /// and reporting it if a real time reporter is attached.
+    /// 
+    /// /!\ Requires `all_epochs_validation` to be enabled.
     ///
     /// /!\ Is time consuming.
     ///
@@ -324,7 +326,7 @@ impl KFolds {
 
                 // Compute the R2 score	if it is the last epoch
                 // (it would be very costly to do it every time)
-                let r2 = if e == model.epochs - 1 || all_epochs_r2 {
+                let r2 = if e == model.epochs - 1 || (all_epochs_r2 && all_epochs_validation) {
                     TM::start("r2");
                     let r2 = r2_score_matrix(&validation_y, &preds);
                     TM::end_with_message(format!("R2: {}", r2));
@@ -376,6 +378,8 @@ impl KFolds {
     /// Assumes both the data and the model's dataset include an id feature.
     /// 
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
+        assert!(!self.all_epochs_r2 || self.all_epochs_validation);
+
         TM::start("kfolds");
 
         // Init the data structures for parallel computing

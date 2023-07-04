@@ -46,7 +46,7 @@ fn main() {
 			.end()
 		.end()
 		.batch_size(128)
-		.epochs(500)
+		.epochs(100)
 		.build();
 
 	println!("{:#?}", model);

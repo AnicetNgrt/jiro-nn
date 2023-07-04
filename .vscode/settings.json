@@ -4,7 +4,7 @@
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
     "rust-analyzer.check.features": [
-        "arrayfire"
+        "nalgebra"
     ],
     "cSpell.enableFiletypes": [
         "!rust"

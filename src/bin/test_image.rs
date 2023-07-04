@@ -1,4 +1,6 @@
+#[cfg(feature = "arrayfire")]
 use arrayfire::print;
+
 use neural_networks_rust::{
     linalg::{Matrix, MatrixTrait},
     vision::{image::Image, image::ImageTrait},
@@ -14,6 +16,7 @@ pub fn main() {
         1,
     );
 
+    #[cfg(feature = "arrayfire")]
     print(&image.0);
 
     let matrix = vec![
@@ -27,6 +30,7 @@ pub fn main() {
         matrix[s][y][x]
     });
 
+    #[cfg(feature = "arrayfire")]
     print(&image.0);
 
     let matrix = vec![
@@ -57,5 +61,6 @@ pub fn main() {
         matrix[s][z][y][x]
     });
 
+    #[cfg(feature = "arrayfire")]
     print(&image.0);
 }

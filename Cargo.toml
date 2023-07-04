@@ -39,9 +39,12 @@ bincode = "1.3.3"
 flate2 = "1.0.26"
 lazy_static = "1.4.0"
 globset = "0.4.10"
+ndarray = { version = "0.15.3", optional = true }
+convolutions-rs = { version = "0.3.4", optional = true }
 
 [features]
-default = ["nalgebra", "arrayfire"]
+default = ["ndarray"]
+ndarray = ["dep:ndarray", "dep:convolutions-rs"]
 nalgebra = ["dep:nalgebra"]
 # faer = ["dep:faer-core"]
 # linalg-rayon = ["dep:rayon"]

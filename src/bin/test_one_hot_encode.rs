@@ -7,7 +7,7 @@ pub fn main() {
         vec![6.0, 3.0, 1.0, 7.0, 0.4],
         vec![1.0, 1.0, 1.0, 1.0, 1.0],
     ]);
-
+        
     m.print();
 
     let mut activation = Activation::Softmax.to_layer();

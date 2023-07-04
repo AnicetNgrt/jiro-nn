@@ -1,4 +1,5 @@
 use neural_networks_rust::model::Model;
+use neural_networks_rust::monitor::TM;
 use neural_networks_rust::preprocessing::Pipeline;
 use neural_networks_rust::preprocessing::attach_ids::AttachIds;
 use neural_networks_rust::trainers::kfolds::KFolds;
@@ -20,16 +21,20 @@ pub fn main() {
 
     let model = model.with_new_dataset(updated_dataset_spec);
     
-    let mut kfold = KFolds::new(10);
+    TM::start_monitoring();
+
+    let mut kfold = KFolds::new(4);
     let (preds_and_ids, model_eval) = kfold
-        .attach_real_time_reporter(|fold, epoch, report| {
-            println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
-        })
-        // .all_epochs_validation()
-        // .all_epochs_r2()
+        // .attach_real_time_reporter(|fold, epoch, report| {
+        //     println!("Perf report: {:2} {:4} {:#?}", fold, epoch, report)
+        // })
+        .all_epochs_validation()
+        .all_epochs_r2()
         .compute_best_model()
         // .compute_avg_model()
         .run(&model, &data);
+
+    TM::stop_monitoring();
 
     let best_model_params = kfold.take_best_model();
     //let avg_model_params = kfold.take_avg_model();

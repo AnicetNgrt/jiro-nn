@@ -13,6 +13,7 @@ indicatif = "0.17.5"
 
 [features]
 f64 = ["neural_networks_rust/f64"]
-default = ["arrayfire"]
+default = ["ndarray"]
 nalgebra = ["neural_networks_rust/nalgebra"]
 arrayfire = ["neural_networks_rust/arrayfire"]
+ndarray = ["neural_networks_rust/ndarray"]

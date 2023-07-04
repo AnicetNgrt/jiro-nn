@@ -1,15 +1,13 @@
 pub enum Backends {
     ArrayFire,
     Nalgebra,
-    // Rayon,
-    // Faer,
-    // Linalg,
+    Ndarray
 }
 
-#[cfg(feature = "Scalar")]
+#[cfg(feature = "f64")]
 pub type Scalar = Scalar;
 
-#[cfg(not(feature = "Scalar"))]
+#[cfg(not(feature = "f64"))]
 pub type Scalar = f32;
 
 #[cfg(feature = "arrayfire")]
@@ -28,20 +26,13 @@ pub use nalgebra_matrix::Matrix;
 #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
 pub const BACKEND: Backends = Backends::Nalgebra;
 
-// #[cfg(feature = "linalg-rayon")]
-// pub mod rayon_matrix;
-// #[cfg(all(feature = "linalg-rayon", not(feature = "arrayfire"), not(feature = "nalgebra")))]
-// pub use rayon_matrix::Matrix;
+#[cfg(feature = "ndarray")]
+pub mod ndarray_matrix;
 
-// #[cfg(feature = "linalg")]
-// pub mod matrix;
-// #[cfg(all(feature = "linalg", not(feature = "arrayfire"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
-// pub use matrix::Matrix;
-
-// #[cfg(feature = "faer")]
-// pub mod faer_matrix;
-// #[cfg(all(feature = "faer", not(feature = "arrayfire"), not(feature = "linalg"), not(feature = "nalgebra"), not(feature = "linalg-rayon")))]
-// pub use faer_matrix::Matrix;
+#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+pub use ndarray_matrix::Matrix;
+#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+pub const BACKEND: Backends = Backends::Ndarray;
 
 pub trait MatrixTrait: Clone {
     fn is_backend_thread_safe() -> bool;

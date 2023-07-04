@@ -1,4 +1,6 @@
+#[cfg(feature = "arrayfire")]
 use arrayfire::{convolve3, flip, index, print, Seq};
+
 use neural_networks_rust::{
     linalg::{Matrix, MatrixTrait},
     vision::{image::Image, image::ImageTrait},
@@ -64,7 +66,7 @@ pub fn main() {
     print(&res);
 }
 
-#[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
+#[cfg(not(feature = "arrayfire"))]
 pub fn main() {
     println!("This example requires the arrayfire feature to be enabled");
 }

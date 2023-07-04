@@ -2,11 +2,28 @@
 
 Implementing GPU-bound Neural Networks in Rust from scratch + utils for data manipulation.
 
-This was made for the purpose of my own learning. It is obviously not a production-ready library by any means. 
+It is not a production-ready framework by any means. 
 
 Feel free to give feedback.
 
-## Preprocessing + CNNs example
+- [Usage](#usage)
+  - [Preprocessing + CNNs example](#preprocessing--cnns-example)
+- [Features](#features)
+  - [Scope and goals](#scope-and-goals)
+  - [Backends](#backends)
+  - [Precision](#precision)
+- [Installing Arrayfire](#installing-arrayfire)
+
+## Usage
+
+Add this in your project's `Cargo.toml` file:
+
+```toml
+[dependencies]
+neural_networks_rust = "*"
+```
+
+### Preprocessing + CNNs example
 
 MNIST (hand-written digits recognition) workflow example:
 
@@ -117,16 +134,65 @@ You can then plot the results using a third-party crate like `gnuplot` *(recomme
 
 *For more in-depth examples, with more configurable workflows spanning many scripts, check out the `examples` folder.*
 
-## Include
+## Features
 
-Add this in your project's `Cargo.toml` file:
+Since it is a framework, it is quite opinionated and has a lot of features. But here are the main ones:
 
-```toml
-[dependencies]
-neural_networks_rust = "*"
-```
+NNs (Dense Layers, Full Layers...), CNNs (Dense Layers, Direct Layers, Mean Pooling...), everything batched, SGD, Adam, Momentum, Glorot, many activations (Softmax, Tanh, ReLU...), Learning Rate Scheduling, K-Folds, Split training, cacheable and revertable Pipelines (normalization, feature extraction, outliers filtering, values mapping, one-hot-encoding, log scaling...), loss functions (Binary Cross Entropy, Mean Squared Errors), model specification as code, preprocessing specification as code, performance metrics (R²...), tasks monitoring (progress, logging),  multi-backends (CPU, GPU, see [Backends](#backends)), multi-precision (see [Precision](#precision)).
 
-### Using Arrayfire
+### Scope and goals
+
+Main goals:
+
+- Implement enough algorithms so that it can fit most use-cases
+- Don't stop at NNs, also implement CNNs, RNNs, and whatever we can
+- Handle side use-cases that could also be considered "backend" (model building, training, preprocessing)
+- Craft opinionated APIs for the core features, and wrappers for useful support libraries if they are not simple enough (DataFrames, Linear Algebra...)
+- APIs simplification above rigor and error handling (but no unsafe Rust)
+- Make it possible to industrialize and configure workflows (eg. data preprocessing, model building, training, evaluation...)
+- Trying not to be 1000x harder than Python and 10x slower than C++ (otherwise what's the point?)
+
+Side/future goals:
+
+- Implement rare but interesting algorithms (Direct layers, Forward Layers...)
+- WebAssembly and WebGPU support
+- Rust-native GPU backend via wgpu (I can dream, right?)
+- Python bindings via PyO3
+- Graphic tool for model building
+
+Non-goals:
+
+- Data visualization
+- Compliance with other frameworks/standards
+- Perfect error handling (don't be ashamed of `unwrap` and `expect`)
+
+### Backends
+
+Switch backends via Cargo features:
+
+- `arrayfire` (CPU/GPU)
+    - ✅ Vision available
+    - ✅ GPU support
+    - 🫤 Slower CPU support
+    - 🫤 Hard to install (see [Installing Arrayfire](#installing-arrayfire))
+    - 🫤 C++ library, segfaults...
+- `ndarray`
+    - ✅ Fastest CPU backend
+    - ✅ Pure Rust
+    - 🫤 Vision not (yet) available
+    - 🫤 CPU only
+- `nalgebra`
+    - ✅ Pure Rust
+    - 🫤 Vision not available (and not planned)
+    - 🫤 CPU only
+
+### Precision
+
+You can enable precision up to `f64` with the `f64` feature.
+
+Precision below `f32` is not supported (yet).
+
+## Installing Arrayfire
 
 You need to first [install Arrayfire](https://arrayfire.org/docs/installing.htm#gsc.tab=0) in order to use the `arrayfire` feature for fast compute on the CPU or the GPU using Arrayfire's C++/CUDA/OpenCL backends (it will first try OpenCL if installed, then CUDA, then C++). Make sure all the steps of the installation work 100% with no weird warning, as they may fail in quite subtle ways.
 
@@ -151,5 +217,3 @@ neural_networks_rust = {
 ```
 
 If you want to use the CUDA capabilities of Arrayfire on Linux (was tested on Windows 11 WSL2 with Ubuntu and a RTX 3060), [check out this guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation).
-
-If you install none of the above, the default `nalgebra` feature is still available for a pure Rust CPU-bound backend.
