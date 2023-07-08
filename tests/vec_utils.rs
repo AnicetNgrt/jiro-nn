@@ -143,13 +143,13 @@ fn test_denormalize_vector() {
 }
 
 #[test]
-fn test_normalize_vec2() {
+fn test_normalize_vector2() {
     let vec = vec![
         vec![1.0, 2.0, 3.0],
         vec![4.0, 5.0, 6.0],
         vec![7.0, 8.0, 9.0],
     ];
-    let (normalized_vec, min, max) = normalize_vec2(&vec);
+    let (normalized_vec, min, max) = normalize_vector2(&vec);
     assert_float_relative_eq!(normalized_vec[0][0], 0.0, 0.00001);
     assert_float_relative_eq!(normalized_vec[0][1], 0.125, 0.00001);
     assert_float_relative_eq!(normalized_vec[0][2], 0.25, 0.00001);
@@ -164,7 +164,7 @@ fn test_normalize_vec2() {
 }
 
 #[test]
-fn test_denormalize_vec2() {
+fn test_denormalize_vector2() {
     let input = vec![vec![0.0, 0.25], vec![0.5, 0.75], vec![1.0, 1.0]];
     let min = 0.0;
     let max = 1.0;
@@ -173,7 +173,7 @@ fn test_denormalize_vec2() {
         vec![(0.5 * (max - min)) + min, (0.75 * (max - min)) + min],
         vec![max, max],
     ];
-    let output = denormalize_vec2(&input, min, max);
+    let output = denormalize_vector2(&input, min, max);
     for i in 0..input.len() {
         for j in 0..input[i].len() {
             assert_float_relative_eq!(output[i][j], expected_output[i][j], 0.00001);

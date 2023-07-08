@@ -102,12 +102,12 @@ impl MatrixTrait for Matrix {
     ///    [rowNrow: col0 col1 ... colNcol],
     /// ]
     /// ```
-    fn from_row_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
-        let mat = Self::from_column_leading_vec2(m);
+    fn from_row_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self {
+        let mat = Self::from_column_leading_vector2(m);
         mat.transpose()
     }
 
-    fn from_column_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
+    fn from_column_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self {
         let ncol = m.len();
         let nrow = m[0].len();
         Self(Array::new_strided(

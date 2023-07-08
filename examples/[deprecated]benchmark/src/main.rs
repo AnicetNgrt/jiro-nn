@@ -63,7 +63,7 @@ fn main() {
         .iter()
         .map(|col| f(col))
         .collect::<Vec<_>>();
-    let train_y = Matrix::from_column_leading_vec2(&train_y);
+    let train_y = Matrix::from_column_leading_vector2(&train_y);
     let train_y = train_y.component_add(&Matrix::random_uniform(
         train_y.dim().0,
         train_y.dim().1,
@@ -77,7 +77,7 @@ fn main() {
         .iter()
         .map(|col| f(col))
         .collect::<Vec<_>>();
-    let test_y = Matrix::from_column_leading_vec2(&test_y);
+    let test_y = Matrix::from_column_leading_vector2(&test_y);
 
     let mut training_times = vec![];
     let mut testing_times = vec![];
@@ -143,7 +143,7 @@ fn main() {
             .map(|t| t.as_millis() as Scalar)
             .collect::<Vec<_>>(),
     ];
-    let time_matrix = Matrix::from_column_leading_vec2(&time_matrix.clone());
+    let time_matrix = Matrix::from_column_leading_vector2(&time_matrix.clone());
     let time_matrix = time_matrix.get_data_row_leading();
 
     let datatable = DataTable::from_vectors(

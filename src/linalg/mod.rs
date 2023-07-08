@@ -79,9 +79,9 @@ pub trait MatrixTrait: Clone {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    fn from_row_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self;
+    fn from_row_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self;
 
-    fn from_column_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self;
+    fn from_column_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self;
 
     /// fills a column vector row by row with values of index 0 to v.len()
     fn from_column_vector(v: &Vec<Scalar>) -> Self;

@@ -3,7 +3,7 @@ use jiro_nn::{
     model::Model,
     network::params::NetworkParams,
     preprocessing::{attach_ids::AttachIds, Pipeline},
-    vec_utils::r2_score_vec2,
+    vec_utils::r2_score_vector2,
 };
 
 pub fn main() {
@@ -40,7 +40,7 @@ pub fn main() {
     println!("avg_loss: {:#?}", avg_loss);
     println!("std_loss: {:#?}", std_loss);
 
-    let r2 = r2_score_vec2(&y, &preds);
+    let r2 = r2_score_vector2(&y, &preds);
 
     println!("r2: {:#?}", r2);
 

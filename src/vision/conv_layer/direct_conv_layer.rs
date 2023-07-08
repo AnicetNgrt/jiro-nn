@@ -128,7 +128,7 @@ impl LearnableLayer for DirectConvLayer {
         let mut kernels = params_matrix.clone();
         let biases = kernels.pop().unwrap();
         self.kernels = Image::from_samples(
-            &Matrix::from_column_leading_vec2(&kernels),
+            &Matrix::from_column_leading_vector2(&kernels),
             self.kernels.channels(),
         );
         self.biases =

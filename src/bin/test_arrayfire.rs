@@ -12,7 +12,7 @@ use jiro_nn::{
 #[cfg(feature = "arrayfire")]
 pub fn main() {
     let image = Image::from_samples(
-        &Matrix::from_column_leading_vec2(&vec![
+        &Matrix::from_column_leading_vector2(&vec![
             vec![
                 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
@@ -33,7 +33,7 @@ pub fn main() {
     print(&image.0);
 
     let kernel = Image::from_samples(
-        &Matrix::from_column_leading_vec2(&vec![vec![
+        &Matrix::from_column_leading_vector2(&vec![vec![
             1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
         ]]),
         3,

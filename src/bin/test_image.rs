@@ -9,7 +9,7 @@ use jiro_nn::{
 pub fn main() {
     #[allow(unused_variables)]
     let image = Image::from_samples(
-        &Matrix::from_column_leading_vec2(&vec![
+        &Matrix::from_column_leading_vector2(&vec![
             vec![1.0, 2.0, 3.0, 4.0],
             vec![3.0, 2.0, 0.0, 2.0],
             vec![6.0, 3.0, 1.0, 7.0],

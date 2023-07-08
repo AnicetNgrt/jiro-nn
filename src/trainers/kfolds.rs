@@ -10,7 +10,7 @@ use crate::{
     model::Model,
     monitor::TM,
     network::{params::NetworkParams, Network},
-    vec_utils::r2_score_vec2,
+    vec_utils::r2_score_vector2,
 };
 
 pub type ReporterClosure = dyn FnMut(usize, usize, EpochEvaluation) -> () + Send + Sync;
@@ -215,7 +215,7 @@ impl KFolds {
             // (it would be very costly to do it every time)
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
                 TM::start("r2");
-                let r2 = r2_score_vec2(&validation_y, &preds);
+                let r2 = r2_score_vector2(&validation_y, &preds);
                 TM::end_with_message(format!("R2: {}", r2));
                 r2
             } else {
@@ -328,7 +328,7 @@ impl KFolds {
                 // (it would be very costly to do it every time)
                 let r2 = if e == model.epochs - 1 || (all_epochs_r2 && all_epochs_validation) {
                     TM::start("r2");
-                    let r2 = r2_score_vec2(&validation_y, &preds);
+                    let r2 = r2_score_vector2(&validation_y, &preds);
                     TM::end_with_message(format!("R2: {}", r2));
                     r2
                 } else {

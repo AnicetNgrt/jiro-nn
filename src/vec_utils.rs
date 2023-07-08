@@ -31,7 +31,7 @@ pub fn shuffle_column<T: Clone>(vec: &mut Vec<Vec<T>>, col: usize) {
     }
 }
 
-pub fn r2_score_vec2(y: &Vec<Vec<Scalar>>, y_hat: &Vec<Vec<Scalar>>) -> Scalar {
+pub fn r2_score_vector2(y: &Vec<Vec<Scalar>>, y_hat: &Vec<Vec<Scalar>>) -> Scalar {
     assert!(y.len() == y_hat.len());
     assert!(y[0].len() == y_hat[0].len());
 
@@ -118,7 +118,7 @@ pub fn min_vector(vec: &Vec<Scalar>) -> Scalar {
     min
 }
 
-pub fn min_vec2(vec: &Vec<Vec<Scalar>>) -> Scalar {
+pub fn min_vector2(vec: &Vec<Vec<Scalar>>) -> Scalar {
     let mut min = vec[0][0];
     for i in 0..vec.len() {
         for j in 0..vec[i].len() {
@@ -140,7 +140,7 @@ pub fn max_vector(vec: &Vec<Scalar>) -> Scalar {
     max
 }
 
-pub fn max_vec2(vec: &Vec<Vec<Scalar>>) -> Scalar {
+pub fn max_vector2(vec: &Vec<Vec<Scalar>>) -> Scalar {
     let mut max = vec[0][0];
     for i in 0..vec.len() {
         for j in 0..vec[i].len() {
@@ -168,9 +168,9 @@ pub fn denormalize_vector(vec: &Vec<Scalar>, min: Scalar, max: Scalar) -> Vec<Sc
     vec.iter().map(|x| x * range + min).collect()
 }
 
-pub fn normalize_vec2(vec: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
-    let min = min_vec2(vec);
-    let max = max_vec2(vec);
+pub fn normalize_vector2(vec: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
+    let min = min_vector2(vec);
+    let max = max_vector2(vec);
     let range = max - min;
     (
         vec.iter()
@@ -181,7 +181,7 @@ pub fn normalize_vec2(vec: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, Scalar, Scal
     )
 }
 
-pub fn denormalize_vec2(vec: &Vec<Vec<Scalar>>, min: Scalar, max: Scalar) -> Vec<Vec<Scalar>> {
+pub fn denormalize_vector2(vec: &Vec<Vec<Scalar>>, min: Scalar, max: Scalar) -> Vec<Vec<Scalar>> {
     let range = max - min;
     vec.iter()
         .map(|x| x.iter().map(|y| y * range + min).collect())

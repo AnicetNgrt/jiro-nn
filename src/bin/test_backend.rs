@@ -54,11 +54,11 @@ pub fn main() {
 
     print_mat(&m);
 
-    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_row_leading_vector2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
 
     print_mat(&m);
 
-    let m = Matrix::from_column_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_column_leading_vector2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
 
     print_mat(&m);
 

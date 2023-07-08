@@ -62,12 +62,12 @@ impl MatrixTrait for Matrix {
         Self(mat)
     }
 
-    fn from_row_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
+    fn from_row_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self {
         let mat = Array2::from_shape_fn((m.len(), m[0].len()), |(i, j)| m[i][j]);
         Self(mat)
     }
 
-    fn from_column_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
+    fn from_column_leading_vector2(m: &Vec<Vec<Scalar>>) -> Self {
         let mat = Array2::from_shape_fn((m[0].len(), m.len()), |(i, j)| m[j][i]);
         Self(mat)
     }
