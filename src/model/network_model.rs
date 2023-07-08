@@ -6,15 +6,20 @@ use super::{ModelBuilder, conv_network_model::{ConvNetworkModelBuilder, ConvNetw
 
 pub struct NetworkModelBuilder {
     pub model: NetworkModel,
-    pub parent: ModelBuilder
+    pub parent: Option<ModelBuilder>
 }
 
 impl NetworkModelBuilder {
-    pub fn new(parent: ModelBuilder) -> Self {
+    pub fn new() -> Self {
         Self {
             model: NetworkModel { layers: Vec::new() },
-            parent
+            parent: None
         }
+    }
+
+    pub fn set_parent(mut self, parent: ModelBuilder) -> Self {
+        self.parent = Some(parent);
+        self
     }
 
     pub fn conv_network(self, in_channels: usize) -> ConvNetworkModelBuilder {
@@ -36,7 +41,14 @@ impl NetworkModelBuilder {
     }
 
     pub fn end(self) -> ModelBuilder {
-        self.parent.accept_neural_network(self.model)
+        match self.parent {
+            Some(parent) => parent.accept_neural_network(self.model),
+            None => panic!("No parent model builder set")
+        }
+    }
+
+    pub fn build(self) -> NetworkModel {
+        self.model
     }
 }
 

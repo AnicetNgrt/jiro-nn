@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 
-use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
 use crate::layer::{DropoutLayer, LearnableLayer, ParameterableLayer};
 use crate::linalg::Scalar;
@@ -42,7 +41,7 @@ impl FullConvLayer {
         nkern: usize,
     ) -> Option<(Image, Scalar)> {
         if let Some(dropout_rate) = self.dropout_rate {
-            let mut rng = SmallRng::from_entropy();
+            let mut rng = rand::thread_rng();
             let dropout_mask = Image::from_fn(
                 kern_size.0,
                 kern_size.1,

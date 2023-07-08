@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 
-use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use crate::network::NetworkLayer;
@@ -32,7 +31,7 @@ impl FullLayer {
 
     fn generate_dropout_mask(&mut self, output_shape: (usize, usize)) -> Option<(Matrix, Scalar)> {
         if let Some(dropout_rate) = self.dropout_rate {
-            let mut rng = SmallRng::from_entropy();
+            let mut rng = rand::thread_rng();
             let dropout_mask = Matrix::from_fn(output_shape.0, output_shape.1, |_, _| {
                 if rng
                     .gen_range((0.0 as Scalar)..(1.0 as Scalar))

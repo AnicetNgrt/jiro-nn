@@ -1,13 +1,19 @@
 use std::fs::File;
 use std::io::{Read, Write};
 
+#[cfg(feature = "data")]
 use polars::prelude::NamedFrom;
+#[cfg(feature = "data")]
 use polars::series::Series;
+
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+#[cfg(feature = "data")]
 use crate::dataset::Dataset;
+#[cfg(feature = "data")]
 use crate::datatable::DataTable;
+
 use crate::linalg::Scalar;
 use crate::loss::Losses;
 use crate::network::{Network};
@@ -25,10 +31,23 @@ pub struct ModelBuilder {
 }
 
 impl ModelBuilder {
+    #[cfg(feature = "data")]
     pub fn new(dataset: Dataset) -> Self {
         Self {
             model: Model {
                 dataset,
+                loss: Losses::MSE,
+                epochs: 100,
+                batch_size: Some(32),
+                network: None
+            }
+        }
+    }
+
+    #[cfg(not(feature = "data"))]
+    pub fn new() -> Self {
+        Self {
+            model: Model {
                 loss: Losses::MSE,
                 epochs: 100,
                 batch_size: Some(32),
@@ -68,7 +87,7 @@ impl ModelBuilder {
     }
 
     pub fn neural_network(self) -> NetworkModelBuilder {
-        NetworkModelBuilder::new(self)
+        NetworkModelBuilder::new().set_parent(self)
     }
 
     pub(crate) fn accept_neural_network(mut self, network: NetworkModel) -> Self {
@@ -81,12 +100,22 @@ impl ModelBuilder {
     }
 }
 
+#[cfg(feature = "data")]
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
     pub batch_size: Option<usize>,
     pub dataset: Dataset,
+    pub network: Option<NetworkModel>
+}
+
+#[cfg(not(feature = "data"))]
+#[derive(Serialize, Debug, Deserialize, Clone)]
+pub struct Model {
+    pub epochs: usize,
+    pub loss: Losses,
+    pub batch_size: Option<usize>,
     pub network: Option<NetworkModel>
 }
 
@@ -116,12 +145,27 @@ impl Model {
         hash_string
     }
 
+    #[cfg(feature = "data")]
     pub fn with_new_dataset(&mut self, dataset: Dataset) -> Model {
         let mut spec = self.clone();
         spec.dataset = dataset;
         spec
     }
 
+    #[cfg(feature = "data")]
+    pub fn to_network(&self) -> Network {
+        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
+        let in_dims = self.dataset.in_features_names().len();
+        network_spec.to_network(in_dims)
+    }
+
+    #[cfg(not(feature = "data"))]
+    pub fn to_network(&self, in_dims: usize) -> Network {
+        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
+        network_spec.to_network(in_dims)
+    }
+
+    #[cfg(feature = "data")]
     pub fn train_epoch(
         &self,
         epoch: usize,
@@ -146,12 +190,26 @@ impl Model {
         train_loss
     }
 
-    pub fn to_network(&self) -> Network {
-        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
-        let in_dims = self.dataset.in_features_names().len();
-        network_spec.to_network(in_dims)
+    #[cfg(not(feature = "data"))]
+    pub fn train_epoch(
+        &self,
+        epoch: usize,
+        network: &mut Network,
+        train_x: &Vec<Vec<Scalar>>,
+        train_y: &Vec<Vec<Scalar>>,
+    ) -> Scalar {
+        let train_loss = network.train(
+            epoch,
+            &train_x,
+            &train_y,
+            &self.loss.to_loss(),
+            self.batch_size.unwrap_or(train_x.len()),
+        );
+
+        train_loss
     }
 
+    #[cfg(feature = "data")]
     /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
     pub fn preds_to_table(&self, preds: Vec<Vec<Scalar>>) -> DataTable {
         let mut table = DataTable::new_empty();

@@ -9,8 +9,10 @@ pub mod monitor;
 pub mod activation;
 /// Model performance benchmarking utilities
 pub mod benchmarking;
+#[cfg(feature = "data")]
 /// Dataset specification (metadata, preprocessing flags...)
 pub mod dataset;
+#[cfg(feature = "data")]
 /// Wrapper around dataframes libaries
 pub mod datatable;
 /// Parameters initializers and abstractions (uniform, glorot...)
@@ -29,6 +31,7 @@ pub mod model;
 pub mod network;
 /// Optimizers and abstractions (sgd, adam...)
 pub mod optimizer;
+#[cfg(feature = "data")]
 /// Preprocessing and pipelining utilities (normalization, one-hot encoding...)
 pub mod preprocessing;
 /// Training methodologies (k-fold, split...)
