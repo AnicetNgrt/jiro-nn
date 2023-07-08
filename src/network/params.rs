@@ -15,10 +15,10 @@ impl NetworkParams {
         let layer_count = networks[0].0.len();
 
         for layer_index in 0..layer_count {
-            let mut layer_params = Matrix::from_column_leading_matrix(&networks[0].0[layer_index]);
+            let mut layer_params = Matrix::from_column_leading_vec2(&networks[0].0[layer_index]);
 
             for network in networks.iter().skip(1) {
-                let other_params = Matrix::from_column_leading_matrix(&network.0[layer_index]);
+                let other_params = Matrix::from_column_leading_vec2(&network.0[layer_index]);
                 layer_params = layer_params.component_add(&other_params).scalar_div(2.0);
             }
 

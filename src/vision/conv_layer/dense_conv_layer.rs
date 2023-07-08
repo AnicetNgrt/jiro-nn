@@ -129,7 +129,7 @@ impl LearnableLayer for DenseConvLayer {
         let mut kernels = params_matrix.clone();
         let biases = kernels.pop().unwrap();
         self.kernels = Image::from_samples(
-            &Matrix::from_column_leading_matrix(&kernels),
+            &Matrix::from_column_leading_vec2(&kernels),
             self.kernels.channels(),
         );
         self.biases = Image::from_samples(

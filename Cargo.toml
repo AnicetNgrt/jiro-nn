@@ -41,6 +41,8 @@ lazy_static = "1.4.0"
 globset = "0.4.10"
 ndarray = { version = "0.15.3", optional = true }
 convolutions-rs = { version = "0.3.4", optional = true }
+const_format = "0.2.31"
+seq-macro = "0.3.4"
 
 [features]
 default = ["ndarray"]

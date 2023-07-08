@@ -4,7 +4,7 @@ use jiro_nn::{
     model::Model,
     network::params::NetworkParams,
     preprocessing::{sample::Sample, Pipeline},
-    vec_utils::{avg_vector, r2_score_matrix, shuffle_column},
+    vec_utils::{avg_vector, r2_score_vec2, shuffle_column},
 };
 
 pub fn main() {
@@ -36,7 +36,7 @@ pub fn main() {
 
     let preds = network.predict_many(&x, 1);
 
-    let ref_score = r2_score_matrix(&y, &preds);
+    let ref_score = r2_score_vec2(&y, &preds);
 
     println!("r2: {:#?}", ref_score);
 
@@ -56,7 +56,7 @@ pub fn main() {
         for _ in 0..shuffles_count {
             shuffle_column(&mut x_cp, c);
             let preds = network.predict_many(&x_cp, 1);
-            let score = r2_score_matrix(&y, &preds);
+            let score = r2_score_vec2(&y, &preds);
             println!("score: {:#?}", score);
             metric_list.push(ref_score - score);
             x_cp = x.clone();

@@ -93,13 +93,13 @@ impl MatrixTrait for Matrix {
     ///    [colNcol: row0 row1 ... rowNrow],
     /// ]
     /// ```
-    fn from_row_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
+    fn from_row_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
         let ncol = m[0].len();
         let nrow = m.len();
         Self(DMatrix::from_row_slice(nrow, ncol, &m.concat()))
     }
 
-    fn from_column_leading_matrix(m: &Vec<Vec<Scalar>>) -> Self {
+    fn from_column_leading_vec2(m: &Vec<Vec<Scalar>>) -> Self {
         let ncol = m.len();
         let nrow = m[0].len();
         Self(DMatrix::from_column_slice(nrow, ncol, &m.concat()))

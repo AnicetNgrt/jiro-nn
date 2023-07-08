@@ -5,7 +5,7 @@ use crate::{
     model::Model,
     monitor::TM,
     network::params::NetworkParams,
-    vec_utils::r2_score_matrix,
+    vec_utils::r2_score_vec2,
 };
 
 pub type ReporterClosure = dyn FnMut(usize, EpochEvaluation) -> ();
@@ -130,7 +130,7 @@ impl SplitTraining {
 
             let r2 = if e == model.epochs - 1 || self.all_epochs_r2 {
                 TM::start("r2");
-                let r2 = r2_score_matrix(&validation_y, &preds);
+                let r2 = r2_score_vec2(&validation_y, &preds);
                 TM::end_with_message(format!("R2: {}", r2));
                 r2
             } else {

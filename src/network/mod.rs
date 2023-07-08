@@ -88,7 +88,7 @@ impl Network {
         for input_batch in x_batches.into_iter()
         {
             TM::start(format!("{}/{}", i, n_batches));
-            let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
+            let input_batch_matrix = Matrix::from_column_leading_vec2(&input_batch);
             let pred = self.layers.forward(input_batch_matrix);
             preds.extend(pred.get_data_col_leading());
             i += 1;
@@ -134,9 +134,9 @@ impl Network {
             x_batches.into_iter().zip(y_batches.into_iter())
         {
             TM::start(format!("{}/{}", i, n_batches));
-            let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
+            let input_batch_matrix = Matrix::from_column_leading_vec2(&input_batch);
             let pred = self.layers.forward(input_batch_matrix);
-            let y_true_batch_matrix = Matrix::from_column_leading_matrix(&y_true_batch);
+            let y_true_batch_matrix = Matrix::from_column_leading_vec2(&y_true_batch);
             let e = loss.loss(&y_true_batch_matrix, &pred);
 
             losses.push(e);
@@ -189,11 +189,11 @@ impl Network {
             x_train_batches.into_iter().zip(y_train_batches.into_iter())
         {
             TM::start(format!("{}/{}", i, n_batches));
-            let input_batch_matrix = Matrix::from_column_leading_matrix(&input_batch);
+            let input_batch_matrix = Matrix::from_column_leading_vec2(&input_batch);
 
             let pred = self.layers.forward(input_batch_matrix);
             
-            let y_true_batch_matrix = Matrix::from_column_leading_matrix(&y_true_batch);
+            let y_true_batch_matrix = Matrix::from_column_leading_vec2(&y_true_batch);
             let e = loss.loss(&y_true_batch_matrix, &pred);
 
             error += e;

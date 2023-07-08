@@ -1,0 +1,16 @@
+[package]
+name = "xor"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+jiro_nn = { path = "../../", default_features = false }
+
+[features]
+f64 = ["jiro_nn/f64"]
+default = ["ndarray"]
+nalgebra = ["jiro_nn/nalgebra"]
+arrayfire = ["jiro_nn/arrayfire"]
+ndarray = ["jiro_nn/ndarray"]

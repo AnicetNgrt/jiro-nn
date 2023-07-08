@@ -1,7 +1,7 @@
 use jiro_nn::{linalg::{Matrix, MatrixTrait}, activation::Activation, layer::Layer, loss::Losses};
 
 pub fn main() {
-    let m = Matrix::from_column_leading_matrix(&vec![
+    let m = Matrix::from_column_leading_vec2(&vec![
         vec![1.0, 2.0, 3.0, 4.0, 0.1],
         vec![3.0, 2.0, 0.0, 2.0, 0.3],
         vec![6.0, 3.0, 1.0, 7.0, 0.4],
@@ -15,7 +15,7 @@ pub fn main() {
     
     result.print();
 
-    let true_m = Matrix::from_column_leading_matrix(&vec![
+    let true_m = Matrix::from_column_leading_vec2(&vec![
         vec![0.0, 0.0, 0.0, 0.0, 1.0],
         vec![0.0, 0.0, 0.0, 1.0, 0.0],
         vec![0.0, 0.0, 1.0, 0.0, 0.0],

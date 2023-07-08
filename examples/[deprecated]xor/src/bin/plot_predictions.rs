@@ -47,7 +47,7 @@ fn main() {
         pb.yaw = 0.5;
         pb.scale = 0.9;
         pb.pitch = 0.3;
-        pb.into_matrix()
+        pb.into_vec2()
     });
     
     chart

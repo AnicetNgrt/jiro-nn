@@ -881,7 +881,7 @@ network.load_params(&weights);
 
 // Predicting everything and computing the accuracy
 let preds = network.predict_many(&x);
-let ref_score = r2_score_matrix(&y, &preds);
+let ref_score = r2_score_vec2(&y, &preds);
 
 let mut x_cp = x.clone();
 let shuffles_count = 10;
@@ -896,7 +896,7 @@ for c in 0..ncols {
         shuffle_column(&mut x_cp, c);
         // Predicting everything and seeing if it worsens the model
         let preds = network.predict_many(&x_cp);
-        let score = r2_score_matrix(&y, &preds);
+        let score = r2_score_vec2(&y, &preds);
         metric_list.push(ref_score - score);
         x_cp = x.clone();
     }
@@ -981,7 +981,7 @@ fn parallel_k_fold(
             // Compute the R2 score	if it is the last epoch
             // (it would be very costly to do it every time)
             let r2 = if e == model.epochs - 1 || all_epochs_r2 {
-                r2_score_matrix(&validation_y, &preds)
+                r2_score_vec2(&validation_y, &preds)
             } else {
                 -1.0
             };

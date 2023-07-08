@@ -46,8 +46,8 @@ impl Loss {
     }
 
     pub fn loss_vec(&self, y_true: &Vec<Vec<Scalar>>, y_pred: &Vec<Vec<Scalar>>) -> Scalar {
-        let y_true = Matrix::from_row_leading_matrix(&y_true);
-        let y_pred = Matrix::from_row_leading_matrix(&y_pred);
+        let y_true = Matrix::from_row_leading_vec2(&y_true);
+        let y_pred = Matrix::from_row_leading_vec2(&y_pred);
         self.loss(&y_true, &y_pred)
     }
 }

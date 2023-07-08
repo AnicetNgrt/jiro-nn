@@ -52,8 +52,8 @@ fn test_from_iter() {
 }
 
 #[test]
-fn test_from_row_leading_matrix() {
-    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+fn test_from_row_leading_vec2() {
+    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     assert_float_relative_eq!(m.get_data_col_leading()[0][0], 1.0, 0.00001);
     assert_float_relative_eq!(m.get_data_col_leading()[2][1], 6.0, 0.00001);
 }
@@ -75,7 +75,7 @@ fn test_from_row_vector() {
 
 #[test]
 fn test_get_column() {
-    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let col = m.get_column(1);
     assert_float_relative_eq!(col[0], 2.0, 0.00001);
     assert_float_relative_eq!(col[1], 5.0, 0.00001);
@@ -83,7 +83,7 @@ fn test_get_column() {
 
 #[test]
 fn test_get_row() {
-    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let row = m.get_row(1);
     assert_float_relative_eq!(row[0], 4.0, 0.00001);
     assert_float_relative_eq!(row[1], 5.0, 0.00001);
@@ -92,7 +92,7 @@ fn test_get_row() {
 
 // #[test]
 // fn test_map() {
-//     let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+//     let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
 
 //     let mapped = m.map(|x| x * 2.0);
 
@@ -102,8 +102,8 @@ fn test_get_row() {
 
 #[test]
 fn test_dot() {
-    let m1 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    let m2 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]]);
+    let m1 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m2 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]]);
     let result = m1.dot(&m2);
     assert_eq!(result.dim(), (2, 2));
     assert_float_relative_eq!(result.get_data_row_leading()[0][0], 22.0, 0.00001);
@@ -112,7 +112,7 @@ fn test_dot() {
 
 #[test]
 fn test_columns_sum() {
-    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let sums = m.columns_sum().get_data_row_leading();
     assert_float_relative_eq!(sums[0][0], 6.0, 0.00001);
     assert_float_relative_eq!(sums[1][0], 15.0, 0.00001);
@@ -120,8 +120,8 @@ fn test_columns_sum() {
 
 #[test]
 fn test_component_mul() {
-    let m1 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    let m2 = Matrix::from_row_leading_matrix(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
+    let m1 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m2 = Matrix::from_row_leading_vec2(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
     let result = m1.component_mul(&m2);
     assert_float_relative_eq!(result.get_data_row_leading()[0][0], 2.0, 0.00001);
     assert_float_relative_eq!(result.get_data_row_leading()[1][2], 42.0, 0.00001);
@@ -129,8 +129,8 @@ fn test_component_mul() {
 
 #[test]
 fn test_component_add() {
-    let m1 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    let m2 = Matrix::from_row_leading_matrix(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
+    let m1 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m2 = Matrix::from_row_leading_vec2(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
     let result = m1.component_add(&m2);
 
     println!("{:#?}", result.get_data_row_leading());
@@ -141,8 +141,8 @@ fn test_component_add() {
 
 #[test]
 fn test_component_sub() {
-    let m1 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    let m2 = Matrix::from_row_leading_matrix(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
+    let m1 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m2 = Matrix::from_row_leading_vec2(&vec![vec![2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0]]);
     let result = m1.component_sub(&m2);
     assert_float_relative_eq!(result.get_data_row_leading()[0][0], -1.0, 0.00001);
     assert_float_relative_eq!(result.get_data_row_leading()[1][2], -1.0, 0.00001);
@@ -150,8 +150,8 @@ fn test_component_sub() {
 
 #[test]
 fn test_component_div() {
-    let m1 = Matrix::from_row_leading_matrix(&vec![vec![2.0, 4.0, 6.0], vec![8.0, 10.0, 12.0]]);
-    let m2 = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m1 = Matrix::from_row_leading_vec2(&vec![vec![2.0, 4.0, 6.0], vec![8.0, 10.0, 12.0]]);
+    let m2 = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let result = m1.component_div(&m2);
     assert_float_relative_eq!(result.get_data_row_leading()[0][0], 2.0, 0.00001);
     assert_float_relative_eq!(result.get_data_row_leading()[1][2], 2.0, 0.00001);
@@ -159,7 +159,7 @@ fn test_component_div() {
 
 #[test]
 fn test_transpose() {
-    let m = Matrix::from_row_leading_matrix(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
+    let m = Matrix::from_row_leading_vec2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
     let transposed = m.transpose();
     assert_float_relative_eq!(transposed.get_data_row_leading()[0][0], 1.0, 0.00001);
     assert_float_relative_eq!(transposed.get_data_row_leading()[2][1], 6.0, 0.00001);

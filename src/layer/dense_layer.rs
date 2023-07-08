@@ -100,7 +100,7 @@ impl LearnableLayer for DenseLayer {
     fn set_learnable_parameters(&mut self, params_matrix: &Vec<Vec<Scalar>>) {
         let mut weights = params_matrix.clone();
         let biases = weights.pop().unwrap();
-        self.weights = Matrix::from_column_leading_matrix(&weights);
+        self.weights = Matrix::from_column_leading_vec2(&weights);
         self.biases = Matrix::from_column_vector(&biases);
     }
 }
