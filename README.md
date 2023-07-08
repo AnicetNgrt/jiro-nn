@@ -7,6 +7,8 @@ It is not a production-ready framework by any means.
 Feel free to give feedback.
 
 - [Usage](#usage)
+  - [Installation \& cargo features](#installation--cargo-features)
+  - [Bare-bones XOR example](#bare-bones-xor-example)
   - [Preprocessing + CNNs example](#preprocessing--cnns-example)
 - [Features](#features)
   - [Scope and goals](#scope-and-goals)
@@ -16,6 +18,8 @@ Feel free to give feedback.
 
 ## Usage
 
+### Installation & cargo features
+
 Add this in your project's `Cargo.toml` file, by replacing `<BACKEND>` with the backend you want to use (see [Backends](#backends)):
 
 ```toml
@@ -23,7 +27,45 @@ Add this in your project's `Cargo.toml` file, by replacing `<BACKEND>` with the 
 jiro_nn = { 
     version = "*", 
     default-features = false, 
-    features = ["<BACKEND>"] 
+    features = ["<BACKEND>", "data"] # "data" is optional and enables the preprocessing and dataframes features
+}
+```
+
+### Bare-bones XOR example
+
+Predicting the XOR function with a simple neural network:
+
+```rust
+let x = vec![
+    vec![0.0, 0.0],
+    vec![1.0, 0.0],
+    vec![0.0, 1.0],
+    vec![1.0, 1.0],
+];
+
+let y = vec![
+    vec![0.0], 
+    vec![1.0], 
+    vec![1.0], 
+    vec![0.0]
+];
+
+let network_model = NetworkModelBuilder::new()
+    .full_dense(3)
+        .tanh()
+    .end()
+    .full_dense(1)
+        .tanh()
+    .end()
+.build();
+
+let in_size = 2;
+let mut network = network_model.to_network(in_size);
+let loss = Losses::MSE.to_loss();
+
+for epoch in 0..1000 {
+    let error = network.train(epoch, &x, &y, &loss, 1);
+    println!("Epoch: {} Error: {}", epoch, error);
 }
 ```
 

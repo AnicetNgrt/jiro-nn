@@ -8,7 +8,12 @@ fn main() {
         vec![1.0, 1.0],
     ];
 
-    let training_data_out = vec![vec![0.0], vec![1.0], vec![1.0], vec![0.0]];
+    let training_data_out = vec![
+        vec![0.0], 
+        vec![1.0], 
+        vec![1.0], 
+        vec![0.0]
+    ];
 
     let in_size = 2;
     let hidden_out_size = 3;
@@ -32,7 +37,7 @@ fn main() {
     let loss = Losses::MSE.to_loss();
     let batch_size = 1;
 
-    for epoch in 0..100000 {
+    for epoch in 0..50000 {
         let error = network.train(
             epoch,
             &training_data_in,

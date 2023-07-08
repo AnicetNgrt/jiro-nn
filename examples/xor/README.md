@@ -1,11 +1,12 @@
-# King County House price regression
+# XOR example
 
-Standard looking results by doing roughly [the same approach as a user named frederico on Kaggle using Pytorch](https://www.kaggle.com/code/chavesfm/dnn-house-price-r-0-88/notebook). Involving data manipulation with preprocessing, and a 8 layers of ~20 inputs each model using ReLU & Adam. Training over 300 epochs with 8 folds k-folds.
+Showcasing bare-bones usage of `jiro-nn` on the CPU, without the dataframes/preprocessing features and with a user-made training loop. For a more in-depth example, see the [King County Houses regression example](../housing/README.md).
 
-Charts made with the gnuplot crate.
+If replicating on your own, don't forget to disable the default `"data"` feature and specify the backend you want to use:
 
-![loss according to training epochs](../visuals/full_lt_8ReLU-Adam-Lin-Adam_loss.png)
+Example with `ndarray` backend:
 
-![prices according to predicted prices](../visuals/full_lt_8ReLU-Adam-Lin-Adam_price.png)
-
-![prices & predicted prices according to lat & long](../visuals/full_lt_8ReLU-Adam-Lin-Adam_latlong.png)
+```toml
+[dependencies]
+jiro_nn = { version = "*", default_features = false, features = ["ndarray"] }
+```
