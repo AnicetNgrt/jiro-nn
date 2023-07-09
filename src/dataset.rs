@@ -8,7 +8,7 @@ use crate::{
     preprocessing::map::{MapOp, MapSelector},
 };
 
-/// A structure that specifies _features_ (aka "columns") that will be fed to the network
+/// A structure that configurationifies _features_ (aka "columns") that will be fed to the network
 /// and the preprocessing pipeline. **This is not the actual data**, it is only metadata for the framework.
 /// 
 /// Features are described via the `Feature` struct. See its documentation for more information.
@@ -17,9 +17,9 @@ use crate::{
 /// 
 /// ```rust
 /// // This will create a Dataset with default metadata for all of the spreadsheet's columns
-/// let mut dataset_spec = Dataset::from_file("data.csv");
+/// let mut dataset_config = Dataset::from_file("data.csv");
 /// 
-/// dataset_spec
+/// dataset_config
 ///     // Adds a "tag" to all features via `tag_all`
 ///     // The tag used here `Normalized` tells the framework that all the columns
 ///     // that have it will need to be normalized in preprocessing pipeline later.
@@ -38,8 +38,8 @@ use crate::{
 /// More in-depth example:
 /// 
 /// ```rust
-/// let mut dataset_spec = Dataset::from_file("dataset/kc_house_data.csv");
-/// dataset_spec
+/// let mut dataset_config = Dataset::from_file("dataset/kc_house_data.csv");
+/// dataset_config
 ///     .remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
 ///     .tag_feature("date", DateFormat("%Y%m%dT%H%M%S"))
 ///     .tag_feature("date", AddExtractedMonth)
@@ -102,7 +102,7 @@ impl Dataset {
         names
     }
 
-    /// Return the names of the features that are not specified as outputs.
+    /// Return the names of the features that are not configurationified as outputs.
     pub fn in_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
@@ -113,7 +113,7 @@ impl Dataset {
         names
     }
 
-    /// Return the names of the features that are specified as outputs.
+    /// Return the names of the features that are configurationified as outputs.
     pub fn predicted_features_names(&self) -> Vec<&str> {
         let mut names = Vec::new();
         for feature in &self.features {
@@ -152,7 +152,7 @@ impl Dataset {
         self
     }
 
-    /// The `tag_feature` is a way to tag a specific dataset's feature with a `FeatureTags`, in order to specify its properties and preprocessing requirements.
+    /// The `tag_feature` is a way to tag a configurationific dataset's feature with a `FeatureTags`, in order to configurationify its properties and preprocessing requirements.
     /// 
     /// See the `FeatureTags` documentation for more information on the available tags.
     pub fn tag_feature(&mut self, feature_name: &str, tag: FeatureTags) -> &mut Self {
@@ -174,7 +174,7 @@ impl Dataset {
 
     /// The `from_features_tags` method is a constructor function for creating a `Dataset` object from a collection of `FeatureTags`.
     ///
-    /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureTags` representing the individual features to be included in the dataset. The `FeatureTags` for each feature specify how that feature should be preprocessed before being included in the dataset.
+    /// This method takes in a name for the dataset, as well as a collection of collections of `FeatureTags` representing the individual features to be included in the dataset. The `FeatureTags` for each feature configurationify how that feature should be preprocessed before being included in the dataset.
     ///
     /// See the `FeatureTags` documentation for more information on the available tags.
     ///
@@ -295,14 +295,14 @@ impl Feature {
 ///
 /// **Feature replacement/mapping tags**:
 ///
-/// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` specified.
-/// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` specified.
+/// - `ToTimestamp`: Enables conversion of the date/time feature to a Unix timestamp. Requires the feature to have a `DateFormat` configurationified.
+/// - `ExtractMonth`: Enables conversion of the date/time to its month. Requires the feature to have a `DateFormat` configurationified.
 /// - `OneHotEncode`: Enables one-hot encoding of the feature.
 /// - `Log10`: Enables applying base-10 logarithm to the feature.
 /// - `Normalized`: Enables normalizing the feature.
 /// - `FilterOutliers`: Enables filtering outliers from the feature.
 /// - `Squared`: Enables squaring the feature.
-/// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+/// - `Mapped`: Enables mapping the feature (a tuple of `MapSelector` that configurationifies how individual rows will be selected for mapping, and `MapOp` which configurationifies what mapping operation will be applied).
 ///
 /// **Feature row filtering tags**:
 ///
@@ -318,11 +318,11 @@ impl Feature {
 ///
 /// **"Semi-automatic" feature extraction tags**:
 ///
-/// - `AddFeatureExtractedMonth`: Enables and specifies the extracted month feature extraction from that feature (a list of `FeatureTags`).
-/// - `AddFeatureExtractedTimestamp`: Enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
-/// - `AddFeatureLog10`: Enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
-/// - `AddFeatureNormalized`: Enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
-/// - `AddFeatureSquared`: Enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureExtractedMonth`: Enables and configurationifies the extracted month feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureExtractedTimestamp`: Enables and configurationifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureLog10`: Enables and configurationifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureNormalized`: Enables and configurationifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
+/// - `AddFeatureSquared`: Enables and configurationifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
 ///
 /// **Meta tags**:
 ///
@@ -330,11 +330,11 @@ impl Feature {
 /// - Some others that are internal and should not be used there.
 #[derive(Debug)]
 pub enum FeatureTags<'a> {
-    /// The `Name` tag specifies the name of the feature.
+    /// The `Name` tag configurationifies the name of the feature.
     Name(&'a str),
-    /// The `Predicted` tag specifies that the feature is an output feature.
+    /// The `Predicted` tag configurationifies that the feature is an output feature.
     Predicted,
-    /// The `DateFormat` tag specifies the date format to use for date/time features.
+    /// The `DateFormat` tag configurationifies the date format to use for date/time features.
     DateFormat(&'a str),
     /// The `OneHotEncod` tag enables conversion to one-hot encoding of the feature.
     OneHotEncode,
@@ -364,17 +364,17 @@ pub enum FeatureTags<'a> {
     AddNormalized,
     /// The `AddSquared` tag enables the extracted squared feature extraction from that feature.
     AddSquared,
-    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that configurationifies how individual rows will be selected for mapping, and `MapOp` which configurationifies what mapping operation will be applied).
     AddFeatureExtractedMonth(&'a [FeatureTags<'a>]),
-    /// The `AddFeatureExtractedTimestamp` tag enables and specifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
+    /// The `AddFeatureExtractedTimestamp` tag enables and configurationifies the extracted Unix timestamp feature extraction from that feature (a list of `FeatureTags`).
     AddFeatureExtractedTimestamp(&'a [FeatureTags<'a>]),
-    /// The `AddFeatureLog10` tag enables and specifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
+    /// The `AddFeatureLog10` tag enables and configurationifies the extracted base-10 logarithm feature extraction from that feature (a list of `FeatureTags`).
     AddFeatureLog10(&'a [FeatureTags<'a>]),
-    /// The `AddFeatureNormalized` tag enables and specifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
+    /// The `AddFeatureNormalized` tag enables and configurationifies the extracted normalized feature extraction from that feature (a list of `FeatureTags`).
     AddFeatureNormalized(&'a [FeatureTags<'a>]),
-    /// The `AddFeatureSquared` tag enables and specifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
+    /// The `AddFeatureSquared` tag enables and configurationifies the extracted squared feature extraction from that feature (a list of `FeatureTags`).
     AddFeatureSquared(&'a [FeatureTags<'a>]),
-    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that specifies how individual rows will be selected for mapping, and `MapOp` which specifies what mapping operation will be applied).
+    /// The `Mapped` tag enables mapping the feature (a tuple of `MapSelector` that configurationifies how individual rows will be selected for mapping, and `MapOp` which configurationifies what mapping operation will be applied).
     Mapped(MapSelector, MapOp),
     /// The `Not` tag negates the effect of the following tag.
     Not(&'a FeatureTags<'a>),

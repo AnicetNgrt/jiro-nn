@@ -32,10 +32,10 @@ pub struct ModelBuilder {
 
 impl ModelBuilder {
     #[cfg(feature = "data")]
-    pub fn new(dataset: Dataset) -> Self {
+    pub fn new(dataset_config: Dataset) -> Self {
         Self {
             model: Model {
-                dataset,
+                dataset_config,
                 loss: Losses::MSE,
                 epochs: 100,
                 batch_size: Some(32),
@@ -106,7 +106,7 @@ pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
     pub batch_size: Option<usize>,
-    pub dataset: Dataset,
+    pub dataset_config: Dataset,
     pub network: Option<NetworkModel>
 }
 
@@ -134,8 +134,8 @@ impl Model {
     }
 
     pub fn from_json_string<S: AsRef<str>>(json: S) -> Model {
-        let spec: Model = serde_json::from_str(json.as_ref()).unwrap();
-        spec
+        let model: Model = serde_json::from_str(json.as_ref()).unwrap();
+        model
     }
 
     pub fn hashed_repr(&self) -> String {
@@ -147,22 +147,22 @@ impl Model {
 
     #[cfg(feature = "data")]
     pub fn with_new_dataset(&mut self, dataset: Dataset) -> Model {
-        let mut spec = self.clone();
-        spec.dataset = dataset;
-        spec
+        let mut model = self.clone();
+        model.dataset_config = dataset;
+        model
     }
 
     #[cfg(feature = "data")]
     pub fn to_network(&self) -> Network {
-        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
-        let in_dims = self.dataset.in_features_names().len();
-        network_spec.to_network(in_dims)
+        let network_config = self.network.clone().expect("You cannot create a network if it is not configurationified");
+        let in_dims = self.dataset_config.in_features_names().len();
+        network_config.to_network(in_dims)
     }
 
     #[cfg(not(feature = "data"))]
     pub fn to_network(&self, in_dims: usize) -> Network {
-        let network_spec = self.network.clone().expect("You cannot create a network if it is not specified");
-        network_spec.to_network(in_dims)
+        let network_config = self.network.clone().expect("You cannot create a network if it is not configurationified");
+        network_config.to_network(in_dims)
     }
 
     #[cfg(feature = "data")]
@@ -174,7 +174,7 @@ impl Model {
         id_column: &str,
     ) -> Scalar {
         let (train_x_table, train_y_table) =
-            train_data.random_order_in_out(&self.dataset.predicted_features_names());
+            train_data.random_order_in_out(&self.dataset_config.predicted_features_names());
 
         let train_x = train_x_table.drop_column(id_column).to_vectors();
         let train_y = train_y_table.to_vectors();
@@ -210,10 +210,10 @@ impl Model {
     }
 
     #[cfg(feature = "data")]
-    /// Uses the model's dataset specification to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
+    /// Uses the model's dataset configuration to label the prediction's columns and convert it all to a `DataTable` spreadsheet.
     pub fn preds_to_table(&self, preds: Vec<Vec<Scalar>>) -> DataTable {
         let mut table = DataTable::new_empty();
-        let names = self.dataset.predicted_features_names();
+        let names = self.dataset_config.predicted_features_names();
         let mut preds_columns: Vec<Vec<Scalar>> = Vec::new();
 
         // inverse the transpose

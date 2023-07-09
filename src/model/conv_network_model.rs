@@ -58,8 +58,8 @@ impl ConvNetworkModel {
         let mut in_channels = self.in_channels;
         let mut in_img_dims = (in_dims as f64 / in_channels as f64).sqrt() as usize;
 
-        for layer_spec in self.layers.into_iter() {
-            let (out_img_dims, out_channels, conv_layer) = layer_spec
+        for layer_config in self.layers.into_iter() {
+            let (out_img_dims, out_channels, conv_layer) = layer_config
                 .to_conv_layer(in_img_dims, in_channels);
 
             in_img_dims = out_img_dims;

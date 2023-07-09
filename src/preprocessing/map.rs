@@ -151,12 +151,12 @@ impl DataTransformation for Map {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut mapped_features = HashMap::new();
 
-        for feature in spec.features.iter() {
+        for feature in dataset_config.features.iter() {
             if let Some(map) = &feature.mapped {
                 mapped_features.insert(feature.name.clone(), map.clone());
             }
@@ -190,7 +190,7 @@ impl DataTransformation for Map {
             ),
         );
 
-        extractor.transform(cached_config, spec, data)
+        extractor.transform(cached_config, dataset_config, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

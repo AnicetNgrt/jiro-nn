@@ -25,12 +25,12 @@ impl DataTransformation for LogScale10 {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut logged_features = HashMap::new();
 
-        for feature in spec.features.iter() {
+        for feature in dataset_config.features.iter() {
             if feature.log10 {
                 let values = data.column_to_vector(&feature.name);
                 let min = min_vector(&values);
@@ -67,7 +67,7 @@ impl DataTransformation for LogScale10 {
             ),
         );
 
-        extractor.transform(cached_config, spec, data)
+        extractor.transform(cached_config, dataset_config, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

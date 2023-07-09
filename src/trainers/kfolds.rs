@@ -164,10 +164,10 @@ impl KFolds {
     ) {
         TM::start(format!("{}/{}", i+1, k));
         TM::start("init");
-        let predicted_features = model.dataset.predicted_features_names();
-        let id_column = model.dataset
+        let predicted_features = model.dataset_config.predicted_features_names();
+        let id_column = model.dataset_config
             .get_id_column()
-            .expect("One feature must be specified as an id in the dataset specification.");
+            .expect("One feature must be configurationified as an id in the dataset dataset_config.");
         let mut network = model.to_network();
 
         // Split the data between validation and training
@@ -282,8 +282,8 @@ impl KFolds {
         let handle = thread::spawn(move || {
             TM::start(&format!("parrfolds[{}]", i));
             TM::start("init");
-            let predicted_features = model.dataset.predicted_features_names();
-            let id_column = model.dataset.get_id_column().unwrap();
+            let predicted_features = model.dataset_config.predicted_features_names();
+            let id_column = model.dataset_config.get_id_column().unwrap();
             let mut network = model.to_network();
 
             // Split the data between validation and training

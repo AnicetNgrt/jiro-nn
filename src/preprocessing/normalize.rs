@@ -43,12 +43,12 @@ impl DataTransformation for Normalize {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut features_min_max: HashMap<String, (Scalar, Scalar)> = HashMap::new();
 
-        for feature in spec.features.iter() {
+        for feature in dataset_config.features.iter() {
             if feature.normalized {
                 let min_max = data.min_max_column(&feature.name);
                 features_min_max.insert(feature.name.clone(), min_max);
@@ -80,7 +80,7 @@ impl DataTransformation for Normalize {
             ),
         );
 
-        extractor.transform(cached_config, spec, data)
+        extractor.transform(cached_config, dataset_config, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

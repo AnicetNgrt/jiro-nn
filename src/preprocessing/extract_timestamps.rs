@@ -14,10 +14,10 @@ impl DataTransformation for ExtractTimestamps {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
-        let extracted_feature_spec = |feature: &Feature| {
+        let extracted_feature_config = |feature: &Feature| {
             if feature.date_format.is_some() {
                 match &feature.with_extracted_timestamp {
                     Some(new_feature) => Some(*new_feature.clone()),
@@ -47,11 +47,11 @@ impl DataTransformation for ExtractTimestamps {
         };
 
         let mut extractor = FeatureExtractorCached::new(
-            Box::new(extracted_feature_spec),
+            Box::new(extracted_feature_config),
             Box::new(extract_feature),
         );
 
-        extractor.transform(cached_config, spec, data)
+        extractor.transform(cached_config, dataset_config, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

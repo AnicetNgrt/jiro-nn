@@ -8,17 +8,17 @@ use crate::{
 use super::{CachedConfig, DataTransformation};
 
 pub struct FeatureExtractorCached {
-    pub extracted_feature_spec: Box<dyn Fn(&Feature) -> Option<Feature>>,
+    pub extracted_feature_config: Box<dyn Fn(&Feature) -> Option<Feature>>,
     pub extract_feature: Box<dyn Fn(&DataTable, &Feature, &Feature) -> DataTable>,
 }
 
 impl FeatureExtractorCached {
     pub fn new(
-        extracted_feature_spec: Box<dyn Fn(&Feature) -> Option<Feature>>,
+        extracted_feature_config: Box<dyn Fn(&Feature) -> Option<Feature>>,
         extract_feature: Box<dyn Fn(&DataTable, &Feature, &Feature) -> DataTable>,
     ) -> Self {
         Self {
-            extracted_feature_spec,
+            extracted_feature_config,
             extract_feature,
         }
     }
@@ -82,10 +82,10 @@ impl DataTransformation for FeatureExtractorCached {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
-        let mut new_spec = spec.clone();
+        let mut new_config = dataset_config.clone();
         let mut dataset_table = data.clone();
 
         if let CachedConfig::Cached { working_dir, .. } = cached_config {
@@ -94,8 +94,8 @@ impl DataTransformation for FeatureExtractorCached {
                 .expect("Failed to create cache directory");
         }
 
-        for feature in &spec.features {
-            if let Some(extracted_feature) = (self.extracted_feature_spec)(feature) {
+        for feature in &dataset_config.features {
+            if let Some(extracted_feature) = (self.extracted_feature_config)(feature) {
                 if let CachedConfig::Cached { id, working_dir } = cached_config {
                     if let Some((cached_data, cachefile_name)) =
                         self.get_cached_feature(&id, working_dir, &extracted_feature)
@@ -127,15 +127,15 @@ impl DataTransformation for FeatureExtractorCached {
                     dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
                 }
 
-                new_spec = if extracted_feature.name == feature.name {
-                    new_spec.with_replaced_feature(&feature.name, extracted_feature)
+                new_config = if extracted_feature.name == feature.name {
+                    new_config.with_replaced_feature(&feature.name, extracted_feature)
                 } else {
-                    new_spec.with_added_feature(extracted_feature)
+                    new_config.with_added_feature(extracted_feature)
                 };
             }
         }
 
-        (new_spec, dataset_table)
+        (new_config, dataset_table)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

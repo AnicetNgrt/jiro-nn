@@ -90,11 +90,11 @@ impl SplitTraining {
         let mut preds_and_ids = DataTable::new_empty();
         let mut model_eval = ModelEvaluation::new_empty();
 
-        let predicted_features = model.dataset.predicted_features_names();
+        let predicted_features = model.dataset_config.predicted_features_names();
         let id_column = model
-            .dataset
+            .dataset_config
             .get_id_column()
-            .expect("One feature must be specified as an id in the dataset specification.");
+            .expect("One feature must be configurationified as an id in the dataset dataset_config.");
         let mut network = model.to_network();
 
         // Split the data between validation and training

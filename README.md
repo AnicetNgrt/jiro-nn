@@ -71,14 +71,14 @@ for epoch in 0..1000 {
 MNIST (hand-written digits recognition) workflow example:
 
 ```rust
-// Step 1: Enrich the features of your data (eg. the "columns") with metadata using a Dataset Specification
-// The specification is necessary for guiding further steps (preprocessing, training...)
+// Step 1: Enrich the features of your data (eg. the "columns") with metadata using a Dataset configuration
+// The configuration is necessary for guiding further steps (preprocessing, training...)
 
-// Extract features from a spreadsheet to start building a dataset specification
+// Extract features from a spreadsheet to start building a dataset configuration
 // You could also start blank and add the columns and metadata manually
-let mut dataset_spec = Dataset::from_file("dataset/train.csv");
+let mut dataset_config = Dataset::from_file("dataset/train.csv");
 // Now we can add metadata to our features
-dataset_spec
+dataset_config
     // Flag useless features for removal
     .remove_features(&["size"])
     // Tell the framework which column is an ID (so it can be ignored in training, used in joins, and so on)
@@ -96,14 +96,14 @@ dataset_spec
 // Create a pipeline with all the necessary steps
 let mut pipeline = Pipeline::basic_single_pass();
 // Run it on the data
-let (dataset_spec, data) = pipeline
-    .load_data_and_spec("dataset/train.csv", dataset_spec)
+let (dataset_config, data) = pipeline
+    .load_data("dataset/train.csv", Some(dataset_config))
     .run();
 
 // Step 3: Specify and build your model
 
-// A model is tied to a dataset specification
-let model = ModelBuilder::new(dataset_spec)
+// A model is tied to a dataset configuration
+let model = ModelBuilder::new(dataset_config)
     // Some configuration is also tied to the model
     // All the configuration calls are optional, defaults are picked otherwise
     .batch_size(128)
@@ -181,7 +181,7 @@ You can then plot the results using a third-party crate like `gnuplot` *(recomme
 
 Since it is a framework, it is quite opinionated and has a lot of features. But here are the main ones:
 
-NNs (Dense Layers, Full Layers...), CNNs (Dense Layers, Direct Layers, Mean Pooling...), everything batched, SGD, Adam, Momentum, Glorot, many activations (Softmax, Tanh, ReLU...), Learning Rate Scheduling, K-Folds, Split training, cacheable and revertable Pipelines (normalization, feature extraction, outliers filtering, values mapping, one-hot-encoding, log scaling...), loss functions (Binary Cross Entropy, Mean Squared Errors), model specification as code, preprocessing specification as code, performance metrics (R²...), tasks monitoring (progress, logging),  multi-backends (CPU, GPU, see [Backends](#backends)), multi-precision (see [Precision](#precision)).
+NNs (Dense Layers, Full Layers...), CNNs (Dense Layers, Direct Layers, Mean Pooling...), everything batched, SGD, Adam, Momentum, Glorot, many activations (Softmax, Tanh, ReLU...), Learning Rate Scheduling, K-Folds, Split training, cacheable and revertable Pipelines (normalization, feature extraction, outliers filtering, values mapping, one-hot-encoding, log scaling...), loss functions (Binary Cross Entropy, Mean Squared Errors), model building as code, preprocessing configuration as code, performance metrics (R²...), tasks monitoring (progress, logging),  multi-backends (CPU, GPU, see [Backends](#backends)), multi-precision (see [Precision](#precision)).
 
 ### Scope and goals
 

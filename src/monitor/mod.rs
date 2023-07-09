@@ -203,7 +203,7 @@ impl TM {
         stack.last()
     }
 
-    fn introspect(mut self, rx: Receiver<Messages>) {
+    fn introconfigurationt(mut self, rx: Receiver<Messages>) {
         loop {
             if let Ok(message) = rx.recv() {
                 match message.clone() {
@@ -246,7 +246,7 @@ impl TM {
         let (tx, rx) = mpsc::channel::<Messages>();
         thread::spawn(move || {
             let gi = TM::new();
-            gi.introspect(rx);
+            gi.introconfigurationt(rx);
         });
 
         tx.clone()

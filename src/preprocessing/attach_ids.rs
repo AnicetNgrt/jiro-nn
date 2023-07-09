@@ -17,16 +17,16 @@ impl DataTransformation for AttachIds {
     fn transform(
         &mut self,
         _cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut feature = Feature::default();
         feature.name = self.0.clone();
         feature.used_in_model = true;
         feature.is_id = true;
-        let spec = spec.with_added_feature(feature);
+        let configuration = dataset_config.with_added_feature(feature);
         let data = data.with_autoincrement_id_column(&self.0.clone());
-        (spec, data)
+        (configuration, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

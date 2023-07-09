@@ -12,13 +12,13 @@ pub fn main() {
     TM::start_monitoring();
 
     let mut pipeline = Pipeline::basic_single_pass();
-    let (dspec, data) = pipeline
-        .load_data_and_spec("./dataset/train_cleaned.parquet", &model.dataset)
+    let (dconfiguration, data) = pipeline
+        .load_data("./dataset/train_cleaned.parquet", Some(&model.dataset_config))
         .run();
 
     TM::start("modelinit");
     
-    let model = model.with_new_dataset(dspec);
+    let model = model.with_new_dataset(dconfiguration);
 
     TM::end_with_message(format!(
         "Model parameters count: {}",

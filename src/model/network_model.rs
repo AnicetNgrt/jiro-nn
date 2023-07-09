@@ -60,8 +60,8 @@ pub struct NetworkModel {
 impl NetworkModel {
     pub fn to_network(self, mut in_dims: usize) -> Network {
         let mut layers = vec![];
-        for layer_spec in self.layers.into_iter() {
-            let (out_dims, layer) = layer_spec.to_layer(in_dims);
+        for layer_config in self.layers.into_iter() {
+            let (out_dims, layer) = layer_config.to_layer(in_dims);
             in_dims = out_dims;
             layers.push(layer);
         }

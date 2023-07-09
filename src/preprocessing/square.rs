@@ -23,12 +23,12 @@ impl DataTransformation for Square {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut squared_features = HashSet::new();
 
-        for feature in spec.features.iter() {
+        for feature in dataset_config.features.iter() {
             if feature.squared {
                 squared_features.insert(feature.name.clone());
             }
@@ -56,7 +56,7 @@ impl DataTransformation for Square {
             ),
         );
 
-        extractor.transform(cached_config, spec, data)
+        extractor.transform(cached_config, dataset_config, data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

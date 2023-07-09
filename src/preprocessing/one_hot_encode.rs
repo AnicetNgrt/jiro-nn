@@ -14,13 +14,13 @@ impl DataTransformation for OneHotEncode {
     fn transform(
         &mut self,
         _cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let mut features_values: HashMap<Feature, HashSet<i64>> = HashMap::new();
 
         data.as_scalar_hashmap().iter().for_each(|(name, values)| {
-            let feature = spec.features.iter().find(|f| f.name == *name).unwrap();
+            let feature = dataset_config.features.iter().find(|f| f.name == *name).unwrap();
             if feature.one_hot_encoded {
                 let mut values_set = HashSet::new();
                 values.iter().for_each(|v| {
@@ -30,16 +30,16 @@ impl DataTransformation for OneHotEncode {
             }
         });
 
-        let mut new_spec = spec.clone();
+        let mut new_config = dataset_config.clone();
 
         for (feature, values) in features_values.iter() {
             for value in values.iter() {
                 let mut new_feature = feature.clone();
                 new_feature.name = format!("{}={}", feature.name, value);
                 new_feature.one_hot_encoded = false;
-                new_spec = new_spec.with_added_feature(new_feature);
+                new_config = new_config.with_added_feature(new_feature);
             }
-            new_spec = new_spec.without_feature(feature.name.clone());
+            new_config = new_config.without_feature(feature.name.clone());
         }
 
         let mut new_data = data.clone();
@@ -64,7 +64,7 @@ impl DataTransformation for OneHotEncode {
             new_data = new_data.append_table_as_columns(&onehotdata);
         }
 
-        (new_spec, new_data)
+        (new_config, new_data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

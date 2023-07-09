@@ -8,14 +8,14 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let config_name = &args[1];
 
-    let mut dataset_spec = Dataset::from_file("dataset/train_cleaned.parquet");
-    dataset_spec
+    let mut dataset_config = Dataset::from_file("dataset/train_cleaned.parquet");
+    dataset_config
         .tag_all(Normalized.except(&["label"]))
         .tag_feature("id", IsId)
         .tag_feature("label", Predicted)
         .tag_feature("label", OneHotEncode);
 
-    let model = ModelBuilder::new(dataset_spec)
+    let model = ModelBuilder::new(dataset_config)
         .neural_network()
             // 28x28 pixels in
             .conv_network(1)

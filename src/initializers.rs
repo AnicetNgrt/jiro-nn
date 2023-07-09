@@ -29,7 +29,7 @@ impl Initializers {
             Initializers::Uniform => Matrix::random_uniform(nrow, 1, 0.0, 1.0),
             Initializers::UniformSigned => Matrix::random_uniform(nrow, 1, -1.0, 1.0),
             Initializers::GlorotUniform => {
-                // not specified on vectors in the original paper
+                // not configurationified on vectors in the original paper
                 // but taken from keras' implementation
                 let limit = (6. / (nrow) as Scalar).sqrt();
                 Matrix::random_uniform(nrow, 1, -limit, limit)

@@ -10,7 +10,7 @@ pub mod activation;
 /// Model performance benchmarking utilities
 pub mod benchmarking;
 #[cfg(feature = "data")]
-/// Dataset specification (metadata, preprocessing flags...)
+/// Dataset configuration (metadata, preprocessing flags...)
 pub mod dataset;
 #[cfg(feature = "data")]
 /// Wrapper around dataframes libaries
@@ -25,7 +25,7 @@ pub mod learning_rate;
 pub mod linalg;
 /// Loss functions and abstractions (mse, crossentropy...)
 pub mod loss;
-/// Model specification
+/// Model configuration
 pub mod model;
 /// Neural network abstractions
 pub mod network;

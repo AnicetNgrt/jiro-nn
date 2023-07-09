@@ -17,11 +17,11 @@ impl DataTransformation for Sample {
     fn transform(
         &mut self,
         _cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable) {
         let data = data.sample(Some(self.count), self.shuffle);
-        (spec.clone(), data)
+        (dataset_config.clone(), data)
     }
 
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable {

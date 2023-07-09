@@ -29,7 +29,7 @@ pub mod square;
 pub struct Pipeline {
     transformations: Vec<Rc<RefCell<dyn DataTransformation>>>,
     cached_config: CachedConfig,
-    spec: Option<Dataset>,
+    dataset_config: Option<Dataset>,
     data: Option<DataTable>,
 }
 
@@ -43,7 +43,7 @@ impl Pipeline {
         Pipeline {
             transformations: Vec::new(),
             cached_config: CachedConfig::NotCached,
-            spec: None,
+            dataset_config: None,
             data: None,
         }
     }
@@ -108,30 +108,24 @@ impl Pipeline {
         self
     }
 
-    pub fn load_data<P>(&mut self, dataset_path: P) -> &mut Self
+    pub fn load_data<P>(&mut self, dataset_path: P, dataset_config: Option<&Dataset>) -> &mut Self
     where
         P: Into<PathBuf> + ToString + Clone,
     {
-        TM::start("gen_dataset_spec");
-        let spec = Dataset::from_file(dataset_path.clone());
-        TM::end();
+        let dataset_config = match dataset_config {
+            Some(dataset_config) => dataset_config.clone(),
+            None => Dataset::from_file(dataset_path.clone()),
+        };
 
-        self.load_data_and_spec(dataset_path, &spec)
-    }
-
-    pub fn load_data_and_spec<P>(&mut self, dataset_path: P, spec: &Dataset) -> &mut Self
-    where
-        P: Into<PathBuf> + ToString,
-    {
         TM::start("load_data");
 
         let pathname = dataset_path.to_string();
 
         let data =
-            DataTable::from_file(dataset_path).select_columns(spec.feature_names().as_slice());
+            DataTable::from_file(dataset_path).select_columns(dataset_config.feature_names().as_slice());
 
         self.data = Some(data);
-        self.spec = Some(spec.clone());
+        self.dataset_config = Some(dataset_config.clone());
 
         TM::end_with_message(format!("Successfully loaded {:?}: {:?}", pathname, self.data.as_ref().unwrap().describe()));
 
@@ -142,12 +136,12 @@ impl Pipeline {
         TM::start("pipeline");
 
         let data = self.data.clone().unwrap();
-        let spec = self.spec.clone().unwrap();
+        let dataset_config = self.dataset_config.clone().unwrap();
 
         let mut hasher = DefaultHasher::new();
-        spec.hash(&mut hasher);
+        dataset_config.hash(&mut hasher);
         let mut id = hasher.finish().to_string();
-        let mut res = (spec.clone(), data.clone());
+        let mut res = (dataset_config.clone(), data.clone());
 
         for transformation in &mut self.transformations {
             let mut transformation = transformation.borrow_mut();
@@ -159,25 +153,25 @@ impl Pipeline {
 
             TM::end();
         }
-        let (spec, data) = res;
+        let (configuration, data) = res;
 
-        let used_features = spec
+        let used_features = configuration
             .features
             .iter()
             .filter(|f| f.used_in_model)
             .cloned()
             .collect();
 
-        let spec = Dataset {
+        let configuration = Dataset {
             features: used_features,
-            ..spec
+            ..configuration
         };
 
-        let data = data.select_columns(spec.feature_names().as_slice());
+        let data = data.select_columns(dataset_config.feature_names().as_slice());
 
         TM::end_with_message(format!("{:?}", data.describe()));
 
-        (spec, data)
+        (configuration, data)
     }
 
     pub fn revert(&mut self, data: &DataTable) -> DataTable {
@@ -196,7 +190,7 @@ pub trait DataTransformation {
     fn transform(
         &mut self,
         cached_config: &CachedConfig,
-        spec: &Dataset,
+        dataset_config: &Dataset,
         data: &DataTable,
     ) -> (Dataset, DataTable);
     fn reverse_columnswise(&mut self, data: &DataTable) -> DataTable;

@@ -24,12 +24,12 @@ fn main() {
         .push(ExtractMonths)
         .push(ExtractTimestamps)
         .push(Normalize::new())
-        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data("./dataset/kc_house_data.csv", Some(&model.dataset_config))
         .run();
 
     let mut pipeline = Pipeline::basic_single_pass();
-    let (after_spec, data) = pipeline
-        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
+    let (after_config, data) = pipeline
+        .load_data("./dataset/kc_house_data.csv", Some(&model.dataset_config))
         .run();
 
     println!("{:#?}", data);
@@ -40,7 +40,7 @@ fn main() {
         MarginBottom(0.2)
     ]);
 
-    for (i, feature_name) in after_spec.feature_names().iter().enumerate() {
+    for (i, feature_name) in after_config.feature_names().iter().enumerate() {
         for (j, (prefix, data)) in vec![("before", &data_before), ("after", &data)]
             .iter()
             .enumerate()
@@ -94,7 +94,7 @@ fn main() {
     axes.set_x_ticks(None, &[], &[])
         .set_y_ticks(Some((Fix(0.1), 10)), &[], &[])
         .set_y_grid(true)
-        .set_x_range(Fix(-0.2), Fix((after_spec.feature_names().len() * 2) as f64))
+        .set_x_range(Fix(-0.2), Fix((after_config.feature_names().len() * 2) as f64))
         .set_y_range(Fix(0.0), Fix(1.0));
 
     fg.save_to_png(format!("visuals/{}_boxplots.png", config_name), 2448, 1224)

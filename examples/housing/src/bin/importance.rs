@@ -15,15 +15,15 @@ pub fn main() {
     let mut model = Model::from_json_file(format!("models/{}.json", config_name));
 
     let mut pipeline = Pipeline::basic_single_pass();
-    let (updated_dataset_spec, data) = pipeline
+    let (updated_dataset_config, data) = pipeline
         .prepend(Sample::new(21000, true))
-        .load_data_and_spec("./dataset/kc_house_data.csv", &model.dataset)
+        .load_data("./dataset/kc_house_data.csv", Some(&model.dataset_config))
         .run();
 
     println!("Data: {:#?}", data);
 
-    let model = model.with_new_dataset(updated_dataset_spec);
-    let predicted_features = model.dataset.predicted_features_names();
+    let model = model.with_new_dataset(updated_dataset_config);
+    let predicted_features = model.dataset_config.predicted_features_names();
 
     let (x_table, y_table) = data.random_order_in_out(&predicted_features);
 

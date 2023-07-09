@@ -8,8 +8,8 @@ fn main() {
 	let args: Vec<String> = std::env::args().collect();
 	let config_name = &args[1];
 
-	let mut dataset_spec = Dataset::from_file("dataset/kc_house_data.csv");
-	dataset_spec
+	let mut dataset_config = Dataset::from_file("dataset/kc_house_data.csv");
+	dataset_config
 		.remove_features(&["id", "zipcode", "sqft_living15", "sqft_lot15"])
 		.tag_feature("date", DateFormat("%Y%m%dT%H%M%S"))
 		.tag_feature("date", AddExtractedMonth)
@@ -28,10 +28,10 @@ fn main() {
 		//.tag_all(FilterOutliers.except(&["date"]).incl_added_features())
 		.tag_all(Normalized.except(&["date"]).incl_added_features());
 
-	let h_size = dataset_spec.in_features_names().len() + 1;
+	let h_size = dataset_config.in_features_names().len() + 1;
 	let nh = 8;
 
-	let mut nn = ModelBuilder::new(dataset_spec).neural_network();
+	let mut nn = ModelBuilder::new(dataset_config).neural_network();
 	for _ in 0..nh {
 		nn = nn
 			.full_dense(h_size)
