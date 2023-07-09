@@ -1,4 +1,4 @@
-<p align="center"><img width="150" src="/doc_assets/logo.svg" alt="logo"></p>
+<p align="center"><img width="150" src="https://raw.githubusercontent.com/AnicetNgrt/jiro-nn/main/doc_assets/jiro.svg" alt="logo"></p>
 
 <h1 align="center">🐟 jiro-nn</h1>
 
