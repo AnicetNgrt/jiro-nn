@@ -1,7 +1,5 @@
 <p align="center"><img width="192" height="108" src="https://raw.githubusercontent.com/AnicetNgrt/jiro-nn/main/doc_assets/jiro.svg" alt="logo"></p>
 
-<h1 align="center">🐟 jiro-nn</h1>
-
 <p align="center" style="padding-bottom: 10px">Low-friction high-detail Deep Learning framework in Rust</p>
 
 
