@@ -24,7 +24,7 @@ pub fn main() {
     let mut pipeline = Pipeline::new();
     pipeline.push(AttachIds::new("id"));
 
-    pipeline.load_data("dataset/train.parquet");
+    pipeline.load_data("dataset/train.parquet", None);
     let (_, preprocessed_data) = pipeline.run();
 
     TM::start("save");
