@@ -1,10 +1,9 @@
-# 🐟 jiro-nn
+<p align="center"><img width="150" src="/doc_assets/logo.svg" alt="logo"></p>
 
-A framework for building and training efficient Neural Networks in pure Rust with support for both the CPU and the GPU.
+<h1 align="center">🐟 jiro-nn</h1>
 
-It is not a production-ready framework by any means. 
+<p align="center" style="padding-bottom: 10px">Low-friction high-detail Deep Learning framework in Rust</p>
 
-Feel free to give feedback.
 
 - [Usage](#usage)
   - [Installation \& cargo features](#installation--cargo-features)
