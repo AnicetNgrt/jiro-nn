@@ -41,8 +41,8 @@ convolutions-rs = { version = "0.3.4", optional = true }
 
 [features]
 default = ["ndarray", "data"]
-parquet = []
-ipc = []
+parquet = ["polars?/parquet"]
+ipc = ["polars?/ipc"]
 data = ["dep:polars"]
 ndarray = ["dep:ndarray", "dep:convolutions-rs"]
 nalgebra = ["dep:nalgebra", "dep:nalgebra-glm"]
