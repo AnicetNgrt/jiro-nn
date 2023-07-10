@@ -28,15 +28,15 @@ jiro_nn = {
 }
 ```
 
-| feature     | is default | description                                                                                                                                                                                                | compile-time cost        |
-| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `data`      | ✅         | adds `DataTable`, a simpler API for `polars` dataframes ; enables `Kfolds` training ; adds the `preprocessing` module for creating pipelines depending on dataset configurations                           | High                     |
-| `parquet`   | ❌         | adds Apache Parquet files support for eveything related to the `data` feature                                                                                                                              | Medium                   |
-| `ipc`       | ❌         | adds Arrow files support for eveything related to the `data` feature                                                                                                                                       | Medium                   |
-| `ndarray`   | ✅         | changes the `Matrix` and `Image` types to a CPU-bound backend powered by the `ndarray` crate. `Image` and convolution operations are not fully implemented with this backend, But it's in the works.       | Low                      |
-| `nalgebra`  | ❌         | changes the `Matrix` and `Image` types to a CPU-bound backend powered by the `nalgebra` crate. `Image` and convolution operations are not fully implemented with this backend, and probably won't ever be. | Low                      |
-| `arrayfire` | ❌         | changes the `Matrix` and `Image` types to a GPU and CPU backend powered by the `arrayfire` crate. Requires the ArrayFire C++ library. See [Installing Arrayfire](#installing-arrayfire)                    | Low, but hard to install |
-| `f64`       | ❌         | changes the default `Scalar` typed from being backed by `f32` to being backed by `f64`                                                                                                                     | None                     |
+| feature                       | description                                                                                                                                                                                                | compile-time cost        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `data` *(default feature)*    | adds `DataTable`, a simpler API for `polars` dataframes ; enables `Kfolds` training ; adds the `preprocessing` module for creating pipelines depending on dataset configurations                           | High                     |
+| `parquet`                     | adds Apache Parquet files support for eveything related to the `data` feature                                                                                                                              | Medium                   |
+| `ipc`                         | adds Arrow files support for eveything related to the `data` feature                                                                                                                                       | Medium                   |
+| `ndarray` *(default feature)* | changes the `Matrix` and `Image` types to a CPU-bound backend powered by the `ndarray` crate. *`Image` and convolution operations are not fully implemented with this backend, But it's in the works.*       | Low                      |
+| `nalgebra`                    | changes the `Matrix` and `Image` types to a CPU-bound backend powered by the `nalgebra` crate. *`Image` and convolution operations are not fully implemented with this backend, and probably won't ever be.* | Low                      |
+| `arrayfire`                   | changes the `Matrix` and `Image` types to a GPU and CPU backend powered by the `arrayfire` crate. Ideal for Convolutional Networks. Requires the ArrayFire C++ library. See [Installing Arrayfire](#installing-arrayfire)                    | Low, but hard to install |
+| `f64`                         | changes the default `Scalar` typed from being backed by `f32` to being backed by `f64`                                                                                                                     | None                     |
 
 
 
