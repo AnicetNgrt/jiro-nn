@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use std::{
     collections::HashMap,
     fs::File,
@@ -185,8 +186,14 @@ impl DataTable {
         let extension = path.extension().unwrap().to_str().unwrap();
         match extension {
             "csv" => Self::from_csv_file(path),
+            #[cfg(feature = "ipc")]
             "ipc" => Self::from_ipc_file(path),
+            #[cfg(not(feature = "ipc"))]
+            "ipc" => panic!("You need to enable the ipc feature to read ipc files"),
+            #[cfg(feature = "parquet")]
             "parquet" => Self::from_parquet_file(path),
+            #[cfg(not(feature = "parquet"))]
+            "parquet" => panic!("You need to enable the parquet feature to read parquet files"),
             _ => panic!("Unsupported file format: {}", extension),
         }
     }
@@ -199,8 +206,14 @@ impl DataTable {
         let extension = path.extension().unwrap().to_str().unwrap();
         match extension {
             "csv" => Self::columns_names_from_csv_file(path),
+            #[cfg(feature = "ipc")]
             "ipc" => Self::columns_names_from_ipc_file(path),
+            #[cfg(not(feature = "ipc"))]
+            "ipc" => panic!("You need to enable the ipc feature to read ipc files"),
+            #[cfg(feature = "parquet")]
             "parquet" => Self::columns_names_from_parquet_file(path),
+            #[cfg(not(feature = "parquet"))]
+            "parquet" => panic!("You need to enable the parquet feature to read parquet files"),
             _ => panic!("Unsupported file format: {}", extension),
         }
     }
@@ -214,6 +227,7 @@ impl DataTable {
         headers.iter().map(|s| s.to_string()).collect()
     }
 
+    #[cfg(feature = "ipc")]
     pub fn columns_names_from_ipc_file<P>(path: P) -> Vec<String>
     where
         P: Into<PathBuf>,
@@ -223,6 +237,7 @@ impl DataTable {
         headers.iter().map(|s| s.to_string()).collect()
     }
 
+    #[cfg(feature = "parquet")]
     pub fn columns_names_from_parquet_file<P>(path: P) -> Vec<String>
     where
         P: Into<PathBuf>,
@@ -232,6 +247,7 @@ impl DataTable {
         headers.iter().map(|s| s.to_string()).collect()
     }
 
+    #[cfg(feature = "ipc")]
     pub fn from_ipc_file<P>(path: P) -> Self
     where
         P: Into<PathBuf>,
@@ -243,6 +259,7 @@ impl DataTable {
         )
     }
 
+    #[cfg(feature = "ipc")]
     pub fn to_ipc_file<P>(&self, path: P)
     where
         P: AsRef<Path>,
@@ -253,6 +270,7 @@ impl DataTable {
             .unwrap();
     }
 
+    #[cfg(feature = "parquet")]
     pub fn from_parquet_file<P>(path: P) -> Self
     where
         P: Into<PathBuf>,
@@ -264,6 +282,7 @@ impl DataTable {
         )
     }
 
+    #[cfg(feature = "parquet")]
     pub fn to_parquet_file<P>(&self, path: P)
     where
         P: AsRef<Path>,

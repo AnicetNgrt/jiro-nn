@@ -18,7 +18,7 @@ fn main() {
 		.tag_feature(
 			"yr_renovated",
 			Mapped(
-				MapSelector::equal(MapValue::f64(0.0)),
+				MapSelector::equal(MapValue::scalar(0.0)),
 				MapOp::replace_with(MapValue::take_from_feature("yr_built")),
 			),
 		)

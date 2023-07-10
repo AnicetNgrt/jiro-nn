@@ -26,6 +26,10 @@ impl MapSelector {
         Self::Equal(value)
     }
 
+    pub fn equal_scalar(value: Scalar) -> Self {
+        Self::Equal(MapValue::scalar(value))
+    }
+
     pub fn find_all_corresponding(&self, data: &DataTable, column: &str) -> Vec<(Scalar, bool)> {
         let mut values = Vec::new();
 
@@ -65,6 +69,14 @@ impl MapOp {
         Self::ReplaceWith(value)
     }
 
+    pub fn replace_with_scalar(value: Scalar) -> Self {
+        Self::ReplaceWith(MapValue::scalar(value))
+    }
+
+    pub fn replace_with_feature<S: ToString>(feature_name: S) -> Self {
+        Self::ReplaceWith(MapValue::take_from_feature(feature_name))
+    }
+
     pub fn apply(&self, data: &DataTable, corresponding_in: Vec<(Scalar, bool)>) -> Vec<Scalar> {
         let mut values = Vec::new();
 
@@ -94,7 +106,7 @@ impl MapOp {
 pub enum MapValue {
     #[default]
     Zero,
-    ConstantF64(String),
+    ConstantScalar(String),
     Feature(String),
 }
 
@@ -103,8 +115,8 @@ impl MapValue {
         Self::Zero
     }
 
-    pub fn f64(value: f64) -> Self {
-        Self::ConstantF64(value.to_string())
+    pub fn scalar(value: Scalar) -> Self {
+        Self::ConstantScalar(value.to_string())
     }
 
     pub fn take_from_feature<S: ToString>(feature_name: S) -> Self {
@@ -120,7 +132,7 @@ impl MapValue {
                     values.push(0.0);
                 }
             }
-            MapValue::ConstantF64(value) => {
+            MapValue::ConstantScalar(value) => {
                 let value = value.parse::<Scalar>().unwrap();
                 for _ in 0..data.num_rows() {
                     values.push(value);

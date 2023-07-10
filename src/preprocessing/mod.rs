@@ -153,25 +153,25 @@ impl Pipeline {
 
             TM::end();
         }
-        let (configuration, data) = res;
+        let (dataset_config, data) = res;
 
-        let used_features = configuration
+        let used_features = dataset_config
             .features
             .iter()
             .filter(|f| f.used_in_model)
             .cloned()
             .collect();
 
-        let configuration = Dataset {
+        let dataset_config = Dataset {
             features: used_features,
-            ..configuration
+            ..dataset_config
         };
 
         let data = data.select_columns(dataset_config.feature_names().as_slice());
 
         TM::end_with_message(format!("{:?}", data.describe()));
 
-        (configuration, data)
+        (dataset_config, data)
     }
 
     pub fn revert(&mut self, data: &DataTable) -> DataTable {

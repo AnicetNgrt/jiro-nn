@@ -113,7 +113,7 @@ impl TM {
             .unwrap_or(0);
 
         for task in &self.recently_finished_long_tasks {
-            let duration = task.end.unwrap() - task.start;
+            let duration = elapsed(task.end.unwrap(),task.start);
             let formatted_task_name = format!("{:width$}", task.name, width = max_task_name_length);
             lines.push(format!(
                 "- {:.3}s {}",
@@ -170,7 +170,7 @@ impl TM {
                     format!(
                         "{} finished in {:.3}s with message:",
                         task.name,
-                        (task.end.unwrap() - task.start).as_secs_f32()
+                        (elapsed(task.end.unwrap(),task.start)).as_secs_f32()
                     ), 
                     "".to_string()
                 ];
@@ -203,7 +203,7 @@ impl TM {
         stack.last()
     }
 
-    fn introconfigurationt(mut self, rx: Receiver<Messages>) {
+    fn listen(mut self, rx: Receiver<Messages>) {
         loop {
             if let Ok(message) = rx.recv() {
                 match message.clone() {
@@ -231,7 +231,10 @@ impl TM {
                     Messages::EndTask { thread_id, message } => {
                         let _ = self._end_task(thread_id, message).unwrap();
                     }
-                    Messages::Stop => break,
+                    Messages::Stop => {
+                        self.pretty_print_tasks();
+                        break;
+                    },
                 };
             }
 
@@ -246,7 +249,7 @@ impl TM {
         let (tx, rx) = mpsc::channel::<Messages>();
         thread::spawn(move || {
             let gi = TM::new();
-            gi.introconfigurationt(rx);
+            gi.listen(rx);
         });
 
         tx.clone()
@@ -284,5 +287,13 @@ impl TM {
 
     pub fn stop_monitoring() {
         Self::send(Messages::Stop);
+    }
+}
+
+pub fn elapsed(a: Instant, b: Instant) -> Duration {
+    if a < b {
+        Duration::from_secs(0)
+    } else {
+        a - b
     }
 }

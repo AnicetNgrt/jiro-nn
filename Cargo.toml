@@ -24,7 +24,7 @@ nalgebra-glm = { version = "0.18.0", optional = true }
 nalgebra = { version = "0.32.2", optional = true, features = ["rand", "rayon"] }
 libm = "0.2.6"
 # https://pola-rs.github.io/polars-book/user-guide/installation/#rust
-polars = { version = "0.28.0", optional = true, features = ["lazy", "streaming", "parquet", "ipc", "describe"] }
+polars = { version = "0.28.0", optional = true, default-features = false, features = ["fmt", "json", "lazy", "streaming", "describe"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"
 serde = { version = "1.0.159", features = ["derive"] }
@@ -41,6 +41,8 @@ convolutions-rs = { version = "0.3.4", optional = true }
 
 [features]
 default = ["ndarray", "data"]
+parquet = []
+ipc = []
 data = ["dep:polars"]
 ndarray = ["dep:ndarray", "dep:convolutions-rs"]
 nalgebra = ["dep:nalgebra", "dep:nalgebra-glm"]
