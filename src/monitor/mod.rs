@@ -24,15 +24,15 @@ struct Task {
 }
 
 /// The Tasks Monitor (TM) keeps track of tasks in another thread in order to measure and report their progress in real time.
-/// 
-/// It displays the progress in a TUI. Therefore once activated prints to the terminal are not visible anymore. Other options will come later. 
-/// 
+///
+/// It displays the progress in a TUI. Therefore once activated prints to the terminal are not visible anymore. Other options will come later.
+///
 /// It stacks the tasks so that every task has its own parent task.
-/// 
+///
 /// The tasks stacks from different threads are separated. One thread's task cannot be a parent of another thread's task.
-/// 
+///
 /// ```rust
-/// TM::start_monitoring(); 
+/// TM::start_monitoring();
 /// TM::start("task1");
 /// // do something long
 /// TM::end();
@@ -113,7 +113,7 @@ impl TM {
             .unwrap_or(0);
 
         for task in &self.recently_finished_long_tasks {
-            let duration = elapsed(task.end.unwrap(),task.start);
+            let duration = elapsed(task.end.unwrap(), task.start);
             let formatted_task_name = format!("{:width$}", task.name, width = max_task_name_length);
             lines.push(format!(
                 "- {:.3}s {}",
@@ -170,9 +170,9 @@ impl TM {
                     format!(
                         "{} finished in {:.3}s with message:",
                         task.name,
-                        (elapsed(task.end.unwrap(),task.start)).as_secs_f32()
-                    ), 
-                    "".to_string()
+                        (elapsed(task.end.unwrap(), task.start)).as_secs_f32()
+                    ),
+                    "".to_string(),
                 ];
                 let msg_lines = message
                     .split("\n")
@@ -215,7 +215,10 @@ impl TM {
 
         let mut last_refresh = Instant::now();
         loop {
-            if let Ok(message) = rx.recv_timeout(Duration::from_millis(500) - last_refresh.elapsed()) {
+            if let Ok(message) = rx.recv_timeout(remaining_duration(
+                Duration::from_millis(500),
+                last_refresh.elapsed(),
+            )) {
                 match message.clone() {
                     Messages::Start => {}
                     Messages::StartTask { name, thread_id } => {
@@ -234,7 +237,7 @@ impl TM {
                     Messages::Stop => {
                         self.pretty_print_tasks();
                         break;
-                    },
+                    }
                 };
             }
 
@@ -295,5 +298,13 @@ pub fn elapsed(a: Instant, b: Instant) -> Duration {
         Duration::from_secs(0)
     } else {
         a - b
+    }
+}
+
+pub fn remaining_duration(objective: Duration, elapsed: Duration) -> Duration {
+    if objective < elapsed {
+        Duration::from_secs(0)
+    } else {
+        objective - elapsed
     }
 }
