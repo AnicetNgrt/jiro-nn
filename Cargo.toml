@@ -38,6 +38,7 @@ flate2 = "1.0.26"
 lazy_static = "1.4.0"
 ndarray = { version = "0.15.3", optional = true }
 convolutions-rs = { version = "0.3.4", optional = true }
+const-arithmetic = "1.0.4"
 
 [features]
 default = ["ndarray", "data"]

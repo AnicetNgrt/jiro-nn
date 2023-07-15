@@ -40,3 +40,5 @@ pub mod trainers;
 pub mod vec_utils;
 /// Everything vision (CNNs, images operations & backends...)
 pub mod vision;
+
+pub mod ops;

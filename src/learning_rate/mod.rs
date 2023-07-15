@@ -27,3 +27,26 @@ impl LearningRateSchedule {
         }
     }
 }
+
+pub trait LearningRateScheduler {
+    fn increment_step(&mut self);
+    fn get_learning_rate(&self) -> Scalar;
+}
+
+pub struct ConstantLearningRate {
+    learning_rate: Scalar,
+}
+
+impl ConstantLearningRate {
+    pub fn new(learning_rate: Scalar) -> Self {
+        Self { learning_rate }
+    }
+}
+
+impl LearningRateScheduler for ConstantLearningRate {
+    fn increment_step(&mut self) {}
+
+    fn get_learning_rate(&self) -> Scalar {
+        self.learning_rate
+    }
+}
