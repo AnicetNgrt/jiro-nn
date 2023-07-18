@@ -1,6 +1,6 @@
-use std::{fmt};
+use std::fmt;
 
-use ndarray::{Array2};
+use ndarray::Array2;
 use rand::Rng;
 
 use super::{MatrixTrait, Scalar};
