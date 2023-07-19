@@ -6,13 +6,13 @@ use super::{
     LearnableOp, ModelOp, impl_model_op_for_learnable_op,
 };
 
-pub struct BatchedColumnMatricesDenseLayer {
+pub struct BatchedColumnsDenseLayer {
     weights_optimizer: Box<dyn Optimizer<Matrix>>,
     biases_optimizer: Box<dyn Optimizer<Matrix>>,
     input: Option<Matrix>,
 }
 
-impl BatchedColumnMatricesDenseLayer {
+impl BatchedColumnsDenseLayer {
     pub fn new(
         weights_optimizer: Box<dyn Optimizer<Matrix>>,
         biases_optimizer: Box<dyn Optimizer<Matrix>>,
@@ -25,7 +25,7 @@ impl BatchedColumnMatricesDenseLayer {
     }
 }
 
-impl LearnableOp<Matrix> for BatchedColumnMatricesDenseLayer {
+impl LearnableOp<Matrix> for BatchedColumnsDenseLayer {
     fn forward_inference(&mut self, input: Matrix) -> Matrix {
         let weights = self.weights_optimizer.get_param();
         let biases = self.biases_optimizer.get_param();
@@ -60,13 +60,13 @@ impl LearnableOp<Matrix> for BatchedColumnMatricesDenseLayer {
     }
 }
 
-impl Model for BatchedColumnMatricesDenseLayer {
+impl Model for BatchedColumnsDenseLayer {
     impl_model_from_model_fields!(
         weights_optimizer,
         biases_optimizer
     );
 }
 
-impl ModelOp<Matrix, Matrix, Matrix, Matrix> for BatchedColumnMatricesDenseLayer {
+impl ModelOp<Matrix, Matrix, Matrix, Matrix> for BatchedColumnsDenseLayer {
     impl_model_op_for_learnable_op!(Matrix, Matrix);
 }

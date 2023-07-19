@@ -27,6 +27,10 @@ impl<D: MeanableData> Loss<D> {
             input: None,
         }
     }
+
+    pub fn loss(&self, input: &D, reference: &D) -> Scalar {
+        (self.loss)(input, reference).mean()
+    }
 }
 
 impl<D: MeanableData> ModelOp<D, D, D, D> for Loss<D> {

@@ -1,12 +1,14 @@
 use crate::{
+    datatable::DataTable,
     linalg::{Matrix, Scalar},
-    vision::image::Image, datatable::DataTable,
+    vision::image::Image,
 };
 
 use self::model::{impl_model_from_model_fields, Model};
 
-pub mod activation;
-pub mod batched_column_matrices_dense_layer;
+pub mod batched_columns_activation;
+pub mod batched_columns_dense_layer;
+pub mod batched_columns_tanh;
 pub mod loss;
 pub mod mapping;
 pub mod matrix_learnable_adam;
@@ -14,6 +16,8 @@ pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
 pub mod optimizer;
+pub mod combinatory_op;
+pub mod model_op_builder;
 
 pub trait Data: 'static {}
 
@@ -57,11 +61,11 @@ macro_rules! impl_model_op_for_learnable_op {
         fn forward_or_transform_inference(&mut self, input: $d) -> $d {
             self.forward_inference(input)
         }
-    
+
         fn forward_or_transform(&mut self, input: $d, reference: $dref) -> ($d, $dref) {
             (self.forward(input), reference)
         }
-    
+
         fn backward_or_revert(&mut self, output: $d, reference: $dref) -> ($d, $dref) {
             (self.backward(output), reference)
         }
@@ -75,14 +79,14 @@ macro_rules! impl_model_op_for_input_transformation_op {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             self.transform(input)
         }
-    
+
         fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
             (self.transform(input), reference)
         }
-    
+
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (self.revert(output), reference)
-        }     
+        }
     };
 }
 
@@ -93,14 +97,14 @@ macro_rules! impl_model_op_for_reference_transformation_op {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             input
         }
-    
+
         fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
             (input, self.transform(reference))
         }
-    
+
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (output, self.revert(reference))
-        }     
+        }
     };
 }
 
@@ -111,20 +115,21 @@ macro_rules! impl_model_op_for_total_transformation_op {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             self.transform(input)
         }
-    
+
         fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
             (self.transform(input), self.transform(reference))
         }
-    
+
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (self.revert(output), self.revert(reference))
-        }     
+        }
     };
 }
 
 pub(crate) use impl_model_op_for_total_transformation_op;
 
 pub struct OpChain<
+    'a,
     DataIn: Data,
     DataMid: Data,
     DataOut: Data,
@@ -132,23 +137,25 @@ pub struct OpChain<
     DataRefMid: Data,
     DataRefOut: Data,
 > {
-    first_op: Box<dyn ModelOp<DataIn, DataMid, DataRefIn, DataRefMid>>,
-    second_op: Box<dyn ModelOp<DataMid, DataOut, DataRefMid, DataRefOut>>,
+    first_op: Box<dyn ModelOp<DataIn, DataMid, DataRefIn, DataRefMid> + 'a>,
+    second_op: Box<dyn ModelOp<DataMid, DataOut, DataRefMid, DataRefOut> + 'a>,
 }
 
 impl<
+        'a,
         DataIn: Data,
         DataMid: Data,
         DataOut: Data,
         DataRefIn: Data,
         DataRefMid: Data,
         DataRefOut: Data,
-    > Model for OpChain<DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+    > Model for OpChain<'a, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     impl_model_from_model_fields!(first_op, second_op);
 }
 
 impl<
+        'a,
         DataIn: Data,
         DataMid: Data,
         DataOut: Data,
@@ -156,7 +163,7 @@ impl<
         DataRefMid: Data,
         DataRefOut: Data,
     > ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpChain<DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+    for OpChain<'a, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
         let mid = self.first_op.forward_or_transform_inference(input);
@@ -172,40 +179,34 @@ impl<
         self.second_op.forward_or_transform(mid, reference)
     }
 
-    fn backward_or_revert(&mut self, output: DataOut, reference: DataRefOut) -> (DataIn, DataRefIn) {
+    fn backward_or_revert(
+        &mut self,
+        output: DataOut,
+        reference: DataRefOut,
+    ) -> (DataIn, DataRefIn) {
         let (mid, reference) = self.second_op.backward_or_revert(output, reference);
         self.first_op.backward_or_revert(mid, reference)
     }
 }
 
 impl<
+        'a,
         DataIn: Data,
         DataMid: Data,
         DataOut: Data,
         DataRefIn: Data,
         DataRefMid: Data,
         DataRefOut: Data,
-    > OpChain<DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+    > OpChain<'a, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
-        first_op: Box<dyn ModelOp<DataIn, DataMid, DataRefIn, DataRefMid>>,
-        second_op: Box<dyn ModelOp<DataMid, DataOut, DataRefMid, DataRefOut>>,
+        first_op: Box<dyn ModelOp<DataIn, DataMid, DataRefIn, DataRefMid> + 'a>,
+        second_op: Box<dyn ModelOp<DataMid, DataOut, DataRefMid, DataRefOut> + 'a>,
     ) -> Self {
         Self {
             first_op,
             second_op,
         }
-    }
-
-    pub fn push<
-        DataOutPushed: Data,
-        DataRefOutPushed: Data,
-        OpPushed: ModelOp<DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'static,
-    >(
-        self,
-        op: OpPushed,
-    ) -> OpChain<DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed> {
-        OpChain::new(Box::new(self), Box::new(op))
     }
 }
 
