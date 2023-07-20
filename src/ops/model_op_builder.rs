@@ -1,14 +1,50 @@
-use super::{Data, ModelOp, OpChain};
+use super::{combinatory_op::OriginOp, Data, ModelOp, OpChain};
+
+pub struct ModelBuilderOrigin<D: Data, DataRef: Data> {
+    _phantom: std::marker::PhantomData<(D, DataRef)>,
+}
+
+impl<D: Data, DataRef: Data> ModelBuilderOrigin<D, DataRef> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<D: Data, DataRef: Data> OpBuilder<D, D, DataRef, DataRef> for ModelBuilderOrigin<D, DataRef> {
+    fn build(
+        &self,
+        sample_data: D,
+        sample_ref: DataRef,
+    ) -> (Box<dyn ModelOp<D, D, DataRef, DataRef>>, (D, DataRef)) {
+        (Box::new(OriginOp::new()), (sample_data, sample_ref))
+    }
+}
 
 pub struct OpBuild<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data> {
-    pub builder: Box<dyn Fn() -> Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>> + 'a>,
+    pub builder: Box<
+        dyn Fn(
+                DataIn,
+                DataRefIn,
+            ) -> (
+                Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+                (DataIn, DataRefIn),
+            ) + 'a,
+    >,
 }
 
 impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data>
     OpBuild<'a, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     pub fn new_fn(
-        builder: fn() -> Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+        builder: fn(
+            DataIn,
+            DataRefIn,
+        ) -> (
+            Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+            (DataIn, DataRefIn),
+        ),
     ) -> Self {
         Self {
             builder: Box::new(builder),
@@ -19,7 +55,9 @@ impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data>
         builder: OpB,
     ) -> Self {
         Self {
-            builder: Box::new(move || builder.build()),
+            builder: Box::new(move |sample_data, sample_ref| {
+                builder.build(sample_data, sample_ref)
+            }),
         }
     }
 }
@@ -28,13 +66,27 @@ impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data>
     OpBuilder<DataIn, DataOut, DataRefIn, DataRefOut>
     for OpBuild<'a, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    fn build(&self) -> Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>> {
-        (self.builder)()
+    fn build(
+        &self,
+        sample_data: DataIn,
+        sample_ref: DataRefIn,
+    ) -> (
+        Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+        (DataIn, DataRefIn),
+    ) {
+        (self.builder)(sample_data, sample_ref)
     }
 }
 
 pub trait OpBuilder<DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data> {
-    fn build(&self) -> Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>;
+    fn build(
+        &self,
+        sample_data: DataIn,
+        sample_ref: DataRefIn,
+    ) -> (
+        Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+        (DataIn, DataRefIn),
+    );
 }
 
 pub struct OpBuilderChain<
@@ -82,10 +134,20 @@ impl<
     > OpBuilder<DataIn, DataOut, DataRefIn, DataRefOut>
     for OpBuilderChain<'a, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
-    fn build(&self) -> Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>> {
-        let first_op = self.first_op.build();
-        let second_op = self.second_op.build();
-        Box::new(OpChain::new(first_op, second_op))
+    fn build(
+        &self,
+        sample_data: DataIn,
+        sample_ref: DataRefIn,
+    ) -> (
+        Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
+        (DataIn, DataRefIn),
+    ) {
+        let (mut first_op, (sample_data, sample_ref)) =
+            self.first_op.build(sample_data, sample_ref);
+        let (sample_data, sample_ref) = first_op.forward_or_transform(sample_data, sample_ref);
+        let (second_op, (sample_data, sample_ref)) = self.second_op.build(sample_data, sample_ref);
+        let data_and_ref = first_op.backward_or_revert(sample_data, sample_ref);
+        (Box::new(OpChain::new(first_op, second_op)), data_and_ref)
     }
 }
 

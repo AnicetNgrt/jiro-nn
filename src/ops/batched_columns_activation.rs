@@ -3,7 +3,7 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use super::{
     impl_model_op_for_learnable_op,
     model::{impl_model_no_params, Model},
-    model_op_builder::OpBuilder,
+    model_op_builder::{CombinatoryOpBuilder, OpBuild, OpBuilder},
     Data, LearnableOp, ModelOp,
 };
 
@@ -66,38 +66,30 @@ impl BatchedColumnsActivationBuilder {
 impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
-    fn build(&self) -> Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>> {
-        Box::new(BatchedColumnsActivation::new(self.f, self.fp))
+    fn build(
+        &self,
+        sample_data: Matrix,
+        sample_ref: DataRef,
+    ) -> (
+        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        (Matrix, DataRef),
+    ) {
+        (
+            Box::new(BatchedColumnsActivation::new(self.f, self.fp)),
+            (sample_data, sample_ref),
+        )
     }
 }
 
-// macro_rules! push_batch_columns_activations {
-//     () => {
-//         pub fn tanh<DataRefOut: Data>(
-//             self,
-//         ) -> Box<dyn OpBuilder<Matrix, Matrix, DataRefOut, DataRefOut>> {
-//             Box::new(self.push(TanhBuilder))
-//         }
-
-//         pub fn batched_columns_activation<DataRefOut: Data>(
-//             self,
-//             activation: BatchedColumnsActivationBuilder,
-//         ) -> Box<dyn OpBuilder<Matrix, Matrix, DataRefOut, DataRefOut>> {
-//             Box::new(self.push(activation))
-//         }
-//     };
-//     ($drefout:ident) => {
-//         pub fn tanh(self) -> Box<dyn OpBuilder<Matrix, Matrix, $drefout, $drefout>> {
-//             Box::new(self.push(TanhBuilder))
-//         }
-
-//         pub fn batched_columns_activation(
-//             self,
-//             activation: BatchedColumnsActivation,
-//         ) -> Box<dyn OpBuilder<Matrix, Matrix, $drefout, $drefout>> {
-//             Box::new(self.push(activation))
-//         }
-//     };
-// }
-
-// pub(crate) use push_batch_columns_activations;
+impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
+    OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+{
+    pub fn custom_activation(
+        self,
+        activation: fn(&Matrix) -> Matrix,
+        activation_prime: fn(&Matrix) -> Matrix,
+    ) -> OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+        let builder = BatchedColumnsActivationBuilder::new(activation, activation_prime);
+        self.push_and_pack(builder)
+    }
+}

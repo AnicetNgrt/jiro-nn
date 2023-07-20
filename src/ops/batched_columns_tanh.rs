@@ -26,8 +26,15 @@ pub fn batched_columns_tanh() -> BatchedColumnsActivation {
 pub struct TanhBuilder;
 
 impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef> for TanhBuilder {
-    fn build(&self) -> Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>> {
-        Box::new(batched_columns_tanh())
+    fn build(
+        &self,
+        sample_data: Matrix,
+        sample_ref: DataRef,
+    ) -> (
+        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        (Matrix, DataRef),
+    ) {
+        (Box::new(batched_columns_tanh()), (sample_data, sample_ref))
     }
 }
 

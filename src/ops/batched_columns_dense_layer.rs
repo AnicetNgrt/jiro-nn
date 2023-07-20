@@ -74,6 +74,7 @@ impl<DataRef: Data> ModelOp<Matrix, Matrix, DataRef, DataRef> for BatchedColumns
 }
 
 pub struct BatchedColumnsDenseLayerBuilder<'a, Parent: 'a> {
+    output_neurons: usize,
     weights_optimizer: Box<dyn OptimizerBuilder<Matrix> + 'a>,
     biases_optimizer: Box<dyn OptimizerBuilder<Matrix> + 'a>,
     parent_acceptor:
@@ -82,11 +83,13 @@ pub struct BatchedColumnsDenseLayerBuilder<'a, Parent: 'a> {
 
 impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
     pub fn new(
+        output_neurons: usize,
         parent_acceptor: Option<
             Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'a, Parent>) -> Parent + 'a>,
         >,
     ) -> Self {
         Self {
+            output_neurons,
             weights_optimizer: Box::new(MatrixLearnableAdamBuilder::<Self>::new(None)),
             biases_optimizer: Box::new(MatrixLearnableAdamBuilder::<Self>::new(None)),
             parent_acceptor,
@@ -171,13 +174,24 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
 impl<'a, Parent: 'a, DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayerBuilder<'a, Parent>
 {
-    fn build(&self) -> Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>> {
+    fn build(
+        &self,
+        sample_data: Matrix,
+        sample_ref: DataRef,
+    ) -> (
+        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        (Matrix, DataRef),
+    ) {
+        let input_dims = sample_data.dim();
+        let input_neurons = input_dims.0;
         let layer = BatchedColumnsDenseLayer::new(
-            self.weights_optimizer.build(Matrix::zeros(1, 1)),
-            self.biases_optimizer.build(Matrix::zeros(1, 1)),
+            self.weights_optimizer
+                .build(Matrix::zeros(self.output_neurons, input_neurons)),
+            self.biases_optimizer
+                .build(Matrix::zeros(self.output_neurons, 1)),
         );
 
-        Box::new(layer)
+        (Box::new(layer), (sample_data, sample_ref))
     }
 }
 
@@ -186,11 +200,15 @@ impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
 {
     pub fn dense(
         self,
+        output_neurons: usize,
     ) -> BatchedColumnsDenseLayerBuilder<'a, OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>>
     {
-        BatchedColumnsDenseLayerBuilder::new(Some(Box::new(move |builder| {
-            let builder = self.push_and_pack(builder);
-            builder
-        })))
+        BatchedColumnsDenseLayerBuilder::new(
+            output_neurons,
+            Some(Box::new(move |builder| {
+                let builder = self.push_and_pack(builder);
+                builder
+            })),
+        )
     }
 }
