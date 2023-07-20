@@ -80,17 +80,19 @@ impl Model for MatrixLearnableAdam {
     impl_model_from_model_fields!(parameter);
 }
 
-pub struct MatrixLearnableAdamBuilder<Parent> {
-    learning_rate: Box<dyn LearningRateScheduler>,
+pub struct MatrixLearnableAdamBuilder<'a, Parent: 'a> {
+    learning_rate: Box<dyn LearningRateScheduler + 'a>,
     beta1: Scalar,
     beta2: Scalar,
     epsilon: Scalar,
-    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<Parent>) -> Parent>>,
+    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<'a, Parent>) -> Parent + 'a>>,
 }
 
-impl<Parent> MatrixLearnableAdamBuilder<Parent> {
+impl<'a, Parent: 'a> MatrixLearnableAdamBuilder<'a, Parent> {
     pub fn new(
-        parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<Parent>) -> Parent>>,
+        parent_acceptor: Option<
+            Box<dyn FnOnce(MatrixLearnableAdamBuilder<'a, Parent>) -> Parent + 'a>,
+        >,
     ) -> Self {
         Self {
             learning_rate: Box::new(ConstantLearningRate::new(0.001)),
@@ -130,13 +132,11 @@ impl<Parent> MatrixLearnableAdamBuilder<Parent> {
     }
 }
 
-impl<Parent> OptimizerBuilder<Matrix>
-    for MatrixLearnableAdamBuilder<Parent>
-{
-    fn build(self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
+impl<'a, Parent: 'a> OptimizerBuilder<Matrix> for MatrixLearnableAdamBuilder<'a, Parent> {
+    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
         Box::new(MatrixLearnableAdam::new(
             parameter,
-            self.learning_rate,
+            self.learning_rate.clone_box(),
             self.beta1,
             self.beta2,
             self.epsilon,

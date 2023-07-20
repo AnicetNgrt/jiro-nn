@@ -6,6 +6,6 @@ pub trait Optimizer<T: Model + Data>: Model {
 }
 
 pub trait OptimizerBuilder<T: Model + Data> {
-    fn build(self, parameter: T) -> Box<dyn Optimizer<T>>;
+    fn build(&self, parameter: T) -> Box<dyn Optimizer<T>>;
     fn clone_box(&self) -> Box<dyn OptimizerBuilder<T>>;
 }

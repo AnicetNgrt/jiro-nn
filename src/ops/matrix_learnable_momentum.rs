@@ -57,15 +57,18 @@ impl Model for MatrixLearnableMomentum {
     impl_model_from_model_fields!(parameter);
 }
 
-pub struct MatrixLearnableMomentumBuilder<Parent> {
-    learning_rate: Box<dyn LearningRateScheduler>,
+pub struct MatrixLearnableMomentumBuilder<'a, Parent: 'a> {
+    learning_rate: Box<dyn LearningRateScheduler + 'a>,
     momentum: Scalar,
-    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableMomentumBuilder<Parent>) -> Parent>>,
+    parent_acceptor:
+        Option<Box<dyn FnOnce(MatrixLearnableMomentumBuilder<'a, Parent>) -> Parent + 'a>>,
 }
 
-impl<Parent> MatrixLearnableMomentumBuilder<Parent> {
+impl<'a, Parent: 'a> MatrixLearnableMomentumBuilder<'a, Parent> {
     pub fn new(
-        parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableMomentumBuilder<Parent>) -> Parent>>,
+        parent_acceptor: Option<
+            Box<dyn FnOnce(MatrixLearnableMomentumBuilder<'a, Parent>) -> Parent + 'a>,
+        >,
     ) -> Self {
         Self {
             learning_rate: Box::new(ConstantLearningRate::new(0.001)),
@@ -93,13 +96,11 @@ impl<Parent> MatrixLearnableMomentumBuilder<Parent> {
     }
 }
 
-impl<Parent> OptimizerBuilder<Matrix>
-    for MatrixLearnableMomentumBuilder<Parent>
-{
-    fn build(self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
+impl<'a, Parent: 'a> OptimizerBuilder<Matrix> for MatrixLearnableMomentumBuilder<'a, Parent> {
+    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
         Box::new(MatrixLearnableMomentum::new(
             parameter,
-            self.learning_rate,
+            self.learning_rate.clone_box(),
             self.momentum,
         ))
     }

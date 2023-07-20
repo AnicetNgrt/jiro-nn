@@ -36,14 +36,16 @@ impl Model for MatrixLearnableSGD {
     impl_model_from_model_fields!(parameter);
 }
 
-pub struct MatrixLearnableSGDBuilder<Parent> {
-    learning_rate: Box<dyn LearningRateScheduler>,
-    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableSGDBuilder<Parent>) -> Parent>>,
+pub struct MatrixLearnableSGDBuilder<'a, Parent: 'a> {
+    learning_rate: Box<dyn LearningRateScheduler + 'a>,
+    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableSGDBuilder<'a, Parent>) -> Parent + 'a>>,
 }
 
-impl<Parent> MatrixLearnableSGDBuilder<Parent> {
+impl<'a, Parent: 'a> MatrixLearnableSGDBuilder<'a, Parent> {
     pub fn new(
-        parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableSGDBuilder<Parent>) -> Parent>>,
+        parent_acceptor: Option<
+            Box<dyn FnOnce(MatrixLearnableSGDBuilder<'a, Parent>) -> Parent + 'a>,
+        >,
     ) -> Self {
         Self {
             learning_rate: Box::new(ConstantLearningRate::new(0.001)),
@@ -65,11 +67,12 @@ impl<Parent> MatrixLearnableSGDBuilder<Parent> {
     }
 }
 
-impl<Parent> OptimizerBuilder<Matrix>
-    for MatrixLearnableSGDBuilder<Parent>
-{
-    fn build(self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
-        Box::new(MatrixLearnableSGD::new(parameter, self.learning_rate))
+impl<'a, Parent: 'a> OptimizerBuilder<Matrix> for MatrixLearnableSGDBuilder<'a, Parent> {
+    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
+        Box::new(MatrixLearnableSGD::new(
+            parameter,
+            self.learning_rate.clone_box(),
+        ))
     }
 
     fn clone_box(&self) -> Box<dyn OptimizerBuilder<Matrix>> {
