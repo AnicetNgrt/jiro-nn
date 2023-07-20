@@ -1,4 +1,3 @@
-
 #[cfg(feature = "arrayfire")]
 use arrayfire::{convolve3, flip, index, print, Seq};
 

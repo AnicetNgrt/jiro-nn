@@ -103,7 +103,8 @@ fn test_get_row() {
 #[test]
 fn test_dot() {
     let m1 = Matrix::from_row_leading_vector2(&vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]]);
-    let m2 = Matrix::from_row_leading_vector2(&vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]]);
+    let m2 =
+        Matrix::from_row_leading_vector2(&vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]]);
     let result = m1.dot(&m2);
     assert_eq!(result.dim(), (2, 2));
     assert_float_relative_eq!(result.get_data_row_leading()[0][0], 22.0, 0.00001);

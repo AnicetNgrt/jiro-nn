@@ -7,8 +7,8 @@ use crate::linalg::Scalar;
 use crate::vision::conv_network::ConvNetworkLayer;
 
 use super::{ConvLayer, Image};
-use crate::vision::image::ImageTrait;
 use crate::vision::conv_activation::ConvActivationLayer;
+use crate::vision::image::ImageTrait;
 use crate::vision::image_layer::ImageLayer;
 
 #[derive(Debug)]

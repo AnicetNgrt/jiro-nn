@@ -7,7 +7,7 @@ use crate::{
     vec_utils::min_vector,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
+use super::{feature_cached::FeatureExtractorCached, CachedConfig, DataTransformation};
 
 pub struct LogScale10 {
     logged_features: HashMap<String, Scalar>,

@@ -10,9 +10,17 @@ pub mod nalgebra_image;
 #[cfg(all(feature = "nalgebra", not(feature = "arrayfire")))]
 pub type Image = nalgebra_image::Image;
 
-#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+#[cfg(all(
+    feature = "ndarray",
+    not(feature = "arrayfire"),
+    not(feature = "nalgebra")
+))]
 pub mod ndarray_image;
-#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+#[cfg(all(
+    feature = "ndarray",
+    not(feature = "arrayfire"),
+    not(feature = "nalgebra")
+))]
 pub type Image = ndarray_image::Image;
 
 /// An image (or batched images) composed of Scalar n rows on m columns and c channels (with s samples if batched).
@@ -109,11 +117,27 @@ pub trait ImageTrait {
     where
         Self: Sized;
 
-    fn wrap(&self, ox: usize, oy: usize, wx: usize, wy: usize, sx: usize, sy: usize, px: usize, py: usize) -> Self;
-    
+    fn wrap(
+        &self,
+        ox: usize,
+        oy: usize,
+        wx: usize,
+        wy: usize,
+        sx: usize,
+        sy: usize,
+        px: usize,
+        py: usize,
+    ) -> Self;
+
     fn unwrap(&self, wx: usize, wy: usize, sx: usize, sy: usize, px: usize, py: usize) -> Self;
 
-    fn tile(&self, repetitions_row: usize, repetitions_col: usize, repetitions_chan: usize, repetition_sample: usize) -> Self;
+    fn tile(
+        &self,
+        repetitions_row: usize,
+        repetitions_col: usize,
+        repetitions_chan: usize,
+        repetition_sample: usize,
+    ) -> Self;
 
     fn square(&self) -> Self;
 

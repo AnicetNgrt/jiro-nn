@@ -5,7 +5,7 @@ use crate::{
     datatable::DataTable,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
+use super::{feature_cached::FeatureExtractorCached, CachedConfig, DataTransformation};
 
 pub struct Square {
     squared_features: HashSet<String>,

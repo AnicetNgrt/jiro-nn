@@ -1,10 +1,7 @@
 use crate::{
     layer::{LearnableLayer, ParameterableLayer},
-    linalg::{Scalar},
-    vision::{
-        image::Image,
-        image::ImageTrait, conv_network::ConvNetworkLayer,
-    },
+    linalg::Scalar,
+    vision::{conv_network::ConvNetworkLayer, image::Image, image::ImageTrait},
 };
 
 use crate::vision::image_layer::ImageLayer;
@@ -15,12 +12,8 @@ pub struct AvgPoolingLayer {
 }
 
 impl AvgPoolingLayer {
-    pub fn new(
-        div: usize,
-    ) -> Self {
-        Self {
-            div,
-        }
+    pub fn new(div: usize) -> Self {
+        Self { div }
     }
 }
 
@@ -28,7 +21,16 @@ impl ImageLayer for AvgPoolingLayer {
     fn forward(&mut self, input: Image) -> Image {
         let unwrapped = input.unwrap(self.div, self.div, self.div, self.div, 0, 0);
         let meaned = unwrapped.mean_along(0);
-        let result = meaned.wrap(input.image_dims().0/self.div, input.image_dims().1/self.div, 1, 1, 1, 1, 0, 0);
+        let result = meaned.wrap(
+            input.image_dims().0 / self.div,
+            input.image_dims().1 / self.div,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+        );
         result
     }
 
@@ -47,7 +49,7 @@ impl ImageLayer for AvgPoolingLayer {
                 0,
                 0,
             );
-        
+
         input_grad
     }
 }
@@ -66,5 +68,4 @@ impl ParameterableLayer for AvgPoolingLayer {
     }
 }
 
-impl ConvNetworkLayer for AvgPoolingLayer {
-}
+impl ConvNetworkLayer for AvgPoolingLayer {}

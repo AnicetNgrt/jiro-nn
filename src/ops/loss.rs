@@ -49,7 +49,7 @@ impl<D: MeanableData> ModelOp<D, D, D, D> for Loss<D> {
             .input
             .take()
             .expect("Cannot compute the loss gradient before computing the loss itself");
-        
+
         let grad = (self.grad)(input, &reference);
         (grad, reference)
     }

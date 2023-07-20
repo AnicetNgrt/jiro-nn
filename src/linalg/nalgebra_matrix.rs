@@ -120,7 +120,10 @@ impl MatrixTrait for Matrix {
     }
 
     fn from_column_matrices(columns: &[Self]) -> Self {
-        let columns: Vec<DVector<Scalar>> = columns.into_iter().map(|m| m.0.column(0).into_owned()).collect();
+        let columns: Vec<DVector<Scalar>> = columns
+            .into_iter()
+            .map(|m| m.0.column(0).into_owned())
+            .collect();
         Self(DMatrix::from_columns(columns.as_slice()))
     }
 

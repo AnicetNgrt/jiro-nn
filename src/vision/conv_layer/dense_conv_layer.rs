@@ -56,15 +56,15 @@ impl DenseConvLayer {
 
 impl ImageLayer for DenseConvLayer {
     fn forward(&mut self, input: Image) -> Image {
-        let res = input
-            .cross_correlate(&self.kernels);
+        let res = input.cross_correlate(&self.kernels);
 
         if self.biases.image_dims() != res.image_dims() {
-            self.biases = self.biases.tile(res.image_dims().0, res.image_dims().1, 1, 1);
+            self.biases = self
+                .biases
+                .tile(res.image_dims().0, res.image_dims().1, 1, 1);
         }
 
-        let res = res
-            .component_add(&self.biases);
+        let res = res.component_add(&self.biases);
 
         self.input = Some(input);
         res
@@ -72,10 +72,15 @@ impl ImageLayer for DenseConvLayer {
 
     fn backward(&mut self, epoch: usize, output_gradient: Image) -> Image {
         let input = self.input.as_ref().unwrap();
-        
+
         let mut input_grad_channels = vec![];
         for i in 0..input.channels() {
-            let mut sum = Image::zeros(input.image_dims().0, input.image_dims().1, 1, input.samples());
+            let mut sum = Image::zeros(
+                input.image_dims().0,
+                input.image_dims().1,
+                1,
+                input.samples(),
+            );
             for k in 0..output_gradient.channels() {
                 let kernel = self.kernels.get_sample(k).get_channel(i);
                 let k_output_grad = output_gradient.get_channel_across_samples(k);
@@ -132,10 +137,8 @@ impl LearnableLayer for DenseConvLayer {
             &Matrix::from_column_leading_vector2(&kernels),
             self.kernels.channels(),
         );
-        self.biases = Image::from_samples(
-            &Matrix::from_column_vector(&biases),
-            self.biases.channels(),
-        );
+        self.biases =
+            Image::from_samples(&Matrix::from_column_vector(&biases), self.biases.channels());
     }
 }
 

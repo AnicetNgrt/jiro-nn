@@ -6,7 +6,7 @@ use crate::{
     linalg::Scalar,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
+use super::{feature_cached::FeatureExtractorCached, CachedConfig, DataTransformation};
 
 pub struct ExtractMonths;
 

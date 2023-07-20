@@ -75,7 +75,7 @@ impl KFolds {
 
     /// Enables computing the R2 score of the model at the end of each epoch
     /// and reporting it if a real time reporter is attached.
-    /// 
+    ///
     /// /!\ Requires `all_epochs_validation` to be enabled.
     ///
     /// /!\ Is time consuming.
@@ -162,12 +162,12 @@ impl KFolds {
         trained_models: &Arc<Mutex<Vec<Network>>>,
         k: usize,
     ) {
-        TM::start(format!("{}/{}", i+1, k));
+        TM::start(format!("{}/{}", i + 1, k));
         TM::start("init");
         let predicted_features = model.dataset_config.predicted_features_names();
-        let id_column = model.dataset_config
-            .get_id_column()
-            .expect("One feature must be configurationified as an id in the dataset dataset_config.");
+        let id_column = model.dataset_config.get_id_column().expect(
+            "One feature must be configurationified as an id in the dataset dataset_config.",
+        );
         let mut network = model.to_network();
 
         // Split the data between validation and training
@@ -192,7 +192,7 @@ impl KFolds {
 
         TM::start("epochs");
         for e in 0..epochs {
-            TM::start(&format!("{}/{}", e+1, epochs));
+            TM::start(&format!("{}/{}", e + 1, epochs));
             // Train the model with the k-th folds except the i-th
             let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
@@ -243,7 +243,10 @@ impl KFolds {
 
             fold_eval.add_epoch(eval);
         }
-        TM::end_with_message(format!("Final performance: {:#?}", fold_eval.get_final_epoch()));
+        TM::end_with_message(format!(
+            "Final performance: {:#?}",
+            fold_eval.get_final_epoch()
+        ));
 
         trained_models.lock().unwrap().push(network);
         model_eval.lock().unwrap().add_fold(fold_eval);
@@ -303,7 +306,7 @@ impl KFolds {
             let mut fold_eval = TrainingEvaluation::new_empty();
             let epochs = model.epochs;
             for e in 0..epochs {
-                TM::start(&format!("{}/{}", e+1, epochs));
+                TM::start(&format!("{}/{}", e + 1, epochs));
                 // Train the model with the k-th folds except the i-th
                 let train_loss = model.train_epoch(e, &mut network, &train_table, id_column);
 
@@ -376,7 +379,7 @@ impl KFolds {
     /// Assumes the data has all the columns corresponding to the model's dataset.
     ///
     /// Assumes both the data and the model's dataset include an id feature.
-    /// 
+    ///
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
         assert!(!self.all_epochs_r2 || self.all_epochs_validation);
 

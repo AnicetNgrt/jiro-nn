@@ -16,18 +16,18 @@ use crate::datatable::DataTable;
 
 use crate::linalg::Scalar;
 use crate::loss::Losses;
-use crate::network::{Network};
+use crate::network::Network;
 
 use self::network_model::{NetworkModel, NetworkModelBuilder};
 
-pub mod network_model;
 pub mod conv_network_model;
+pub mod full_dense_conv_layer_model;
 pub mod full_dense_layer_model;
 pub mod full_direct_conv_layer_model;
-pub mod full_dense_conv_layer_model;
+pub mod network_model;
 
 pub struct ModelBuilder {
-    pub model: Model
+    pub model: Model,
 }
 
 impl ModelBuilder {
@@ -39,8 +39,8 @@ impl ModelBuilder {
                 loss: Losses::MSE,
                 epochs: 100,
                 batch_size: Some(32),
-                network: None
-            }
+                network: None,
+            },
         }
     }
 
@@ -51,17 +51,14 @@ impl ModelBuilder {
                 loss: Losses::MSE,
                 epochs: 100,
                 batch_size: Some(32),
-                network: None
-            }
+                network: None,
+            },
         }
     }
 
     pub fn loss(self, loss: Losses) -> Self {
         Self {
-            model: Model {
-                loss,
-                ..self.model
-            },
+            model: Model { loss, ..self.model },
             ..self
         }
     }
@@ -107,7 +104,7 @@ pub struct Model {
     pub loss: Losses,
     pub batch_size: Option<usize>,
     pub dataset_config: Dataset,
-    pub network: Option<NetworkModel>
+    pub network: Option<NetworkModel>,
 }
 
 #[cfg(not(feature = "data"))]
@@ -116,7 +113,7 @@ pub struct Model {
     pub epochs: usize,
     pub loss: Losses,
     pub batch_size: Option<usize>,
-    pub network: Option<NetworkModel>
+    pub network: Option<NetworkModel>,
 }
 
 impl Model {
@@ -154,14 +151,20 @@ impl Model {
 
     #[cfg(feature = "data")]
     pub fn to_network(&self) -> Network {
-        let network_config = self.network.clone().expect("You cannot create a network if it is not configurationified");
+        let network_config = self
+            .network
+            .clone()
+            .expect("You cannot create a network if it is not configurationified");
         let in_dims = self.dataset_config.in_features_names().len();
         network_config.to_network(in_dims)
     }
 
     #[cfg(not(feature = "data"))]
     pub fn to_network(&self, in_dims: usize) -> Network {
-        let network_config = self.network.clone().expect("You cannot create a network if it is not configurationified");
+        let network_config = self
+            .network
+            .clone()
+            .expect("You cannot create a network if it is not configurationified");
         network_config.to_network(in_dims)
     }
 

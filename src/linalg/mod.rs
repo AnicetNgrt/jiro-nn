@@ -1,7 +1,7 @@
 pub enum Backends {
     ArrayFire,
     Nalgebra,
-    Ndarray
+    Ndarray,
 }
 
 #[cfg(feature = "f64")]
@@ -29,9 +29,17 @@ pub const BACKEND: Backends = Backends::Nalgebra;
 #[cfg(feature = "ndarray")]
 pub mod ndarray_matrix;
 
-#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+#[cfg(all(
+    feature = "ndarray",
+    not(feature = "arrayfire"),
+    not(feature = "nalgebra")
+))]
 pub use ndarray_matrix::Matrix;
-#[cfg(all(feature = "ndarray", not(feature = "arrayfire"), not(feature = "nalgebra")))]
+#[cfg(all(
+    feature = "ndarray",
+    not(feature = "arrayfire"),
+    not(feature = "nalgebra")
+))]
 pub const BACKEND: Backends = Backends::Ndarray;
 
 pub trait MatrixTrait: Clone {

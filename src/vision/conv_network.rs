@@ -3,8 +3,9 @@ use std::fmt::Debug;
 use crate::{
     layer::{DropoutLayer, Layer, LearnableLayer, ParameterableLayer},
     linalg::{Matrix, Scalar},
+    monitor::TM,
     network::NetworkLayer,
-    vision::{image::Image, image::ImageTrait}, monitor::TM,
+    vision::{image::Image, image::ImageTrait},
 };
 
 use super::image_layer::ImageLayer;
@@ -13,12 +14,16 @@ use super::image_layer::ImageLayer;
 pub struct ConvNetwork {
     layers: Vec<Box<dyn ConvNetworkLayer>>,
     channels: usize,
-    out_channels: Option<usize>
+    out_channels: Option<usize>,
 }
 
 impl ConvNetwork {
     pub fn new(layers: Vec<Box<dyn ConvNetworkLayer>>, channels: usize) -> Self {
-        Self { layers, channels, out_channels: None }
+        Self {
+            layers,
+            channels,
+            out_channels: None,
+        }
     }
 }
 
@@ -29,13 +34,13 @@ impl Layer for ConvNetwork {
         let n_layers = self.layers.len();
 
         for (i, layer) in self.layers.iter_mut().enumerate() {
-            TM::start(format!("layer[{}/{}]", i+1, n_layers));
+            TM::start(format!("layer[{}/{}]", i + 1, n_layers));
             output = layer.forward(output);
             TM::end();
         }
-        
+
         self.out_channels = Some(output.channels());
-        
+
         let out = output.flatten();
         TM::end();
         out
@@ -44,13 +49,13 @@ impl Layer for ConvNetwork {
     fn backward(&mut self, epoch: usize, error_gradient: Matrix) -> Matrix {
         TM::start("cnet.back");
         let mut error_gradient = Image::from_samples(&error_gradient, self.out_channels.unwrap());
-        
+
         for (i, layer) in self.layers.iter_mut().enumerate().rev() {
-            TM::start(format!("layer[{}]", i+1));
+            TM::start(format!("layer[{}]", i + 1));
             error_gradient = layer.backward(epoch, error_gradient);
             TM::end();
         }
-        
+
         let grad = error_gradient.flatten();
         TM::end();
         grad

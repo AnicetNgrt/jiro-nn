@@ -1,19 +1,23 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::network::{Network, NetworkLayer};
 
-use super::{ModelBuilder, conv_network_model::{ConvNetworkModelBuilder, ConvNetworkModel}, full_dense_layer_model::{FullDenseLayerModel, FullDenseLayerModelBuilder}};
+use super::{
+    conv_network_model::{ConvNetworkModel, ConvNetworkModelBuilder},
+    full_dense_layer_model::{FullDenseLayerModel, FullDenseLayerModelBuilder},
+    ModelBuilder,
+};
 
 pub struct NetworkModelBuilder {
     pub model: NetworkModel,
-    pub parent: Option<ModelBuilder>
+    pub parent: Option<ModelBuilder>,
 }
 
 impl NetworkModelBuilder {
     pub fn new() -> Self {
         Self {
             model: NetworkModel { layers: Vec::new() },
-            parent: None
+            parent: None,
         }
     }
 
@@ -27,7 +31,9 @@ impl NetworkModelBuilder {
     }
 
     pub(crate) fn accept_conv_network(mut self, layer: ConvNetworkModel) -> Self {
-        self.model.layers.push(NetworkLayerModels::Convolution(layer));
+        self.model
+            .layers
+            .push(NetworkLayerModels::Convolution(layer));
         self
     }
 
@@ -43,7 +49,7 @@ impl NetworkModelBuilder {
     pub fn end(self) -> ModelBuilder {
         match self.parent {
             Some(parent) => parent.accept_neural_network(self.model),
-            None => panic!("No parent model builder set")
+            None => panic!("No parent model builder set"),
         }
     }
 
@@ -54,7 +60,7 @@ impl NetworkModelBuilder {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NetworkModel {
-    pub layers: Vec<NetworkLayerModels>
+    pub layers: Vec<NetworkLayerModels>,
 }
 
 impl NetworkModel {
@@ -72,14 +78,14 @@ impl NetworkModel {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum NetworkLayerModels {
     Convolution(ConvNetworkModel),
-    FullDense(FullDenseLayerModel)
+    FullDense(FullDenseLayerModel),
 }
 
 impl NetworkLayerModels {
     pub fn to_layer(self, in_dims: usize) -> (usize, Box<dyn NetworkLayer>) {
         match self {
             Self::Convolution(network) => network.to_layer(in_dims),
-            Self::FullDense(layer) => layer.to_layer(in_dims)
+            Self::FullDense(layer) => layer.to_layer(in_dims),
         }
     }
 }

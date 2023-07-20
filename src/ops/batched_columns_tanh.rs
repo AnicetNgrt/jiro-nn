@@ -1,6 +1,10 @@
 use crate::linalg::{Matrix, MatrixTrait};
 
-use super::batched_columns_activation::BatchedColumnsActivation;
+use super::{
+    batched_columns_activation::BatchedColumnsActivation,
+    model_op_builder::{CombinatoryOpBuilder, OpBuild, OpBuilder},
+    Data, ModelOp,
+};
 
 fn tanh(m: &Matrix) -> Matrix {
     let exp = m.exp();
@@ -16,8 +20,21 @@ fn tanh_prime(m: &Matrix) -> Matrix {
 }
 
 pub fn batched_columns_tanh() -> BatchedColumnsActivation {
-    BatchedColumnsActivation::new(
-        tanh,
-        tanh_prime
-    )
+    BatchedColumnsActivation::new(tanh, tanh_prime)
+}
+
+pub struct TanhBuilder;
+
+impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef> for TanhBuilder {
+    fn build(&self) -> Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>> {
+        Box::new(batched_columns_tanh())
+    }
+}
+
+impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
+    OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+{
+    pub fn tanh(self) -> OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+        self.push_and_pack(TanhBuilder)
+    }
 }

@@ -8,7 +8,7 @@ use crate::{
     linalg::Scalar,
 };
 
-use super::{feature_cached::FeatureExtractorCached, DataTransformation, CachedConfig};
+use super::{feature_cached::FeatureExtractorCached, CachedConfig, DataTransformation};
 
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapSelector {
@@ -101,7 +101,7 @@ impl MapOp {
         values
     }
 }
- 
+
 #[derive(Default, Serialize, Debug, Deserialize, Clone, Hash, Eq, PartialEq)]
 pub enum MapValue {
     #[default]

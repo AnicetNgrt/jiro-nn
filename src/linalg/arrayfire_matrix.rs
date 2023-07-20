@@ -1,9 +1,9 @@
 use core::fmt;
 
 use arrayfire::{
-    add, constant, div, exp, index, matmul, maxof, mean_all, minof, moddims, mul, pow, print,
-    random_normal, random_uniform, sign, sqrt, sub, sum_all, transpose, Array, Dim4, MatProp,
-    RandomEngine, Seq, log, get_active_backend, Backend, max_all, min_all, join, identity,
+    add, constant, div, exp, get_active_backend, identity, index, join, log, matmul, max_all,
+    maxof, mean_all, min_all, minof, moddims, mul, pow, print, random_normal, random_uniform, sign,
+    sqrt, sub, sum_all, transpose, Array, Backend, Dim4, MatProp, RandomEngine, Seq,
 };
 use rand::Rng;
 
@@ -28,7 +28,12 @@ impl MatrixTrait for Matrix {
     }
 
     fn identity(n: usize) -> Self {
-        let id = identity(Dim4::new(&[n.try_into().unwrap(), n.try_into().unwrap(), 1, 1]));
+        let id = identity(Dim4::new(&[
+            n.try_into().unwrap(),
+            n.try_into().unwrap(),
+            1,
+            1,
+        ]));
         Self(id)
     }
 

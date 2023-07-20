@@ -1,9 +1,12 @@
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
+    impl_model_op_for_learnable_op,
+    matrix_learnable_adam::MatrixLearnableAdamBuilder,
     model::{impl_model_from_model_fields, Model},
-    optimizer::Optimizer,
-    LearnableOp, ModelOp, impl_model_op_for_learnable_op,
+    model_op_builder::OpBuild,
+    optimizer::{Optimizer, OptimizerBuilder},
+    Data, LearnableOp, ModelOp, matrix_learnable_sgd::MatrixLearnableSGDBuilder,
 };
 
 pub struct BatchedColumnsDenseLayer {
@@ -61,12 +64,75 @@ impl LearnableOp<Matrix> for BatchedColumnsDenseLayer {
 }
 
 impl Model for BatchedColumnsDenseLayer {
-    impl_model_from_model_fields!(
-        weights_optimizer,
-        biases_optimizer
-    );
+    impl_model_from_model_fields!(weights_optimizer, biases_optimizer);
 }
 
 impl ModelOp<Matrix, Matrix, Matrix, Matrix> for BatchedColumnsDenseLayer {
     impl_model_op_for_learnable_op!(Matrix, Matrix);
+}
+
+pub struct BatchedColumnsDenseLayerBuilder {
+    weights_optimizer: Box<dyn OptimizerBuilder<Matrix>>,
+    biases_optimizer: Box<dyn OptimizerBuilder<Matrix>>,
+}
+
+impl BatchedColumnsDenseLayerBuilder {
+    pub fn new() -> Self {
+        Self {
+            weights_optimizer: Box::new(MatrixLearnableAdamBuilder::<Self>::new(None)),
+            biases_optimizer: Box::new(MatrixLearnableAdamBuilder::<Self>::new(None)),
+        }
+    }
+
+    pub fn with_adam_optimized_weights(mut self) -> MatrixLearnableAdamBuilder<Self> {
+        MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
+            self.weights_optimizer = Box::new(builder);
+            self
+        })))
+    }
+
+    pub fn with_adam_optimized_biases(mut self) -> MatrixLearnableAdamBuilder<Self> {
+        MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
+            self.biases_optimizer = Box::new(builder);
+            self
+        })))
+    }
+
+    pub fn everything_adam_optimized(mut self) -> MatrixLearnableAdamBuilder<Self> {
+        MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
+            self.biases_optimizer = builder.clone_box();
+            self.weights_optimizer = Box::new(builder);
+            self
+        })))
+    }
+
+    pub fn with_sgd_optimized_weights(mut self) -> MatrixLearnableSGDBuilder<Self> {
+        MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
+            self.weights_optimizer = Box::new(builder);
+            self
+        })))
+    }
+
+    pub fn with_sgd_optimized_biases(mut self) -> MatrixLearnableSGDBuilder<Self> {
+        MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
+            self.biases_optimizer = Box::new(builder);
+            self
+        })))
+    }
+
+    pub fn everything_sgd_optimized(mut self) -> MatrixLearnableSGDBuilder<Self> {
+        MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
+            self.biases_optimizer = builder.clone_box();
+            self.weights_optimizer = Box::new(builder);
+            self
+        })))
+    }
+}
+
+impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
+    OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+{
+    // pub fn dense(self) -> OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+    //     self.push_and_pack()
+    // }
 }

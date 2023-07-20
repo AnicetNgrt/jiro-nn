@@ -4,8 +4,8 @@ use crate::linalg::Matrix;
 use crate::linalg::MatrixTrait;
 use crate::linalg::Scalar;
 
-pub mod mse;
 pub mod bce;
+pub mod mse;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub enum Losses {

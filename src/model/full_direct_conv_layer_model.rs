@@ -1,9 +1,14 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::vision::{conv_initializers::ConvInitializers, conv_activation::ConvActivation, conv_optimizer::{ConvOptimizers, conv_sgd, conv_momentum, conv_adam}, conv_network::ConvNetworkLayer, conv_layer::{direct_conv_layer::DirectConvLayer, full_conv_layer::FullConvLayer}};
+use crate::vision::{
+    conv_activation::ConvActivation,
+    conv_initializers::ConvInitializers,
+    conv_layer::{direct_conv_layer::DirectConvLayer, full_conv_layer::FullConvLayer},
+    conv_network::ConvNetworkLayer,
+    conv_optimizer::{conv_adam, conv_momentum, conv_sgd, ConvOptimizers},
+};
 
 use super::conv_network_model::ConvNetworkModelBuilder;
-
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FullDirectConvLayerModel {
@@ -13,11 +18,15 @@ pub struct FullDirectConvLayerModel {
     pub kernels_initializer: ConvInitializers,
     pub biases_optimizer: ConvOptimizers,
     pub kernels_optimizer: ConvOptimizers,
-    pub dropout: Option<f32>
+    pub dropout: Option<f32>,
 }
 
 impl FullDirectConvLayerModel {
-    pub fn to_layer(self, in_img_dims: usize, in_channels: usize) -> (usize, usize, Box<dyn ConvNetworkLayer>) {
+    pub fn to_layer(
+        self,
+        in_img_dims: usize,
+        in_channels: usize,
+    ) -> (usize, usize, Box<dyn ConvNetworkLayer>) {
         let inner_layer = DirectConvLayer::new(
             self.kernels_size,
             self.kernels_size,
@@ -25,9 +34,9 @@ impl FullDirectConvLayerModel {
             self.kernels_initializer,
             self.biases_initializer,
             self.kernels_optimizer,
-            self.biases_optimizer
+            self.biases_optimizer,
         );
-        
+
         let (out_img_dims, _, out_channels) = DirectConvLayer::out_img_dims_and_channels(
             in_img_dims,
             in_img_dims,
@@ -35,11 +44,11 @@ impl FullDirectConvLayerModel {
             self.kernels_size,
             self.kernels_size,
         );
-        
+
         let layer = FullConvLayer::new(
             Box::new(inner_layer),
             self.activation.to_layer(),
-            self.dropout
+            self.dropout,
         );
 
         (out_img_dims, out_channels, Box::new(layer))
@@ -48,7 +57,7 @@ impl FullDirectConvLayerModel {
 
 pub struct FullDirectConvLayerModelBuilder {
     pub model: FullDirectConvLayerModel,
-    parent: ConvNetworkModelBuilder
+    parent: ConvNetworkModelBuilder,
 }
 
 impl FullDirectConvLayerModelBuilder {
@@ -61,7 +70,7 @@ impl FullDirectConvLayerModelBuilder {
                 kernels_initializer: ConvInitializers::GlorotUniform,
                 biases_optimizer: conv_sgd(),
                 kernels_optimizer: conv_sgd(),
-                dropout: None
+                dropout: None,
             },
             parent,
         }
@@ -102,7 +111,7 @@ impl FullDirectConvLayerModelBuilder {
     pub fn tanh(self) -> Self {
         self.activation(ConvActivation::ConvTanh)
     }
-    
+
     pub fn linear(self) -> Self {
         self.activation(ConvActivation::ConvLinear)
     }

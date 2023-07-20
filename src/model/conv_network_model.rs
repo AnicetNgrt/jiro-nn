@@ -1,9 +1,18 @@
+use serde::{Deserialize, Serialize};
 
-use serde::{Serialize, Deserialize};
+use crate::{
+    network::NetworkLayer,
+    vision::{
+        conv_layer::avg_pooling_layer::AvgPoolingLayer,
+        conv_network::{ConvNetwork, ConvNetworkLayer},
+    },
+};
 
-use crate::{network::NetworkLayer, vision::{conv_network::{ConvNetwork, ConvNetworkLayer}, conv_layer::avg_pooling_layer::AvgPoolingLayer}};
-
-use super::{full_dense_conv_layer_model::{FullDenseConvLayerModel, FullDenseConvLayerModelBuilder}, network_model::NetworkModelBuilder, full_direct_conv_layer_model::{FullDirectConvLayerModel, FullDirectConvLayerModelBuilder}};
+use super::{
+    full_dense_conv_layer_model::{FullDenseConvLayerModel, FullDenseConvLayerModelBuilder},
+    full_direct_conv_layer_model::{FullDirectConvLayerModel, FullDirectConvLayerModelBuilder},
+    network_model::NetworkModelBuilder,
+};
 
 pub struct ConvNetworkModelBuilder {
     pub model: ConvNetworkModel,
@@ -12,8 +21,11 @@ pub struct ConvNetworkModelBuilder {
 
 impl ConvNetworkModelBuilder {
     pub fn new(parent: NetworkModelBuilder, in_channels: usize) -> Self {
-        Self { 
-            model: ConvNetworkModel { layers: vec![], in_channels },
+        Self {
+            model: ConvNetworkModel {
+                layers: vec![],
+                in_channels,
+            },
             parent,
         }
     }
@@ -22,7 +34,11 @@ impl ConvNetworkModelBuilder {
         self.parent.accept_conv_network(self.model)
     }
 
-    pub fn full_dense(self, kernels_count: usize, kernels_size: usize) -> FullDenseConvLayerModelBuilder {
+    pub fn full_dense(
+        self,
+        kernels_count: usize,
+        kernels_size: usize,
+    ) -> FullDenseConvLayerModelBuilder {
         FullDenseConvLayerModelBuilder::new(self, kernels_count, kernels_size)
     }
 
@@ -31,17 +47,23 @@ impl ConvNetworkModelBuilder {
     }
 
     pub fn avg_pooling(mut self, kernel_size: usize) -> Self {
-        self.model.layers.push(ConvNetworkLayerModels::AvgPooling { kernel_size });
+        self.model
+            .layers
+            .push(ConvNetworkLayerModels::AvgPooling { kernel_size });
         self
     }
 
     pub fn accept_full_dense(mut self, model: FullDenseConvLayerModel) -> Self {
-        self.model.layers.push(ConvNetworkLayerModels::FullDenseConv(model));
+        self.model
+            .layers
+            .push(ConvNetworkLayerModels::FullDenseConv(model));
         self
     }
 
     pub fn accept_full_direct(mut self, model: FullDirectConvLayerModel) -> Self {
-        self.model.layers.push(ConvNetworkLayerModels::FullDirectConv(model));
+        self.model
+            .layers
+            .push(ConvNetworkLayerModels::FullDirectConv(model));
         self
     }
 }
@@ -59,8 +81,8 @@ impl ConvNetworkModel {
         let mut in_img_dims = (in_dims as f64 / in_channels as f64).sqrt() as usize;
 
         for layer_config in self.layers.into_iter() {
-            let (out_img_dims, out_channels, conv_layer) = layer_config
-                .to_conv_layer(in_img_dims, in_channels);
+            let (out_img_dims, out_channels, conv_layer) =
+                layer_config.to_conv_layer(in_img_dims, in_channels);
 
             in_img_dims = out_img_dims;
             in_channels = out_channels;
@@ -68,7 +90,10 @@ impl ConvNetworkModel {
         }
 
         let network_layer = ConvNetwork::new(layers, self.in_channels);
-        (in_img_dims * in_img_dims * in_channels, Box::new(network_layer))
+        (
+            in_img_dims * in_img_dims * in_channels,
+            Box::new(network_layer),
+        )
     }
 }
 
@@ -76,13 +101,15 @@ impl ConvNetworkModel {
 pub enum ConvNetworkLayerModels {
     FullDenseConv(FullDenseConvLayerModel),
     FullDirectConv(FullDirectConvLayerModel),
-    AvgPooling {
-        kernel_size: usize,
-    },
+    AvgPooling { kernel_size: usize },
 }
 
 impl ConvNetworkLayerModels {
-    pub fn to_conv_layer(self, in_img_dims: usize, in_channels: usize) -> (usize, usize, Box<dyn ConvNetworkLayer>) {
+    pub fn to_conv_layer(
+        self,
+        in_img_dims: usize,
+        in_channels: usize,
+    ) -> (usize, usize, Box<dyn ConvNetworkLayer>) {
         match self {
             Self::FullDenseConv(model) => model.to_layer(in_img_dims, in_channels),
             Self::FullDirectConv(model) => model.to_layer(in_img_dims, in_channels),

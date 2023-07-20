@@ -1,5 +1,5 @@
 use std::path::PathBuf;
- 
+
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::bool_true;
 
@@ -10,15 +10,15 @@ use crate::{
 
 /// A structure that configurationifies _features_ (aka "columns") that will be fed to the network
 /// and the preprocessing pipeline. **This is not the actual data**, it is only metadata for the framework.
-/// 
+///
 /// Features are described via the `Feature` struct. See its documentation for more information.
-/// 
+///
 /// Example:
-/// 
+///
 /// ```rust
 /// // This will create a Dataset with default metadata for all of the spreadsheet's columns
 /// let mut dataset_config = Dataset::from_file("data.csv");
-/// 
+///
 /// dataset_config
 ///     // Adds a "tag" to all features via `tag_all`
 ///     // The tag used here `Normalized` tells the framework that all the columns
@@ -34,9 +34,9 @@ use crate::{
 ///     .tag_feature("label", Predicted)
 ///     .tag_feature("label", OneHotEncode);
 /// ```
-/// 
+///
 /// More in-depth example:
-/// 
+///
 /// ```rust
 /// let mut dataset_config = Dataset::from_file("dataset/kc_house_data.csv");
 /// dataset_config
@@ -68,17 +68,13 @@ impl Dataset {
     pub fn with_added_feature(&self, feature: Feature) -> Self {
         let mut features = self.features.clone();
         features.push(feature);
-        Self {
-            features,
-        }
+        Self { features }
     }
 
     pub fn without_feature(&self, feature_name: String) -> Self {
         let mut features = self.features.clone();
         features.retain(|f| f.name != feature_name);
-        Self {
-            features,
-        }
+        Self { features }
     }
 
     /// Create a new dataset with a feature replaced.
@@ -89,9 +85,7 @@ impl Dataset {
             .position(|f| f.name == old_feature_name)
             .unwrap();
         features[index] = feature;
-        Self {
-            features,
-        }
+        Self { features }
     }
 
     pub fn feature_names(&self) -> Vec<&str> {
@@ -153,7 +147,7 @@ impl Dataset {
     }
 
     /// The `tag_feature` is a way to tag a configurationific dataset's feature with a `FeatureTags`, in order to configurationify its properties and preprocessing requirements.
-    /// 
+    ///
     /// See the `FeatureTags` documentation for more information on the available tags.
     pub fn tag_feature(&mut self, feature_name: &str, tag: FeatureTags) -> &mut Self {
         for feature in &mut self.features {
@@ -472,16 +466,14 @@ impl<'a> FeatureTags<'a> {
                 )])))
             }
             FeatureTags::AddNormalized => {
-                feature.with_normalized =
-                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
-                        &format!("{}_normalized", feature.name),
-                    )])))
+                feature.with_normalized = Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
+                    &format!("{}_normalized", feature.name),
+                )])))
             }
             FeatureTags::AddSquared => {
-                feature.with_squared =
-                    Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
-                        &format!("{}^2", feature.name),
-                    )])))
+                feature.with_squared = Some(Box::new(Feature::from_tags(&[FeatureTags::Name(
+                    &format!("{}^2", feature.name),
+                )])))
             }
             FeatureTags::RecurseAdded(feature_tag) => {
                 for extracted_feature in feature.get_extracted_features_mut().into_iter() {

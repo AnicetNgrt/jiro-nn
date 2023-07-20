@@ -19,7 +19,8 @@ fn bce(y_true: &Matrix, y_pred: &Matrix) -> Scalar {
             .component_sub(&y_true)
             .component_mul(&ones.component_sub(&y_pred).log()),
     ))
-    .mean() * -1.
+    .mean()
+        * -1.
 }
 
 fn bce_prime(y_true: &Matrix, y_pred: &Matrix) -> Matrix {

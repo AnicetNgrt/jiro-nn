@@ -1,4 +1,9 @@
-use jiro_nn::{linalg::{Matrix, MatrixTrait}, activation::Activation, layer::Layer, loss::Losses};
+use jiro_nn::{
+    activation::Activation,
+    layer::Layer,
+    linalg::{Matrix, MatrixTrait},
+    loss::Losses,
+};
 
 pub fn main() {
     let m = Matrix::from_column_leading_vector2(&vec![
@@ -12,7 +17,7 @@ pub fn main() {
 
     let mut activation = Activation::Softmax.to_layer();
     let result = activation.forward(m.clone());
-    
+
     result.print();
 
     let true_m = Matrix::from_column_leading_vector2(&vec![

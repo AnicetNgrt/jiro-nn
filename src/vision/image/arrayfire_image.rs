@@ -1,9 +1,9 @@
 use std::fmt;
 
 use arrayfire::{
-    constant, exp, flip, index, join_many, maxof, mean, mean_all, minof, pow,
-    random_normal, random_uniform, sign, sqrt, sum, sum_all, unwrap, wrap, Array, Dim4,
-    RandomEngine, Seq, tile, convolve2_nn,
+    constant, convolve2_nn, exp, flip, index, join_many, maxof, mean, mean_all, minof, pow,
+    random_normal, random_uniform, sign, sqrt, sum, sum_all, tile, unwrap, wrap, Array, Dim4,
+    RandomEngine, Seq,
 };
 use rand::Rng;
 
@@ -203,7 +203,7 @@ impl ImageTrait for Image {
                 repetitions_col.try_into().unwrap(),
                 repetitions_chan.try_into().unwrap(),
                 repetition_sample.try_into().unwrap(),
-            ])
+            ]),
         ))
     }
 
@@ -435,16 +435,16 @@ impl Image {
             (
                 self.image_dims().0 + kernels.image_dims().0 - 1,
                 Dim4::new(&[
-                    (kernels.image_dims().0 - 1).try_into().unwrap(), 
-                    (kernels.image_dims().1 - 1).try_into().unwrap(), 
-                    1, 
-                    1
+                    (kernels.image_dims().0 - 1).try_into().unwrap(),
+                    (kernels.image_dims().1 - 1).try_into().unwrap(),
+                    1,
+                    1,
                 ]),
             )
         } else {
             (
                 self.image_dims().0 - kernels.image_dims().0 + 1,
-                Dim4::new(&[0, 0, 0, 0])
+                Dim4::new(&[0, 0, 0, 0]),
             )
         };
 
@@ -453,7 +453,7 @@ impl Image {
             &kernels.0,
             Dim4::new(&[1, 1, 1, 1]),
             padding,
-            Dim4::new(&[0, 0, 0, 0])
+            Dim4::new(&[0, 0, 0, 0]),
         );
 
         let res = Self(index(

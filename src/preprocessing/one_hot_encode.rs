@@ -20,7 +20,11 @@ impl DataTransformation for OneHotEncode {
         let mut features_values: HashMap<Feature, HashSet<i64>> = HashMap::new();
 
         data.as_scalar_hashmap().iter().for_each(|(name, values)| {
-            let feature = dataset_config.features.iter().find(|f| f.name == *name).unwrap();
+            let feature = dataset_config
+                .features
+                .iter()
+                .find(|f| f.name == *name)
+                .unwrap();
             if feature.one_hot_encoded {
                 let mut values_set = HashSet::new();
                 values.iter().for_each(|v| {
@@ -122,9 +126,12 @@ impl DataTransformation for OneHotEncode {
                 column_confidence_value.push(*confidence);
             }
             new_data = new_data.with_column_string(&column_name, column_class_values.as_slice());
-            new_data = new_data.with_column_scalar(&format!("{}.confidence", column_name), column_confidence_value.as_slice());
+            new_data = new_data.with_column_scalar(
+                &format!("{}.confidence", column_name),
+                column_confidence_value.as_slice(),
+            );
         }
-        
+
         new_data
     }
 

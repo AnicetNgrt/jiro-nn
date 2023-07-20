@@ -1,6 +1,10 @@
-use std::{fs::File, io::{Write, Read}, path::PathBuf};
+use std::{
+    fs::File,
+    io::{Read, Write},
+    path::PathBuf,
+};
 
-use flate2::{write::GzEncoder, Compression, read::GzDecoder};
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use serde::{Deserialize, Serialize};
 
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
@@ -58,6 +62,9 @@ impl NetworkParams {
     }
 
     pub fn count(&self) -> usize {
-        self.0.iter().map(|l| l.iter().map(|l| l.len()).sum::<usize>()).sum()
+        self.0
+            .iter()
+            .map(|l| l.iter().map(|l| l.len()).sum::<usize>())
+            .sum()
     }
 }

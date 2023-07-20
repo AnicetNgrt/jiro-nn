@@ -83,7 +83,8 @@ impl DataTable {
         prefix: Option<&str>,
     ) -> Self {
         let prefix = prefix.map(|s| format!("{}_", s.to_string()));
-        let result = self.0
+        let result = self
+            .0
             .join(
                 table.df(),
                 [left_on],
@@ -92,7 +93,7 @@ impl DataTable {
                 prefix.clone(),
             )
             .unwrap();
-        
+
         let mut df = result.clone();
         let names = result.get_column_names();
 
@@ -222,7 +223,11 @@ impl DataTable {
     where
         P: Into<PathBuf>,
     {
-        let data = CsvReader::from_path(path.into()).unwrap().with_n_rows(Some(1)).finish().unwrap();
+        let data = CsvReader::from_path(path.into())
+            .unwrap()
+            .with_n_rows(Some(1))
+            .finish()
+            .unwrap();
         let headers = data.get_column_names();
         headers.iter().map(|s| s.to_string()).collect()
     }
@@ -232,7 +237,9 @@ impl DataTable {
     where
         P: Into<PathBuf>,
     {
-        let data = IpcReader::new(File::open(path.into()).unwrap()).finish().unwrap();
+        let data = IpcReader::new(File::open(path.into()).unwrap())
+            .finish()
+            .unwrap();
         let headers = data.get_column_names();
         headers.iter().map(|s| s.to_string()).collect()
     }
@@ -242,7 +249,9 @@ impl DataTable {
     where
         P: Into<PathBuf>,
     {
-        let data = ParquetReader::new(File::open(path.into()).unwrap()).finish().unwrap();
+        let data = ParquetReader::new(File::open(path.into()).unwrap())
+            .finish()
+            .unwrap();
         let headers = data.get_column_names();
         headers.iter().map(|s| s.to_string()).collect()
     }

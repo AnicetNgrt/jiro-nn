@@ -62,11 +62,11 @@ impl Layer for ActivationLayer {
                 let input = self.input.clone().unwrap();
                 let fprime_x = (f)(&input);
                 output_gradient.component_mul(&fprime_x)
-            },
+            }
             ActivationFnPrime::GradDepActivationFn(f) => {
                 let output = self.output.clone().unwrap();
                 (f)(&output, &output_gradient)
-            },
+            }
         }
     }
 }
@@ -77,7 +77,7 @@ pub enum Activation {
     Sigmoid,
     ReLU,
     Linear,
-    Softmax
+    Softmax,
 }
 
 impl Activation {

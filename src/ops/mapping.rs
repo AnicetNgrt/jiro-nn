@@ -1,8 +1,10 @@
 use crate::linalg::Scalar;
 
 use super::{
+    impl_model_op_for_input_transformation_op, impl_model_op_for_reference_transformation_op,
+    impl_model_op_for_total_transformation_op,
     model::{impl_model_no_params, Model},
-    Data, InputTransformationOp, ReferenceTransformationOp, TotalTransformationOp, ModelOp, impl_model_op_for_total_transformation_op, impl_model_op_for_reference_transformation_op, impl_model_op_for_input_transformation_op,
+    Data, InputTransformationOp, ModelOp, ReferenceTransformationOp, TotalTransformationOp,
 };
 
 pub struct InputMappingOp<DataIn: Data, DataOut: Data> {
@@ -36,7 +38,8 @@ impl<DataIn: Data, DataOut: Data> InputTransformationOp<DataIn, DataOut>
 }
 
 impl<DataIn: Data, DataOut: Data, DataRef: Data> ModelOp<DataIn, DataOut, DataRef, DataRef>
-    for InputMappingOp<DataIn, DataOut> {
+    for InputMappingOp<DataIn, DataOut>
+{
     impl_model_op_for_input_transformation_op!(DataIn, DataOut, DataRef, DataRef);
 }
 
@@ -74,7 +77,8 @@ impl<DataRefIn: Data, DataRefOut: Data> ReferenceTransformationOp<DataRefIn, Dat
 }
 
 impl<D: Data, DataRefIn: Data, DataRefOut: Data> ModelOp<D, D, DataRefIn, DataRefOut>
-    for ReferenceMappingOp<DataRefIn, DataRefOut> {
+    for ReferenceMappingOp<DataRefIn, DataRefOut>
+{
     impl_model_op_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
 }
 
@@ -108,6 +112,8 @@ impl<DataIn: Data, DataOut: Data> TotalTransformationOp<DataIn, DataOut>
     }
 }
 
-impl<DataIn: Data, DataOut: Data> ModelOp<DataIn, DataOut, DataIn, DataOut> for TotalMappingOp<DataIn, DataOut> {
+impl<DataIn: Data, DataOut: Data> ModelOp<DataIn, DataOut, DataIn, DataOut>
+    for TotalMappingOp<DataIn, DataOut>
+{
     impl_model_op_for_total_transformation_op!(DataIn, DataOut, DataIn, DataOut);
 }

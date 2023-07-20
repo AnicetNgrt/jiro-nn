@@ -3,7 +3,6 @@ use arrayfire::print;
 
 #[allow(unused_imports)]
 #[allow(unused_variables)]
-
 use jiro_nn::vision::{
     conv_layer::avg_pooling_layer::AvgPoolingLayer, image::Image, image::ImageTrait,
     image_layer::ImageLayer,

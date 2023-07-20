@@ -1,6 +1,6 @@
 use super::ActivationLayer;
 use crate::linalg::{Matrix, MatrixTrait};
-use std::{thread::available_parallelism};
+use std::thread::available_parallelism;
 
 // Formulas references from:
 // https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/

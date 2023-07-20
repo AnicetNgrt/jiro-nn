@@ -1,9 +1,14 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{activation::Activation, initializers::Initializers, optimizer::{Optimizers, sgd, momentum, adam}, layer::{dense_layer::DenseLayer, full_layer::FullLayer}, network::NetworkLayer};
+use crate::{
+    activation::Activation,
+    initializers::Initializers,
+    layer::{dense_layer::DenseLayer, full_layer::FullLayer},
+    network::NetworkLayer,
+    optimizer::{adam, momentum, sgd, Optimizers},
+};
 
 use super::network_model::NetworkModelBuilder;
-
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FullDenseLayerModel {
@@ -13,7 +18,7 @@ pub struct FullDenseLayerModel {
     pub weights_initializer: Initializers,
     pub biases_optimizer: Optimizers,
     pub weights_optimizer: Optimizers,
-    pub dropout: Option<f32>
+    pub dropout: Option<f32>,
 }
 
 impl FullDenseLayerModel {
@@ -27,11 +32,7 @@ impl FullDenseLayerModel {
             self.biases_initializer,
         );
 
-        let layer = FullLayer::new(
-            inner,
-            self.activation.to_layer(),
-            self.dropout
-        );
+        let layer = FullLayer::new(inner, self.activation.to_layer(), self.dropout);
 
         (self.size, Box::new(layer))
     }
@@ -39,7 +40,7 @@ impl FullDenseLayerModel {
 
 pub struct FullDenseLayerModelBuilder {
     pub model: FullDenseLayerModel,
-    parent: NetworkModelBuilder
+    parent: NetworkModelBuilder,
 }
 
 impl FullDenseLayerModelBuilder {
@@ -52,7 +53,7 @@ impl FullDenseLayerModelBuilder {
                 weights_initializer: Initializers::GlorotUniform,
                 biases_optimizer: sgd(),
                 weights_optimizer: sgd(),
-                dropout: None
+                dropout: None,
             },
             parent,
         }
@@ -93,7 +94,7 @@ impl FullDenseLayerModelBuilder {
     pub fn tanh(self) -> Self {
         self.activation(Activation::Tanh)
     }
-    
+
     pub fn linear(self) -> Self {
         self.activation(Activation::Linear)
     }

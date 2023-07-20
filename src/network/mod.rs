@@ -3,7 +3,8 @@ use std::fmt::Debug;
 use crate::{
     layer::{Layer, ParameterableLayer},
     linalg::{Matrix, MatrixTrait, Scalar},
-    loss::Loss, monitor::TM,
+    loss::Loss,
+    monitor::TM,
 };
 
 use self::params::NetworkParams;
@@ -71,7 +72,11 @@ impl Network {
     /// `inputs` has shape `(n, i)` where `n` is the number of samples and `i` is the number of inputs.
     ///
     /// Returns `preds` which has shape `(n, j)` where `n` is the number of samples and `j` is the number of outputs.
-    pub fn predict_many(&mut self, inputs: &Vec<Vec<Scalar>>, batch_size: usize) -> Vec<Vec<Scalar>> {
+    pub fn predict_many(
+        &mut self,
+        inputs: &Vec<Vec<Scalar>>,
+        batch_size: usize,
+    ) -> Vec<Vec<Scalar>> {
         TM::start("predmany");
         TM::start("init");
         self.layers.iter_mut().for_each(|l| {
@@ -85,8 +90,7 @@ impl Network {
         TM::end();
 
         TM::start("batches");
-        for input_batch in x_batches.into_iter()
-        {
+        for input_batch in x_batches.into_iter() {
             TM::start(format!("{}/{}", i, n_batches));
             let input_batch_matrix = Matrix::from_column_leading_vector2(&input_batch);
             let pred = self.layers.forward(input_batch_matrix);
@@ -113,7 +117,7 @@ impl Network {
         inputs: &Vec<Vec<Scalar>>,
         ys: &Vec<Vec<Scalar>>,
         loss: &Loss,
-        batch_size: usize
+        batch_size: usize,
     ) -> (Vec<Vec<Scalar>>, Scalar, Scalar) {
         TM::start("predevmany");
         TM::start("init");
@@ -128,11 +132,9 @@ impl Network {
         let y_batches: Vec<_> = ys.chunks(batch_size).map(|c| c.to_vec()).collect();
         let n_batches = x_batches.len();
         TM::end();
-        
+
         TM::start("batches");
-        for (input_batch, y_true_batch) in
-            x_batches.into_iter().zip(y_batches.into_iter())
-        {
+        for (input_batch, y_true_batch) in x_batches.into_iter().zip(y_batches.into_iter()) {
             TM::start(format!("{}/{}", i, n_batches));
             let input_batch_matrix = Matrix::from_column_leading_vector2(&input_batch);
             let pred = self.layers.forward(input_batch_matrix);
@@ -153,7 +155,7 @@ impl Network {
             .fold(0., |acc, x| acc + (x - avg_loss).powi(2))
             / losses.len() as Scalar;
         TM::end();
-        
+
         TM::end_with_message(format!("avg_loss: {}, std_loss: {}", avg_loss, std_loss));
         (preds, avg_loss, std_loss)
     }
@@ -183,7 +185,7 @@ impl Network {
         let y_train_batches: Vec<_> = y_train.chunks(batch_size).map(|c| c.to_vec()).collect();
         let n_batches = x_train_batches.len();
         TM::end();
-        
+
         TM::start("batches");
         for (input_batch, y_true_batch) in
             x_train_batches.into_iter().zip(y_train_batches.into_iter())
@@ -192,7 +194,7 @@ impl Network {
             let input_batch_matrix = Matrix::from_column_leading_vector2(&input_batch);
 
             let pred = self.layers.forward(input_batch_matrix);
-            
+
             let y_true_batch_matrix = Matrix::from_column_leading_vector2(&y_true_batch);
             let e = loss.loss(&y_true_batch_matrix, &pred);
 
@@ -216,7 +218,7 @@ impl Layer for Vec<Box<dyn NetworkLayer>> {
         let mut output = input;
         let n_layers = self.len();
         for (i, layer) in self.iter_mut().enumerate() {
-            TM::start(format!("layer[{}/{}]", i+1, n_layers));
+            TM::start(format!("layer[{}/{}]", i + 1, n_layers));
             output = layer.forward(output);
             TM::end();
         }
@@ -228,7 +230,7 @@ impl Layer for Vec<Box<dyn NetworkLayer>> {
         TM::start("net.back");
         let mut error_gradient = error_gradient;
         for (i, layer) in self.iter_mut().enumerate().rev() {
-            TM::start(format!("layer[{}]", i+1));
+            TM::start(format!("layer[{}]", i + 1));
             error_gradient = layer.backward(epoch, error_gradient);
             TM::end();
         }

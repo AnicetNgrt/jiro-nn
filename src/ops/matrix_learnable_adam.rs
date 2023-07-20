@@ -1,14 +1,9 @@
-use crate::{
-    learning_rate::LearningRateScheduler,
-    linalg::{Matrix, MatrixTrait, Scalar},
-};
+use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
-    model::{
-        impl_model_from_model_fields,
-        Model,
-    },
-    optimizer::Optimizer,
+    learning_rate::{ConstantLearningRate, LearningRateScheduler},
+    model::{impl_model_from_model_fields, Model},
+    optimizer::{Optimizer, OptimizerBuilder},
 };
 
 pub struct MatrixLearnableAdam {
@@ -83,4 +78,78 @@ impl Optimizer<Matrix> for MatrixLearnableAdam {
 
 impl Model for MatrixLearnableAdam {
     impl_model_from_model_fields!(parameter);
-} 
+}
+
+pub struct MatrixLearnableAdamBuilder<Parent> {
+    learning_rate: Box<dyn LearningRateScheduler>,
+    beta1: Scalar,
+    beta2: Scalar,
+    epsilon: Scalar,
+    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<Parent>) -> Parent>>,
+}
+
+impl<Parent> MatrixLearnableAdamBuilder<Parent> {
+    pub fn new(
+        parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<Parent>) -> Parent>>,
+    ) -> Self {
+        Self {
+            learning_rate: Box::new(ConstantLearningRate::new(0.001)),
+            beta1: 0.9,
+            beta2: 0.999,
+            epsilon: 1e-8,
+            parent_acceptor,
+        }
+    }
+
+    pub fn with_beta1(mut self, beta1: Scalar) -> Self {
+        self.beta1 = beta1;
+        self
+    }
+
+    pub fn with_beta2(mut self, beta2: Scalar) -> Self {
+        self.beta2 = beta2;
+        self
+    }
+
+    pub fn with_epsilon(mut self, epsilon: Scalar) -> Self {
+        self.epsilon = epsilon;
+        self
+    }
+
+    pub fn with_constant_learning_rate(mut self, learning_rate: Scalar) -> Self {
+        self.learning_rate = Box::new(ConstantLearningRate::new(learning_rate));
+        self
+    }
+
+    pub fn end(mut self) -> Parent {
+        let acceptor = self
+            .parent_acceptor
+            .take()
+            .expect("Can't .end() if there is no parent. .build() instead.");
+        (acceptor)(self)
+    }
+}
+
+impl<Parent> OptimizerBuilder<Matrix>
+    for MatrixLearnableAdamBuilder<Parent>
+{
+    fn build(self, parameter: Matrix) -> Box<dyn Optimizer<Matrix>> {
+        Box::new(MatrixLearnableAdam::new(
+            parameter,
+            self.learning_rate,
+            self.beta1,
+            self.beta2,
+            self.epsilon,
+        ))
+    }
+
+    fn clone_box(&self) -> Box<dyn OptimizerBuilder<Matrix>> {
+        Box::new(MatrixLearnableAdamBuilder::<bool> {
+            learning_rate: self.learning_rate.clone_box(),
+            parent_acceptor: None,
+            beta1: self.beta1,
+            beta2: self.beta2,
+            epsilon: self.epsilon,
+        })
+    }
+}

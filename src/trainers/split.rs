@@ -11,10 +11,9 @@ use crate::{
 use crate::datatable::DataTable;
 
 #[cfg(not(feature = "data"))]
-use rand::thread_rng;
-#[cfg(not(feature = "data"))]
 use rand::seq::SliceRandom;
-
+#[cfg(not(feature = "data"))]
+use rand::thread_rng;
 
 pub type ReporterClosure = dyn FnMut(usize, EpochEvaluation) -> ();
 
@@ -82,7 +81,7 @@ impl SplitTraining {
     #[cfg(feature = "data")]
     pub fn run(&mut self, model: &Model, data: &DataTable) -> (DataTable, ModelEvaluation) {
         assert!(!self.all_epochs_r2 || self.all_epochs_validation);
-        
+
         TM::start("split");
 
         TM::start("init");
@@ -91,10 +90,9 @@ impl SplitTraining {
         let mut model_eval = ModelEvaluation::new_empty();
 
         let predicted_features = model.dataset_config.predicted_features_names();
-        let id_column = model
-            .dataset_config
-            .get_id_column()
-            .expect("One feature must be configurationified as an id in the dataset dataset_config.");
+        let id_column = model.dataset_config.get_id_column().expect(
+            "One feature must be configurationified as an id in the dataset dataset_config.",
+        );
         let mut network = model.to_network();
 
         // Split the data between validation and training
@@ -176,24 +174,35 @@ impl SplitTraining {
     }
 
     #[cfg(not(feature = "data"))]
-    pub fn run(&mut self, model: &Model, data_x: &Vec<Vec<Scalar>>, data_y: &Vec<Vec<Scalar>>) -> (Vec<Vec<Scalar>>, ModelEvaluation) {
+    pub fn run(
+        &mut self,
+        model: &Model,
+        data_x: &Vec<Vec<Scalar>>,
+        data_y: &Vec<Vec<Scalar>>,
+    ) -> (Vec<Vec<Scalar>>, ModelEvaluation) {
         assert!(!self.all_epochs_r2 || self.all_epochs_validation);
         assert!(data_x.len() == data_y.len());
-        
+
         TM::start("split");
 
         TM::start("init");
 
         let mut model_eval = ModelEvaluation::new_empty();
         let mut network = model.to_network(data_x[0].len());
-        
+
         // Split the data between validation and training
         let split_at = (self.ratio * data_x.len() as Scalar) as usize;
         let mut ids = (0..data_x.len()).map(|x| x as Scalar).collect::<Vec<_>>();
         ids.shuffle(&mut thread_rng());
 
-        let data_x = ids.iter().map(|&i| data_x[i as usize].clone()).collect::<Vec<_>>();
-        let data_y = ids.iter().map(|&i| data_y[i as usize].clone()).collect::<Vec<_>>();
+        let data_x = ids
+            .iter()
+            .map(|&i| data_x[i as usize].clone())
+            .collect::<Vec<_>>();
+        let data_y = ids
+            .iter()
+            .map(|&i| data_y[i as usize].clone())
+            .collect::<Vec<_>>();
 
         let (train_x, validation_x) = data_x.split_at(split_at);
         let (train_y, validation_y) = data_y.split_at(split_at);
@@ -260,7 +269,7 @@ impl SplitTraining {
             eval.add_epoch(epoch_eval);
         }
         TM::end_with_message(format!("Final performance: {:#?}", eval.get_final_epoch()));
-        
+
         model_eval.add_fold(eval);
         self.model = Some(network.get_params());
 

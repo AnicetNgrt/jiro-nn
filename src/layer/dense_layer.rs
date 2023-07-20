@@ -1,12 +1,7 @@
 use std::fmt;
 
 use crate::linalg::{MatrixTrait, Scalar};
-use crate::{
-    initializers::Initializers,
-    layer::Layer,
-    linalg::Matrix,
-    optimizer::{Optimizers},
-};
+use crate::{initializers::Initializers, layer::Layer, linalg::Matrix, optimizer::Optimizers};
 
 use super::LearnableLayer;
 

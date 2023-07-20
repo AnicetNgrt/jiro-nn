@@ -3,8 +3,6 @@
 #[macro_use]
 extern crate assert_float_eq;
 
-/// Monitoring performance of tasks and logging
-pub mod monitor;
 /// Activation functions and abstractions (sigmoid, relu, softmax...)
 pub mod activation;
 /// Model performance benchmarking utilities
@@ -27,6 +25,8 @@ pub mod linalg;
 pub mod loss;
 /// Model configuration
 pub mod model;
+/// Monitoring performance of tasks and logging
+pub mod monitor;
 /// Neural network abstractions
 pub mod network;
 /// Optimizers and abstractions (sgd, adam...)

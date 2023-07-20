@@ -1,4 +1,4 @@
-use crate::linalg::{Scalar, Matrix, MatrixTrait};
+use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 pub trait Model {
     fn get_learnable_params_count(&self) -> usize;
@@ -54,9 +54,9 @@ macro_rules! impl_model_no_params {
         fn get_learnable_params_count(&self) -> usize {
             0
         }
-    
+
         fn load_learnable_params(&mut self, _params: Vec<Scalar>) {}
-    
+
         fn get_learnable_params(&self) -> Vec<Scalar> {
             vec![]
         }
@@ -70,11 +70,11 @@ macro_rules! impl_model_from_model_fields {
         fn get_learnable_params_count(&self) -> usize {
             self.$p.get_learnable_params_count()
         }
-    
+
         fn load_learnable_params(&mut self, params: Vec<Scalar>) {
             self.$p.load_learnable_params(params);
         }
-    
+
         fn get_learnable_params(&self) -> Vec<Scalar> {
             self.$p.get_learnable_params()
         }
@@ -84,14 +84,14 @@ macro_rules! impl_model_from_model_fields {
         fn get_learnable_params_count(&self) -> usize {
             self.$p1.get_learnable_params_count() + self.$p2.get_learnable_params_count()
         }
-    
+
         fn load_learnable_params(&mut self, params: Vec<Scalar>) {
             let params1_count = self.$p1.get_learnable_params_count();
             let (params1_params, params2_params) = params.split_at(params1_count);
             self.$p1.load_learnable_params(params1_params.to_vec());
             self.$p2.load_learnable_params(params2_params.to_vec());
         }
-    
+
         fn get_learnable_params(&self) -> Vec<Scalar> {
             let mut params = self.$p1.get_learnable_params();
             params.extend(self.$p2.get_learnable_params());

@@ -1,6 +1,6 @@
 use crate::{dataset::Dataset, datatable::DataTable};
 
-use super::{DataTransformation, CachedConfig};
+use super::{CachedConfig, DataTransformation};
 
 pub struct Sample {
     pub count: usize,

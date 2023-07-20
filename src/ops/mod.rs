@@ -9,15 +9,16 @@ use self::model::{impl_model_from_model_fields, Model};
 pub mod batched_columns_activation;
 pub mod batched_columns_dense_layer;
 pub mod batched_columns_tanh;
+pub mod combinatory_op;
+pub mod learning_rate;
 pub mod loss;
 pub mod mapping;
 pub mod matrix_learnable_adam;
 pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
-pub mod optimizer;
-pub mod combinatory_op;
 pub mod model_op_builder;
+pub mod optimizer;
 
 pub trait Data: 'static {}
 

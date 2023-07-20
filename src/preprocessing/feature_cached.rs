@@ -1,8 +1,12 @@
-use std::{hash::{Hash, Hasher}, path::Path};
+use std::{
+    hash::{Hash, Hasher},
+    path::Path,
+};
 
 use crate::{
     dataset::{Dataset, Feature},
-    datatable::DataTable, monitor::TM,
+    datatable::DataTable,
+    monitor::TM,
 };
 
 use super::{CachedConfig, DataTransformation};
@@ -110,11 +114,11 @@ impl DataTransformation for FeatureExtractorCached {
                         };
                         TM::end_with_message(format!(
                             "Loaded {} from cache {}",
-                            extracted_feature.name,
-                            cachefile_name
+                            extracted_feature.name, cachefile_name
                         ));
                     } else {
-                        dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
+                        dataset_table =
+                            self.transform_no_cache(dataset_table, feature, &extracted_feature);
                         dataset_table
                             .get_column_as_table(&extracted_feature.name)
                             .to_csv_file(self.get_cached_feature_file_name(
@@ -124,7 +128,8 @@ impl DataTransformation for FeatureExtractorCached {
                             ));
                     }
                 } else {
-                    dataset_table = self.transform_no_cache(dataset_table, feature, &extracted_feature);
+                    dataset_table =
+                        self.transform_no_cache(dataset_table, feature, &extracted_feature);
                 }
 
                 new_config = if extracted_feature.name == feature.name {

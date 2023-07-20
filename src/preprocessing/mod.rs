@@ -3,7 +3,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     path::PathBuf,
-    rc::Rc
+    rc::Rc,
 };
 
 use crate::{dataset::Dataset, datatable::DataTable, monitor::TM};
@@ -121,13 +121,17 @@ impl Pipeline {
 
         let pathname = dataset_path.to_string();
 
-        let data =
-            DataTable::from_file(dataset_path).select_columns(dataset_config.feature_names().as_slice());
+        let data = DataTable::from_file(dataset_path)
+            .select_columns(dataset_config.feature_names().as_slice());
 
         self.data = Some(data);
         self.dataset_config = Some(dataset_config.clone());
 
-        TM::end_with_message(format!("Successfully loaded {:?}: {:?}", pathname, self.data.as_ref().unwrap().describe()));
+        TM::end_with_message(format!(
+            "Successfully loaded {:?}: {:?}",
+            pathname,
+            self.data.as_ref().unwrap().describe()
+        ));
 
         self
     }
