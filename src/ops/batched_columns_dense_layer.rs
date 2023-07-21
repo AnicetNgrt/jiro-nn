@@ -6,7 +6,7 @@ use super::{
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
-    op_subgraph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     optimizer::{Optimizer, OptimizerBuilder},
     Data, LearnableOp, OpSubgraph,
 };

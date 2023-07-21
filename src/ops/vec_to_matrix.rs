@@ -9,9 +9,9 @@ use super::{
         impl_op_builder_from_total_transformation_closures, InputMappingOp, ReferenceMappingOp,
         TotalMappingOp,
     },
-    op_subgraph_builder::{
-        plug_builder_on_opbuild_data_out, plug_builder_on_opbuild_reference_out,
-        plug_builder_on_opbuild_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
+    op_graph_builder::{
+        plug_builder_on_op_subgraph_builder_data_out, plug_builder_on_op_subgraph_builder_reference_out,
+        plug_builder_on_op_subgraph_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
     },
     Data, OpSubgraph,
 };
@@ -26,7 +26,7 @@ impl_op_builder_from_input_transformation_closures!(
     (|matrix| matrix.get_data_col_leading())
 );
 
-plug_builder_on_opbuild_data_out!(
+plug_builder_on_op_subgraph_builder_data_out!(
     data_vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,
@@ -43,7 +43,7 @@ impl_op_builder_from_reference_transformation_closures!(
     (|matrix| matrix.get_data_col_leading())
 );
 
-plug_builder_on_opbuild_reference_out!(
+plug_builder_on_op_subgraph_builder_reference_out!(
     reference_vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,
@@ -60,7 +60,7 @@ impl_op_builder_from_total_transformation_closures!(
     (|matrix| matrix.get_data_col_leading())
 );
 
-plug_builder_on_opbuild_total_out!(
+plug_builder_on_op_subgraph_builder_total_out!(
     vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,

@@ -3,7 +3,7 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use super::{
     impl_op_subgraph_for_learnable_op,
     model::{impl_model_no_params, Model},
-    op_subgraph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     Data, LearnableOp, OpSubgraph,
 };
 

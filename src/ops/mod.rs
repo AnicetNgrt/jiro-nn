@@ -19,7 +19,7 @@ pub mod matrix_learnable_adam;
 pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
-pub mod op_subgraph_builder;
+pub mod op_graph_builder;
 pub mod optimizer;
 pub mod vec_to_matrix;
 

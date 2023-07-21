@@ -112,7 +112,7 @@ impl<
     }
 }
 
-macro_rules! plug_builder_on_opbuild_data_out {
+macro_rules! plug_builder_on_op_subgraph_builder_data_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
         impl<
                 'g,
@@ -130,9 +130,9 @@ macro_rules! plug_builder_on_opbuild_data_out {
     };
 }
 
-pub(crate) use plug_builder_on_opbuild_data_out;
+pub(crate) use plug_builder_on_op_subgraph_builder_data_out;
 
-macro_rules! plug_builder_on_opbuild_reference_out {
+macro_rules! plug_builder_on_op_subgraph_builder_reference_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
         impl<
                 'g,
@@ -150,9 +150,9 @@ macro_rules! plug_builder_on_opbuild_reference_out {
     };
 }
 
-pub(crate) use plug_builder_on_opbuild_reference_out;
+pub(crate) use plug_builder_on_op_subgraph_builder_reference_out;
 
-macro_rules! plug_builder_on_opbuild_total_out {
+macro_rules! plug_builder_on_op_subgraph_builder_total_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
         impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>>
             OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, $plug_type>
@@ -166,7 +166,7 @@ macro_rules! plug_builder_on_opbuild_total_out {
     };
 }
 
-pub(crate) use plug_builder_on_opbuild_total_out;
+pub(crate) use plug_builder_on_op_subgraph_builder_total_out;
 
 pub trait OpSubgraphBuilder<
     'g,

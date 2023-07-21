@@ -2,7 +2,7 @@ use crate::linalg::{Matrix, MatrixTrait};
 
 use super::{
     batched_columns_activation::BatchedColumnsActivation,
-    op_subgraph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     Data, OpSubgraph,
 };
 

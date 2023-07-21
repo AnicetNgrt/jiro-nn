@@ -1,4 +1,4 @@
-use jiro_nn::{linalg::Matrix, ops::model_op_builder::OpGraphBuilder};
+use jiro_nn::{linalg::Matrix, ops::op_graph_builder::OpGraphBuilder};
 
 fn model() -> Matrix {
     let mut op_build = OpGraphBuilder::data_as_entry_point(
