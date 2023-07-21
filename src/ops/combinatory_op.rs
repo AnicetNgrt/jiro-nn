@@ -5,6 +5,18 @@ use super::{
     Data, ModelOp, OpChain,
 };
 
+pub struct OpGraph<'a, DataOut: Data, DataRefOut: Data>(pub Box<dyn ModelOp<(), DataOut, (), DataRefOut> + 'a>);
+
+impl<'a, DataOut: Data, DataRefOut: Data> OpGraph<'a, DataOut, DataRefOut> {
+    pub fn run_inference(&mut self) -> DataOut {
+        self.0.forward_or_transform_inference(())
+    }
+
+    pub fn run(&mut self) -> (DataOut, DataRefOut) {
+        self.0.forward_or_transform((), ())
+    } 
+}
+
 pub struct OriginOp<D: Data, DataRef: Data> {
     _phantom: std::marker::PhantomData<(D, DataRef)>,
 }

@@ -1,4 +1,4 @@
-use super::{combinatory_op::OriginOp, Data, ModelOp, OpChain, mapping::{InputMappingOp, ReferenceMappingOp}};
+use super::{combinatory_op::{OriginOp, OpGraph}, Data, ModelOp, OpChain, mapping::{InputMappingOp, ReferenceMappingOp}};
 
 pub struct OpOriginBuilder<D: Data, DataRef: Data> {
     _phantom: std::marker::PhantomData<(D, DataRef)>,
@@ -65,6 +65,15 @@ impl<'a, D: Data + Clone, DataRef: Data + Clone> OpBuild<'a, (), D, (), DataRef>
                     ((), ()),
                 )
             })),
+        }
+    }
+
+    pub fn build_full_graph(
+        &mut self
+    ) -> OpGraph<'a, D, DataRef> {
+        match self.builder.take() {
+            None => panic!("OpBuild::build() called twice."),
+            Some(builder) => OpGraph((builder)((), ()).0),
         }
     }
 }
