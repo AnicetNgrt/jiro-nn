@@ -1,10 +1,10 @@
-use super::{combinatory_op::OriginOp, Data, ModelOp, OpChain};
+use super::{combinatory_op::OriginOp, Data, ModelOp, OpChain, mapping::{InputMappingOp, ReferenceMappingOp}};
 
-pub struct ModelBuilderOrigin<D: Data, DataRef: Data> {
+pub struct OpOriginBuilder<D: Data, DataRef: Data> {
     _phantom: std::marker::PhantomData<(D, DataRef)>,
 }
 
-impl<D: Data, DataRef: Data> ModelBuilderOrigin<D, DataRef> {
+impl<D: Data, DataRef: Data> OpOriginBuilder<D, DataRef> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -12,52 +12,87 @@ impl<D: Data, DataRef: Data> ModelBuilderOrigin<D, DataRef> {
     }
 }
 
-impl<D: Data, DataRef: Data> OpBuilder<D, D, DataRef, DataRef> for ModelBuilderOrigin<D, DataRef> {
+impl<D: Data, DataRef: Data> OpBuilder<D, D, DataRef, DataRef> for OpOriginBuilder<D, DataRef> {
     fn build(
-        &self,
+        &mut self,
         sample_data: D,
         sample_ref: DataRef,
-    ) -> (Box<dyn ModelOp<D, D, DataRef, DataRef>>, (D, DataRef)) {
-        (Box::new(OriginOp::new()), (sample_data, sample_ref))
+    ) -> (
+        Box<dyn ModelOp<D, D, DataRef, DataRef>>,
+        (D, DataRef),
+    ) {
+        (
+            Box::new(OriginOp::new()),
+            (sample_data, sample_ref),
+        )
     }
 }
 
 pub struct OpBuild<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data> {
-    pub builder: Box<
-        dyn Fn(
+    pub builder: Option<Box<
+        dyn FnOnce(
                 DataIn,
                 DataRefIn,
             ) -> (
                 Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
                 (DataIn, DataRefIn),
             ) + 'a,
-    >,
+    >>,
+}
+
+impl<'a, D: Data + Clone, DataRef: Data + Clone> OpBuild<'a, (), D, (), DataRef> {
+    pub fn from_data(data: D, reference: DataRef) -> Self {
+        let origin_op = OriginOp::<(), ()>::new();
+        let chain_op = OpChain::new(
+            Box::new(origin_op),
+            Box::new(InputMappingOp::new(
+                move |_| data.clone(),
+                |_| () 
+            ))
+        );
+        let chain_op = OpChain::new(
+            Box::new(chain_op),
+            Box::new(ReferenceMappingOp::new(
+                move |_| reference.clone(),
+                |_| () 
+            ))
+        );
+
+        Self {
+            builder: Some(Box::new(move |_, _| {
+                (
+                    Box::new(chain_op),
+                    ((), ()),
+                )
+            })),
+        }
+    }
 }
 
 impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data>
     OpBuild<'a, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     pub fn new_fn(
-        builder: fn(
+        builder: Box<dyn FnOnce(
             DataIn,
             DataRefIn,
         ) -> (
             Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
             (DataIn, DataRefIn),
-        ),
+        ) + 'a>,
     ) -> Self {
         Self {
-            builder: Box::new(builder),
+            builder: Some(builder),
         }
     }
 
     pub fn new_op_builder<OpB: OpBuilder<DataIn, DataOut, DataRefIn, DataRefOut> + 'a>(
-        builder: OpB,
+        mut builder: OpB,
     ) -> Self {
         Self {
-            builder: Box::new(move |sample_data, sample_ref| {
+            builder: Some(Box::new(move |sample_data, sample_ref| {
                 builder.build(sample_data, sample_ref)
-            }),
+            })),
         }
     }
 }
@@ -67,20 +102,65 @@ impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data>
     for OpBuild<'a, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     fn build(
-        &self,
+        &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
         Box<dyn ModelOp<DataIn, DataOut, DataRefIn, DataRefOut>>,
         (DataIn, DataRefIn),
     ) {
-        (self.builder)(sample_data, sample_ref)
+        match self.builder.take() {
+            None => panic!("OpBuild::build() called twice."),
+            Some(builder) => (builder)(sample_data, sample_ref),
+        }
     }
 }
 
+macro_rules! plug_builder_on_opbuild_data_out {
+    ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
+        impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
+            OpBuild<'a, DataIn, $plug_type, DataRefIn, DataRefOut>
+        {
+            pub fn $plug_name(self) -> OpBuild<'a, DataIn, $out_type, DataRefIn, DataRefOut> {
+                self.push_and_pack($builder)
+            }
+        }
+    };
+}
+
+pub(crate) use plug_builder_on_opbuild_data_out;
+
+macro_rules! plug_builder_on_opbuild_reference_out {
+    ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
+        impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data>
+            OpBuild<'a, DataIn, DataOut, DataRefIn, $plug_type>
+        {
+            pub fn $plug_name(self) -> OpBuild<'a, DataIn, DataOut, DataRefIn, $out_type> {
+                self.push_and_pack($builder)
+            }
+        }
+    };
+}
+
+pub(crate) use plug_builder_on_opbuild_reference_out;
+
+macro_rules! plug_builder_on_opbuild_total_out {
+    ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
+        impl<'a, DataIn: Data, DataRefIn: Data>
+            OpBuild<'a, DataIn, $plug_type, DataRefIn, $plug_type>
+        {
+            pub fn $plug_name(self) -> OpBuild<'a, DataIn, $out_type, DataRefIn, $out_type> {
+                self.push_and_pack($builder)
+            }
+        }
+    };
+}
+
+pub(crate) use plug_builder_on_opbuild_total_out;
+
 pub trait OpBuilder<DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data> {
     fn build(
-        &self,
+        &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
@@ -135,7 +215,7 @@ impl<
     for OpBuilderChain<'a, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn build(
-        &self,
+        &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (

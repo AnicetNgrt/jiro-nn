@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::Arc, cell::RefCell};
+
 use crate::{
     datatable::DataTable,
     linalg::{Matrix, Scalar},
@@ -19,6 +21,7 @@ pub mod matrix_learnable_sgd;
 pub mod model;
 pub mod model_op_builder;
 pub mod optimizer;
+pub mod vec_to_matrix;
 
 pub trait Data: 'static {}
 
@@ -211,8 +214,23 @@ impl<
     }
 }
 
+impl<D: Data> Data for RefCell<D> {}
+impl<D: Data> Data for Arc<D> {}
+impl<D: Data> Data for Rc<D> {}
+impl<D: Data> Data for Box<D> {}
+impl<D: Data> Data for Option<D> {}
+impl<D1: Data, D2: Data, D3: Data, D4: Data, D5: Data, D6: Data> Data for (D1, D2, D3, D4, D5, D6) {}
+impl<D1: Data, D2: Data, D3: Data, D4: Data, D5: Data> Data for (D1, D2, D3, D4, D5) {}
+impl<D1: Data, D2: Data, D3: Data, D4: Data> Data for (D1, D2, D3, D4) {}
+impl<D1: Data, D2: Data, D3: Data> Data for (D1, D2, D3) {}
+impl<D1: Data, D2: Data> Data for (D1, D2) {}
+impl<D: Data> Data for (D,) {}
+impl Data for () {}
 impl<D: Data> Data for Vec<D> {}
+impl<D: Data, const S: usize> Data for [D; S] {}
 impl Data for bool {}
+impl Data for String {}
+impl Data for usize {}
 impl Data for Scalar {}
 impl Data for Matrix {}
 impl Data for Image {}

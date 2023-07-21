@@ -27,7 +27,7 @@ pub struct TanhBuilder;
 
 impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef> for TanhBuilder {
     fn build(
-        &self,
+        &mut self,
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
