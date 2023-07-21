@@ -6,7 +6,7 @@ use super::{
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
-    model_op_builder::{CombinatoryOpBuilder, OpBuild, OpBuilder},
+    model_op_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     optimizer::{Optimizer, OptimizerBuilder},
     Data, LearnableOp, ModelOp,
 };
@@ -171,7 +171,7 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
     }
 }
 
-impl<'a, Parent: 'a, DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
+impl<'a, Parent: 'a, DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayerBuilder<'a, Parent>
 {
     fn build(
@@ -196,12 +196,12 @@ impl<'a, Parent: 'a, DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
 }
 
 impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
-    OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+    OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn dense(
         self,
         output_neurons: usize,
-    ) -> BatchedColumnsDenseLayerBuilder<'a, OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>>
+    ) -> BatchedColumnsDenseLayerBuilder<'a, OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>>
     {
         BatchedColumnsDenseLayerBuilder::new(
             output_neurons,

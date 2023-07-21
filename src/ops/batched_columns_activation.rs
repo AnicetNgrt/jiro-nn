@@ -3,7 +3,7 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use super::{
     impl_model_op_for_learnable_op,
     model::{impl_model_no_params, Model},
-    model_op_builder::{CombinatoryOpBuilder, OpBuild, OpBuilder},
+    model_op_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     Data, LearnableOp, ModelOp,
 };
 
@@ -63,7 +63,7 @@ impl BatchedColumnsActivationBuilder {
     }
 }
 
-impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
+impl<DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
     fn build(
@@ -82,13 +82,13 @@ impl<DataRef: Data> OpBuilder<Matrix, Matrix, DataRef, DataRef>
 }
 
 impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
-    OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+    OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn custom_activation(
         self,
         activation: fn(&Matrix) -> Matrix,
         activation_prime: fn(&Matrix) -> Matrix,
-    ) -> OpBuild<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+    ) -> OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
         let builder = BatchedColumnsActivationBuilder::new(activation, activation_prime);
         self.push_and_pack(builder)
     }

@@ -65,7 +65,7 @@ where
 
 macro_rules! impl_op_builder_from_input_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl<DataRef: Data> OpBuilder<$in_type, $out_type, DataRef, DataRef> for $t {
+        impl<DataRef: Data> OpSubgraphBuilder<$in_type, $out_type, DataRef, DataRef> for $t {
             fn build(
                 &mut self,
                 sample_data: $in_type,
@@ -146,7 +146,7 @@ where
 
 macro_rules! impl_op_builder_from_reference_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl<D: Data> OpBuilder<D, D, $in_type, $out_type> for $t {
+        impl<D: Data> OpSubgraphBuilder<D, D, $in_type, $out_type> for $t {
             fn build(
                 &mut self,
                 sample_data: D,
@@ -226,7 +226,7 @@ impl<DataIn: Data, DataOut: Data, F, FP> ModelOp<DataIn, DataOut, DataIn, DataOu
 
 macro_rules! impl_op_builder_from_total_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl OpBuilder<$in_type, $out_type, $in_type, $out_type> for $t {
+        impl OpSubgraphBuilder<$in_type, $out_type, $in_type, $out_type> for $t {
             fn build(
                 &mut self,
                 sample_data: $in_type,

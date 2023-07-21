@@ -11,7 +11,7 @@ use super::{
     },
     model_op_builder::{
         plug_builder_on_opbuild_data_out, plug_builder_on_opbuild_reference_out,
-        plug_builder_on_opbuild_total_out, CombinatoryOpBuilder, OpBuild, OpBuilder,
+        plug_builder_on_opbuild_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
     },
     Data, ModelOp,
 };
