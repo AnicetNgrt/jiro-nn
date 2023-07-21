@@ -9,11 +9,11 @@ use super::{
         impl_op_builder_from_total_transformation_closures, InputMappingOp, ReferenceMappingOp,
         TotalMappingOp,
     },
-    model_op_builder::{
+    op_subgraph_builder::{
         plug_builder_on_opbuild_data_out, plug_builder_on_opbuild_reference_out,
         plug_builder_on_opbuild_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
     },
-    Data, ModelOp,
+    Data, OpSubgraph,
 };
 
 pub struct InputVec2ToMatrixBuilder;

@@ -1,7 +1,7 @@
 use super::{
     combinatory_op::{OpGraph, OriginOp},
     mapping::{InputMappingOp, ReferenceMappingOp},
-    Data, ModelOp, OpChain,
+    Data, OpSubgraph, OpChain,
 };
 
 pub struct OpGraphBuilder<
@@ -17,7 +17,7 @@ pub struct OpGraphBuilder<
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+                    Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
                 ) + 'g,
         >,
@@ -65,7 +65,7 @@ impl<
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+                    Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
                 ) + 'g,
         >,
@@ -102,7 +102,7 @@ impl<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         match self.builder.take() {
@@ -181,7 +181,7 @@ pub trait OpSubgraphBuilder<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     );
 }
@@ -242,7 +242,7 @@ impl<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         let (mut first_op, (sample_data, sample_ref)) =

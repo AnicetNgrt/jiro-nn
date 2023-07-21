@@ -1,10 +1,10 @@
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
-    impl_model_op_for_learnable_op,
+    impl_op_subgraph_for_learnable_op,
     model::{impl_model_no_params, Model},
-    model_op_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
-    Data, LearnableOp, ModelOp,
+    op_subgraph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    Data, LearnableOp, OpSubgraph,
 };
 
 pub struct BatchedColumnsActivation {
@@ -45,10 +45,10 @@ impl<'g> LearnableOp<'g, Matrix> for BatchedColumnsActivation {
     }
 }
 
-impl<'g, DataRef: Data<'g>> ModelOp<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivation
 {
-    impl_model_op_for_learnable_op!(Matrix, DataRef);
+    impl_op_subgraph_for_learnable_op!(Matrix, DataRef);
 }
 
 pub struct BatchedColumnsActivationBuilder {
@@ -74,7 +74,7 @@ impl<'g, DataRef: Data<'g>>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         (Matrix, DataRef),
     ) {
         (

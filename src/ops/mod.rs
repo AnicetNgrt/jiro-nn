@@ -19,7 +19,7 @@ pub mod matrix_learnable_adam;
 pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
-pub mod model_op_builder;
+pub mod op_subgraph_builder;
 pub mod optimizer;
 pub mod vec_to_matrix;
 
@@ -52,7 +52,7 @@ pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>:
     fn revert(&mut self, output_or_reference: DataOut) -> DataIn;
 }
 
-pub trait ModelOp<
+pub trait OpSubgraph<
     'g,
     DataIn: Data<'g>,
     DataOut: Data<'g>,
@@ -73,7 +73,7 @@ pub trait ModelOp<
     ) -> (DataIn, DataRefIn);
 }
 
-macro_rules! impl_model_op_for_learnable_op {
+macro_rules! impl_op_subgraph_for_learnable_op {
     ($d:ident, $dref:ident) => {
         fn forward_or_transform_inference(&mut self, input: $d) -> $d {
             self.forward_inference(input)
@@ -89,9 +89,9 @@ macro_rules! impl_model_op_for_learnable_op {
     };
 }
 
-pub(crate) use impl_model_op_for_learnable_op;
+pub(crate) use impl_op_subgraph_for_learnable_op;
 
-macro_rules! impl_model_op_for_input_transformation_op {
+macro_rules! impl_op_subgraph_for_input_transformation_op {
     ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             self.transform(input)
@@ -107,9 +107,9 @@ macro_rules! impl_model_op_for_input_transformation_op {
     };
 }
 
-pub(crate) use impl_model_op_for_input_transformation_op;
+pub(crate) use impl_op_subgraph_for_input_transformation_op;
 
-macro_rules! impl_model_op_for_reference_transformation_op {
+macro_rules! impl_op_subgraph_for_reference_transformation_op {
     ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             input
@@ -125,9 +125,9 @@ macro_rules! impl_model_op_for_reference_transformation_op {
     };
 }
 
-pub(crate) use impl_model_op_for_reference_transformation_op;
+pub(crate) use impl_op_subgraph_for_reference_transformation_op;
 
-macro_rules! impl_model_op_for_total_transformation_op {
+macro_rules! impl_op_subgraph_for_total_transformation_op {
     ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
         fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
             self.transform(input)
@@ -143,7 +143,7 @@ macro_rules! impl_model_op_for_total_transformation_op {
     };
 }
 
-pub(crate) use impl_model_op_for_total_transformation_op;
+pub(crate) use impl_op_subgraph_for_total_transformation_op;
 
 pub struct OpChain<
     'g,
@@ -154,8 +154,8 @@ pub struct OpChain<
     DataRefMid: Data<'g>,
     DataRefOut: Data<'g>,
 > {
-    first_op: Box<dyn ModelOp<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-    second_op: Box<dyn ModelOp<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
+    first_op: Box<dyn OpSubgraph<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+    second_op: Box<dyn OpSubgraph<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
 }
 
 impl<
@@ -179,7 +179,7 @@ impl<
         DataRefIn: Data<'g>,
         DataRefMid: Data<'g>,
         DataRefOut: Data<'g>,
-    > ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    > OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut>
     for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
@@ -217,8 +217,8 @@ impl<
     > OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
-        first_op: Box<dyn ModelOp<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-        second_op: Box<dyn ModelOp<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
+        first_op: Box<dyn OpSubgraph<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+        second_op: Box<dyn OpSubgraph<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
     ) -> Self {
         Self {
             first_op,

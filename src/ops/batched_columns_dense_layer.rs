@@ -1,14 +1,14 @@
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
-    impl_model_op_for_learnable_op,
+    impl_op_subgraph_for_learnable_op,
     matrix_learnable_adam::MatrixLearnableAdamBuilder,
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
-    model_op_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    op_subgraph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     optimizer::{Optimizer, OptimizerBuilder},
-    Data, LearnableOp, ModelOp,
+    Data, LearnableOp, OpSubgraph,
 };
 
 pub struct BatchedColumnsDenseLayer<'g> {
@@ -69,10 +69,10 @@ impl<'g> Model for BatchedColumnsDenseLayer<'g> {
     impl_model_from_model_fields!(weights_optimizer, biases_optimizer);
 }
 
-impl<'g, DataRef: Data<'g>> ModelOp<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayer<'g>
 {
-    impl_model_op_for_learnable_op!(Matrix, DataRef);
+    impl_op_subgraph_for_learnable_op!(Matrix, DataRef);
 }
 
 pub struct BatchedColumnsDenseLayerBuilder<'g, Parent: 'g> {
@@ -189,7 +189,7 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         (Matrix, DataRef),
     ) {
         let input_dims = sample_data.dim();

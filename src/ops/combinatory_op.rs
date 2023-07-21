@@ -2,11 +2,11 @@ use crate::linalg::Scalar;
 
 use super::{
     model::{impl_model_no_params, Model},
-    Data, ModelOp, OpChain,
+    Data, OpSubgraph, OpChain,
 };
 
 pub struct OpGraph<'g, DataOut: Data<'g>, DataRefOut: Data<'g>>(
-    pub Box<dyn ModelOp<'g, (), DataOut, (), DataRefOut> + 'g>,
+    pub Box<dyn OpSubgraph<'g, (), DataOut, (), DataRefOut> + 'g>,
 );
 
 impl<'g, DataOut: Data<'g>, DataRefOut: Data<'g>>
@@ -39,7 +39,7 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> Model
     impl_model_no_params!();
 }
 
-impl<'g, D: Data<'g>, DataRef: Data<'g>> ModelOp<'g, D, D, DataRef, DataRef>
+impl<'g, D: Data<'g>, DataRef: Data<'g>> OpSubgraph<'g, D, D, DataRef, DataRef>
     for OriginOp<'g, D, DataRef>
 {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
@@ -66,7 +66,7 @@ pub trait CombinatoryOp<
     fn push<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpPushed: ModelOp<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+        OpPushed: OpSubgraph<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,
@@ -82,12 +82,12 @@ impl<
         MOp,
     > CombinatoryOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
 where
-    MOp: ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
+    MOp: OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
     fn push<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpPushed: ModelOp<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+        OpPushed: OpSubgraph<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,

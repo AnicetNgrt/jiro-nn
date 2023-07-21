@@ -1,10 +1,10 @@
 use crate::linalg::Scalar;
 
 use super::{
-    impl_model_op_for_input_transformation_op, impl_model_op_for_reference_transformation_op,
-    impl_model_op_for_total_transformation_op,
+    impl_op_subgraph_for_input_transformation_op, impl_op_subgraph_for_reference_transformation_op,
+    impl_op_subgraph_for_total_transformation_op,
     model::{impl_model_no_params, Model},
-    Data, InputTransformationOp, ModelOp, ReferenceTransformationOp, TotalTransformationOp,
+    Data, InputTransformationOp, OpSubgraph, ReferenceTransformationOp, TotalTransformationOp,
 };
 
 pub struct InputMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP>
@@ -58,13 +58,13 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRef: Data<'g>, F, FP>
-    ModelOp<'g, DataIn, DataOut, DataRef, DataRef>
+    OpSubgraph<'g, DataIn, DataOut, DataRef, DataRef>
     for InputMappingOp<'g, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
-    impl_model_op_for_input_transformation_op!(DataIn, DataOut, DataRef, DataRef);
+    impl_op_subgraph_for_input_transformation_op!(DataIn, DataOut, DataRef, DataRef);
 }
 
 macro_rules! impl_op_builder_from_input_transformation_closures {
@@ -77,7 +77,7 @@ macro_rules! impl_op_builder_from_input_transformation_closures {
                 sample_data: $in_type,
                 sample_ref: DataRef,
             ) -> (
-                Box<dyn ModelOp<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
+                Box<dyn OpSubgraph<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
                 ($in_type, DataRef),
             ) {
                 let op = InputMappingOp::new($transform, $revert);
@@ -146,13 +146,13 @@ where
 }
 
 impl<'g, D: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP>
-    ModelOp<'g, D, D, DataRefIn, DataRefOut>
+    OpSubgraph<'g, D, D, DataRefIn, DataRefOut>
     for ReferenceMappingOp<'g, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
 {
-    impl_model_op_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
+    impl_op_subgraph_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
 }
 
 macro_rules! impl_op_builder_from_reference_transformation_closures {
@@ -165,7 +165,7 @@ macro_rules! impl_op_builder_from_reference_transformation_closures {
                 sample_data: D,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn ModelOp<'g, D, D, $in_type, $out_type> + 'g>,
+                Box<dyn OpSubgraph<'g, D, D, $in_type, $out_type> + 'g>,
                 (D, $in_type),
             ) {
                 let op = ReferenceMappingOp::new($transform, $revert);
@@ -229,13 +229,13 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP>
-    ModelOp<'g, DataIn, DataOut, DataIn, DataOut>
+    OpSubgraph<'g, DataIn, DataOut, DataIn, DataOut>
     for TotalMappingOp<'g, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
-    impl_model_op_for_total_transformation_op!(DataIn, DataOut, DataIn, DataOut);
+    impl_op_subgraph_for_total_transformation_op!(DataIn, DataOut, DataIn, DataOut);
 }
 
 macro_rules! impl_op_builder_from_total_transformation_closures {
@@ -248,7 +248,7 @@ macro_rules! impl_op_builder_from_total_transformation_closures {
                 sample_data: $in_type,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn ModelOp<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
+                Box<dyn OpSubgraph<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
                 ($in_type, $in_type),
             ) {
                 let op = TotalMappingOp::new($transform, $revert);
