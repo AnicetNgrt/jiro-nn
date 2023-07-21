@@ -20,7 +20,7 @@ pub fn main() {
         .load_data("./dataset/kc_house_data.csv", Some(&model.dataset_config))
         .run();
 
-    println!("Data: {:#?}", data);
+    println!("Data<'a>: {:#?}", data);
 
     let model = model.with_new_dataset(updated_dataset_config);
     let predicted_features = model.dataset_config.predicted_features_names();

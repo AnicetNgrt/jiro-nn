@@ -217,7 +217,7 @@ Side/future goals:
 
 Non-goals:
 
-- Data visualization
+- Data<'a> visualization
 - Compliance with other frameworks/standards
 - Perfect error handling (don't be ashamed of `unwrap` and `expect`)
 

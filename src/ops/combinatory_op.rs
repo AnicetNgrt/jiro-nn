@@ -5,23 +5,27 @@ use super::{
     Data, ModelOp, OpChain,
 };
 
-pub struct OpGraph<'a, DataOut: Data, DataRefOut: Data>(pub Box<dyn ModelOp<(), DataOut, (), DataRefOut> + 'a>);
+pub struct OpGraph<'opgraph, DataOut: Data<'opgraph>, DataRefOut: Data<'opgraph>>(
+    pub Box<dyn ModelOp<'opgraph, (), DataOut, (), DataRefOut> + 'opgraph>,
+);
 
-impl<'a, DataOut: Data, DataRefOut: Data> OpGraph<'a, DataOut, DataRefOut> {
+impl<'opgraph, DataOut: Data<'opgraph>, DataRefOut: Data<'opgraph>>
+    OpGraph<'opgraph, DataOut, DataRefOut>
+{
     pub fn run_inference(&mut self) -> DataOut {
         self.0.forward_or_transform_inference(())
     }
 
     pub fn run(&mut self) -> (DataOut, DataRefOut) {
         self.0.forward_or_transform((), ())
-    } 
+    }
 }
 
-pub struct OriginOp<D: Data, DataRef: Data> {
-    _phantom: std::marker::PhantomData<(D, DataRef)>,
+pub struct OriginOp<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> {
+    _phantom: std::marker::PhantomData<&'opgraph (D, DataRef)>,
 }
 
-impl<D: Data, DataRef: Data> OriginOp<D, DataRef> {
+impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> OriginOp<'opgraph, D, DataRef> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -29,11 +33,15 @@ impl<D: Data, DataRef: Data> OriginOp<D, DataRef> {
     }
 }
 
-impl<D: Data, DataRef: Data> Model for OriginOp<D, DataRef> {
+impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> Model
+    for OriginOp<'opgraph, D, DataRef>
+{
     impl_model_no_params!();
 }
 
-impl<D: Data, DataRef: Data> ModelOp<D, D, DataRef, DataRef> for OriginOp<D, DataRef> {
+impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> ModelOp<'opgraph, D, D, DataRef, DataRef>
+    for OriginOp<'opgraph, D, DataRef>
+{
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
     }
@@ -47,30 +55,44 @@ impl<D: Data, DataRef: Data> ModelOp<D, D, DataRef, DataRef> for OriginOp<D, Dat
     }
 }
 
-pub trait CombinatoryOp<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data> {
-    fn push<
-        DataOutPushed: Data,
-        DataRefOutPushed: Data,
-        OpPushed: ModelOp<DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'a,
-    >(
-        self,
-        op: OpPushed,
-    ) -> OpChain<'a, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
-}
-
-impl<'a, DataIn: Data, DataOut: Data, DataRefIn: Data, DataRefOut: Data, MOp>
-    CombinatoryOp<'a, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
-where
-    MOp: ModelOp<DataIn, DataOut, DataRefIn, DataRefOut> + 'a,
+pub trait CombinatoryOp<
+    'opgraph,
+    DataIn: Data<'opgraph>,
+    DataOut: Data<'opgraph>,
+    DataRefIn: Data<'opgraph>,
+    DataRefOut: Data<'opgraph>,
+>
 {
     fn push<
-        DataOutPushed: Data,
-        DataRefOutPushed: Data,
-        OpPushed: ModelOp<DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'a,
+        DataOutPushed: Data<'opgraph>,
+        DataRefOutPushed: Data<'opgraph>,
+        OpPushed: ModelOp<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'opgraph,
     >(
         self,
         op: OpPushed,
-    ) -> OpChain<'a, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed> {
+    ) -> OpChain<'opgraph, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
+}
+
+impl<
+        'opgraph,
+        DataIn: Data<'opgraph>,
+        DataOut: Data<'opgraph>,
+        DataRefIn: Data<'opgraph>,
+        DataRefOut: Data<'opgraph>,
+        MOp,
+    > CombinatoryOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
+where
+    MOp: ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph,
+{
+    fn push<
+        DataOutPushed: Data<'opgraph>,
+        DataRefOutPushed: Data<'opgraph>,
+        OpPushed: ModelOp<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'opgraph,
+    >(
+        self,
+        op: OpPushed,
+    ) -> OpChain<'opgraph, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>
+    {
         OpChain::new(Box::new(self), Box::new(op))
     }
 }

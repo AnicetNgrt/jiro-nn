@@ -27,7 +27,7 @@ impl Model for BatchedColumnsActivation {
     impl_model_no_params!();
 }
 
-impl LearnableOp<Matrix> for BatchedColumnsActivation {
+impl<'opgraph> LearnableOp<'opgraph, Matrix> for BatchedColumnsActivation {
     fn forward_inference(&mut self, input: Matrix) -> Matrix {
         (self.f)(&input)
     }
@@ -45,7 +45,9 @@ impl LearnableOp<Matrix> for BatchedColumnsActivation {
     }
 }
 
-impl<DataRef: Data> ModelOp<Matrix, Matrix, DataRef, DataRef> for BatchedColumnsActivation {
+impl<'opgraph, DataRef: Data<'opgraph>> ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef>
+    for BatchedColumnsActivation
+{
     impl_model_op_for_learnable_op!(Matrix, DataRef);
 }
 
@@ -63,7 +65,8 @@ impl BatchedColumnsActivationBuilder {
     }
 }
 
-impl<DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
+impl<'opgraph, DataRef: Data<'opgraph>>
+    OpSubgraphBuilder<'opgraph, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
     fn build(
@@ -71,7 +74,7 @@ impl<DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        Box<dyn ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef> + 'opgraph>,
         (Matrix, DataRef),
     ) {
         (
@@ -81,14 +84,14 @@ impl<DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
     }
 }
 
-impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
-    OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+impl<'opgraph, DataIn: Data<'opgraph>, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>>
+    OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn custom_activation(
         self,
         activation: fn(&Matrix) -> Matrix,
         activation_prime: fn(&Matrix) -> Matrix,
-    ) -> OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+    ) -> OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut> {
         let builder = BatchedColumnsActivationBuilder::new(activation, activation_prime);
         self.push_and_pack(builder)
     }

@@ -5,35 +5,37 @@ use super::{
     Data, ModelOp,
 };
 
-pub trait MeanableData: Data {
+pub trait MeanableData<'opgraph>: Data<'opgraph> {
     fn mean(&self) -> Scalar;
 }
 
-pub struct Loss<D: MeanableData> {
+pub struct Loss<'opgraph, D: MeanableData<'opgraph>> {
     pub loss: fn(&D, &D) -> D,
     pub grad: fn(D, &D) -> D,
     pub input: Option<D>,
+    _phantom: std::marker::PhantomData<&'opgraph D>,
 }
 
-impl<D: MeanableData> Model for Loss<D> {
+impl<'opgraph, D: MeanableData<'opgraph>> Model for Loss<'opgraph, D> {
     impl_model_no_params!();
 }
 
-impl<D: MeanableData> Loss<D> {
+impl<'opgraph, D: MeanableData<'opgraph>> Loss<'opgraph, D> {
     pub fn new(loss: fn(&D, &D) -> D, grad: fn(D, &D) -> D) -> Self {
         Self {
             loss,
             grad,
             input: None,
+            _phantom: std::marker::PhantomData,
         }
     }
 
-    pub fn loss(&self, input: &D, reference: &D) -> Scalar {
+    pub fn loss(&self, input: &'opgraph D, reference: &'opgraph D) -> Scalar {
         (self.loss)(input, reference).mean()
     }
 }
 
-impl<D: MeanableData> ModelOp<D, D, D, D> for Loss<D> {
+impl<'opgraph, D: MeanableData<'opgraph>> ModelOp<'opgraph, D, D, D, D> for Loss<'opgraph, D> {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
     }
@@ -55,21 +57,21 @@ impl<D: MeanableData> ModelOp<D, D, D, D> for Loss<D> {
     }
 }
 
-impl MeanableData for Scalar {
+impl<'opgraph> MeanableData<'opgraph> for Scalar {
     fn mean(&self) -> Scalar {
         self.clone()
     }
 }
 
-impl MeanableData for Matrix {
+impl<'opgraph> MeanableData<'opgraph> for Matrix {
     fn mean(&self) -> Scalar {
         MatrixTrait::mean(self)
     }
 }
 
-impl<T: MeanableData> MeanableData for Vec<T>
+impl<'opgraph, T: MeanableData<'opgraph>> MeanableData<'opgraph> for Vec<T>
 where
-    Vec<T>: Data,
+    Vec<T>: Data<'opgraph>,
 {
     fn mean(&self) -> Scalar {
         self.iter().map(|x| x.mean()).sum::<Scalar>() / self.len() as Scalar

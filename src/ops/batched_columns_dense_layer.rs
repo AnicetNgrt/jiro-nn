@@ -11,16 +11,16 @@ use super::{
     Data, LearnableOp, ModelOp,
 };
 
-pub struct BatchedColumnsDenseLayer {
-    weights_optimizer: Box<dyn Optimizer<Matrix>>,
-    biases_optimizer: Box<dyn Optimizer<Matrix>>,
+pub struct BatchedColumnsDenseLayer<'opgraph> {
+    weights_optimizer: Box<dyn Optimizer<'opgraph, Matrix> + 'opgraph>,
+    biases_optimizer: Box<dyn Optimizer<'opgraph, Matrix> + 'opgraph>,
     input: Option<Matrix>,
 }
 
-impl BatchedColumnsDenseLayer {
+impl<'opgraph> BatchedColumnsDenseLayer<'opgraph> {
     pub fn new(
-        weights_optimizer: Box<dyn Optimizer<Matrix>>,
-        biases_optimizer: Box<dyn Optimizer<Matrix>>,
+        weights_optimizer: Box<dyn Optimizer<'opgraph, Matrix> + 'opgraph>,
+        biases_optimizer: Box<dyn Optimizer<'opgraph, Matrix> + 'opgraph>,
     ) -> Self {
         Self {
             weights_optimizer,
@@ -30,7 +30,7 @@ impl BatchedColumnsDenseLayer {
     }
 }
 
-impl LearnableOp<Matrix> for BatchedColumnsDenseLayer {
+impl<'opgraph> LearnableOp<'opgraph, Matrix> for BatchedColumnsDenseLayer<'opgraph> {
     fn forward_inference(&mut self, input: Matrix) -> Matrix {
         let weights = self.weights_optimizer.get_param();
         let biases = self.biases_optimizer.get_param();
@@ -65,27 +65,30 @@ impl LearnableOp<Matrix> for BatchedColumnsDenseLayer {
     }
 }
 
-impl Model for BatchedColumnsDenseLayer {
+impl<'opgraph> Model for BatchedColumnsDenseLayer<'opgraph> {
     impl_model_from_model_fields!(weights_optimizer, biases_optimizer);
 }
 
-impl<DataRef: Data> ModelOp<Matrix, Matrix, DataRef, DataRef> for BatchedColumnsDenseLayer {
+impl<'opgraph, DataRef: Data<'opgraph>> ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef>
+    for BatchedColumnsDenseLayer<'opgraph>
+{
     impl_model_op_for_learnable_op!(Matrix, DataRef);
 }
 
-pub struct BatchedColumnsDenseLayerBuilder<'a, Parent: 'a> {
+pub struct BatchedColumnsDenseLayerBuilder<'opgraph, Parent: 'opgraph> {
     output_neurons: usize,
-    weights_optimizer: Box<dyn OptimizerBuilder<Matrix> + 'a>,
-    biases_optimizer: Box<dyn OptimizerBuilder<Matrix> + 'a>,
-    parent_acceptor:
-        Option<Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'a, Parent>) -> Parent + 'a>>,
+    weights_optimizer: Box<dyn OptimizerBuilder<'opgraph, Matrix> + 'opgraph>,
+    biases_optimizer: Box<dyn OptimizerBuilder<'opgraph, Matrix> + 'opgraph>,
+    parent_acceptor: Option<
+        Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'opgraph, Parent>) -> Parent + 'opgraph>,
+    >,
 }
 
-impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
+impl<'opgraph, Parent: 'opgraph> BatchedColumnsDenseLayerBuilder<'opgraph, Parent> {
     pub fn new(
         output_neurons: usize,
         parent_acceptor: Option<
-            Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'a, Parent>) -> Parent + 'a>,
+            Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'opgraph, Parent>) -> Parent + 'opgraph>,
         >,
     ) -> Self {
         Self {
@@ -96,21 +99,21 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
         }
     }
 
-    pub fn with_adam_optimized_weights(mut self) -> MatrixLearnableAdamBuilder<'a, Self> {
+    pub fn with_adam_optimized_weights(mut self) -> MatrixLearnableAdamBuilder<'opgraph, Self> {
         MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
             self.weights_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn with_adam_optimized_biases(mut self) -> MatrixLearnableAdamBuilder<'a, Self> {
+    pub fn with_adam_optimized_biases(mut self) -> MatrixLearnableAdamBuilder<'opgraph, Self> {
         MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn everything_adam_optimized(mut self) -> MatrixLearnableAdamBuilder<'a, Self> {
+    pub fn everything_adam_optimized(mut self) -> MatrixLearnableAdamBuilder<'opgraph, Self> {
         MatrixLearnableAdamBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = builder.clone_box();
             self.weights_optimizer = Box::new(builder);
@@ -118,21 +121,27 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
         })))
     }
 
-    pub fn with_momentum_optimized_weights(mut self) -> MatrixLearnableMomentumBuilder<'a, Self> {
+    pub fn with_momentum_optimized_weights(
+        mut self,
+    ) -> MatrixLearnableMomentumBuilder<'opgraph, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.weights_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn with_momentum_optimized_biases(mut self) -> MatrixLearnableMomentumBuilder<'a, Self> {
+    pub fn with_momentum_optimized_biases(
+        mut self,
+    ) -> MatrixLearnableMomentumBuilder<'opgraph, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn everything_momentum_optimized(mut self) -> MatrixLearnableMomentumBuilder<'a, Self> {
+    pub fn everything_momentum_optimized(
+        mut self,
+    ) -> MatrixLearnableMomentumBuilder<'opgraph, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = builder.clone_box();
             self.weights_optimizer = Box::new(builder);
@@ -140,21 +149,21 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
         })))
     }
 
-    pub fn with_sgd_optimized_weights(mut self) -> MatrixLearnableSGDBuilder<'a, Self> {
+    pub fn with_sgd_optimized_weights(mut self) -> MatrixLearnableSGDBuilder<'opgraph, Self> {
         MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
             self.weights_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn with_sgd_optimized_biases(mut self) -> MatrixLearnableSGDBuilder<'a, Self> {
+    pub fn with_sgd_optimized_biases(mut self) -> MatrixLearnableSGDBuilder<'opgraph, Self> {
         MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn everything_sgd_optimized(mut self) -> MatrixLearnableSGDBuilder<'a, Self> {
+    pub fn everything_sgd_optimized(mut self) -> MatrixLearnableSGDBuilder<'opgraph, Self> {
         MatrixLearnableSGDBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = builder.clone_box();
             self.weights_optimizer = Box::new(builder);
@@ -171,38 +180,42 @@ impl<'a, Parent: 'a> BatchedColumnsDenseLayerBuilder<'a, Parent> {
     }
 }
 
-impl<'a, Parent: 'a, DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef>
-    for BatchedColumnsDenseLayerBuilder<'a, Parent>
+impl<'opgraph, Parent: 'opgraph, DataRef: Data<'opgraph>>
+    OpSubgraphBuilder<'opgraph, Matrix, Matrix, DataRef, DataRef>
+    for BatchedColumnsDenseLayerBuilder<'opgraph, Parent>
 {
     fn build(
         &mut self,
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        Box<dyn ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef> + 'opgraph>,
         (Matrix, DataRef),
     ) {
         let input_dims = sample_data.dim();
         let input_neurons = input_dims.0;
-        let layer = BatchedColumnsDenseLayer::new(
-            self.weights_optimizer
-                .build(Matrix::zeros(self.output_neurons, input_neurons)),
-            self.biases_optimizer
-                .build(Matrix::zeros(self.output_neurons, 1)),
-        );
+        let weights_optimizer = self
+            .weights_optimizer
+            .build(Matrix::zeros(self.output_neurons, input_neurons));
+        let biases_optimizer = self
+            .biases_optimizer
+            .build(Matrix::zeros(self.output_neurons, 1));
+        let layer = BatchedColumnsDenseLayer::new(weights_optimizer, biases_optimizer);
 
         (Box::new(layer), (sample_data, sample_ref))
     }
 }
 
-impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
-    OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+impl<'opgraph, DataIn: Data<'opgraph>, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>>
+    OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn dense(
         self,
         output_neurons: usize,
-    ) -> BatchedColumnsDenseLayerBuilder<'a, OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>>
-    {
+    ) -> BatchedColumnsDenseLayerBuilder<
+        'opgraph,
+        OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut>,
+    > {
         BatchedColumnsDenseLayerBuilder::new(
             output_neurons,
             Some(Box::new(move |builder| {

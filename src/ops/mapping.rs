@@ -7,17 +7,18 @@ use super::{
     Data, InputTransformationOp, ModelOp, ReferenceTransformationOp, TotalTransformationOp,
 };
 
-pub struct InputMappingOp<DataIn: Data, DataOut: Data, F, FP>
+pub struct InputMappingOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
     f: F,
     fp: FP,
-    _phantom: std::marker::PhantomData<(DataIn, DataOut)>,
+    _phantom: std::marker::PhantomData<&'opgraph (DataIn, DataOut)>,
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> InputMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
+    InputMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -31,7 +32,8 @@ where
     }
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> Model for InputMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP> Model
+    for InputMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -39,8 +41,9 @@ where
     impl_model_no_params!();
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> InputTransformationOp<DataIn, DataOut>
-    for InputMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
+    InputTransformationOp<'opgraph, DataIn, DataOut>
+    for InputMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -54,8 +57,9 @@ where
     }
 }
 
-impl<DataIn: Data, DataOut: Data, DataRef: Data, F, FP> ModelOp<DataIn, DataOut, DataRef, DataRef>
-    for InputMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, DataRef: Data<'opgraph>, F, FP>
+    ModelOp<'opgraph, DataIn, DataOut, DataRef, DataRef>
+    for InputMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -65,20 +69,19 @@ where
 
 macro_rules! impl_op_builder_from_input_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl<DataRef: Data> OpSubgraphBuilder<$in_type, $out_type, DataRef, DataRef> for $t {
+        impl<'opgraph, DataRef: Data<'opgraph>>
+            OpSubgraphBuilder<'opgraph, $in_type, $out_type, DataRef, DataRef> for $t
+        {
             fn build(
                 &mut self,
                 sample_data: $in_type,
                 sample_ref: DataRef,
             ) -> (
-                Box<dyn ModelOp<$in_type, $out_type, DataRef, DataRef>>,
+                Box<dyn ModelOp<'opgraph, $in_type, $out_type, DataRef, DataRef> + 'opgraph>,
                 ($in_type, DataRef),
             ) {
-                let op = InputMappingOp::new(
-                    $transform,
-                    $revert,
-                );
-        
+                let op = InputMappingOp::new($transform, $revert);
+
                 (Box::new(op), (sample_data, sample_ref))
             }
         }
@@ -87,17 +90,23 @@ macro_rules! impl_op_builder_from_input_transformation_closures {
 
 pub(crate) use impl_op_builder_from_input_transformation_closures;
 
-pub struct ReferenceMappingOp<DataRefIn: Data, DataRefOut: Data, F, FP>
-where
+pub struct ReferenceMappingOp<
+    'opgraph,
+    DataRefIn: Data<'opgraph>,
+    DataRefOut: Data<'opgraph>,
+    F,
+    FP,
+> where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
 {
     f: F,
     fp: FP,
-    _phantom: std::marker::PhantomData<(DataRefIn, DataRefOut)>,
+    _phantom: std::marker::PhantomData<&'opgraph (DataRefIn, DataRefOut)>,
 }
 
-impl<DataRefIn: Data, DataRefOut: Data, F, FP> ReferenceMappingOp<DataRefIn, DataRefOut, F, FP>
+impl<'opgraph, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>, F, FP>
+    ReferenceMappingOp<'opgraph, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
@@ -111,8 +120,8 @@ where
     }
 }
 
-impl<DataRefIn: Data, DataRefOut: Data, F, FP> Model
-    for ReferenceMappingOp<DataRefIn, DataRefOut, F, FP>
+impl<'opgraph, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>, F, FP> Model
+    for ReferenceMappingOp<'opgraph, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
@@ -120,8 +129,9 @@ where
     impl_model_no_params!();
 }
 
-impl<DataRefIn: Data, DataRefOut: Data, F, FP> ReferenceTransformationOp<DataRefIn, DataRefOut>
-    for ReferenceMappingOp<DataRefIn, DataRefOut, F, FP>
+impl<'opgraph, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>, F, FP>
+    ReferenceTransformationOp<'opgraph, DataRefIn, DataRefOut>
+    for ReferenceMappingOp<'opgraph, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
@@ -135,8 +145,9 @@ where
     }
 }
 
-impl<D: Data, DataRefIn: Data, DataRefOut: Data, F, FP> ModelOp<D, D, DataRefIn, DataRefOut>
-    for ReferenceMappingOp<DataRefIn, DataRefOut, F, FP>
+impl<'opgraph, D: Data<'opgraph>, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>, F, FP>
+    ModelOp<'opgraph, D, D, DataRefIn, DataRefOut>
+    for ReferenceMappingOp<'opgraph, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
@@ -146,20 +157,19 @@ where
 
 macro_rules! impl_op_builder_from_reference_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl<D: Data> OpSubgraphBuilder<D, D, $in_type, $out_type> for $t {
+        impl<'opgraph, D: Data<'opgraph>> OpSubgraphBuilder<'opgraph, D, D, $in_type, $out_type>
+            for $t
+        {
             fn build(
                 &mut self,
                 sample_data: D,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn ModelOp<D, D, $in_type, $out_type>>,
+                Box<dyn ModelOp<'opgraph, D, D, $in_type, $out_type> + 'opgraph>,
                 (D, $in_type),
             ) {
-                let op = ReferenceMappingOp::new(
-                    $transform,
-                    $revert,
-                );
-        
+                let op = ReferenceMappingOp::new($transform, $revert);
+
                 (Box::new(op), (sample_data, sample_ref))
             }
         }
@@ -168,17 +178,18 @@ macro_rules! impl_op_builder_from_reference_transformation_closures {
 
 pub(crate) use impl_op_builder_from_reference_transformation_closures;
 
-pub struct TotalMappingOp<DataIn: Data, DataOut: Data, F, FP>
+pub struct TotalMappingOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
     f: F,
     fp: FP,
-    _phantom: std::marker::PhantomData<(DataIn, DataOut)>,
+    _phantom: std::marker::PhantomData<&'opgraph (DataIn, DataOut)>,
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> TotalMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
+    TotalMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -192,7 +203,8 @@ where
     }
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> Model for TotalMappingOp<DataIn, DataOut, F, FP>
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP> Model
+    for TotalMappingOp<'opgraph, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -200,9 +212,10 @@ where
     impl_model_no_params!();
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> TotalTransformationOp<DataIn, DataOut>
-    for TotalMappingOp<DataIn, DataOut, F, FP>
-    where
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
+    TotalTransformationOp<'opgraph, DataIn, DataOut>
+    for TotalMappingOp<'opgraph, DataIn, DataOut, F, FP>
+where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
@@ -215,9 +228,10 @@ impl<DataIn: Data, DataOut: Data, F, FP> TotalTransformationOp<DataIn, DataOut>
     }
 }
 
-impl<DataIn: Data, DataOut: Data, F, FP> ModelOp<DataIn, DataOut, DataIn, DataOut>
-    for TotalMappingOp<DataIn, DataOut, F, FP>
-    where
+impl<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>, F, FP>
+    ModelOp<'opgraph, DataIn, DataOut, DataIn, DataOut>
+    for TotalMappingOp<'opgraph, DataIn, DataOut, F, FP>
+where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
 {
@@ -226,20 +240,19 @@ impl<DataIn: Data, DataOut: Data, F, FP> ModelOp<DataIn, DataOut, DataIn, DataOu
 
 macro_rules! impl_op_builder_from_total_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt) => {
-        impl OpSubgraphBuilder<$in_type, $out_type, $in_type, $out_type> for $t {
+        impl<'opgraph> OpSubgraphBuilder<'opgraph, $in_type, $out_type, $in_type, $out_type>
+            for $t
+        {
             fn build(
                 &mut self,
                 sample_data: $in_type,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn ModelOp<$in_type, $out_type, $in_type, $out_type>>,
+                Box<dyn ModelOp<'opgraph, $in_type, $out_type, $in_type, $out_type> + 'opgraph>,
                 ($in_type, $in_type),
             ) {
-                let op = TotalMappingOp::new(
-                    $transform,
-                    $revert,
-                );
-        
+                let op = TotalMappingOp::new($transform, $revert);
+
                 (Box::new(op), (sample_data, sample_ref))
             }
         }

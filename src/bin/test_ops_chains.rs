@@ -1,6 +1,6 @@
-use jiro_nn::ops::model_op_builder::OpGraphBuilder;
+use jiro_nn::{linalg::Matrix, ops::model_op_builder::OpGraphBuilder};
 
-fn main() {
+fn model() -> Matrix {
     let mut op_build = OpGraphBuilder::data_as_entry_point(
         vec![
             vec![0.0, 0.0],
@@ -15,6 +15,11 @@ fn main() {
 
     let mut op = op_build.build_graph();
     let pred = op.run_inference();
-    
+
+    pred
+}
+
+fn main() {
+    let pred = model();
     println!("pred: {:?}", pred);
 }

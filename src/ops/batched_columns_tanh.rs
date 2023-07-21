@@ -25,23 +25,25 @@ pub fn batched_columns_tanh() -> BatchedColumnsActivation {
 
 pub struct TanhBuilder;
 
-impl<DataRef: Data> OpSubgraphBuilder<Matrix, Matrix, DataRef, DataRef> for TanhBuilder {
+impl<'opgraph, DataRef: Data<'opgraph>>
+    OpSubgraphBuilder<'opgraph, Matrix, Matrix, DataRef, DataRef> for TanhBuilder
+{
     fn build(
         &mut self,
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<Matrix, Matrix, DataRef, DataRef>>,
+        Box<dyn ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef> + 'opgraph>,
         (Matrix, DataRef),
     ) {
         (Box::new(batched_columns_tanh()), (sample_data, sample_ref))
     }
 }
 
-impl<'a, DataIn: Data, DataRefIn: Data, DataRefOut: Data>
-    OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut>
+impl<'opgraph, DataIn: Data<'opgraph>, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>>
+    OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut>
 {
-    pub fn tanh(self) -> OpGraphBuilder<'a, DataIn, Matrix, DataRefIn, DataRefOut> {
+    pub fn tanh(self) -> OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut> {
         self.push_and_pack(TanhBuilder)
     }
 }
