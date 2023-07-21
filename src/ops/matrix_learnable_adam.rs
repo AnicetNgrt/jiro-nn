@@ -6,20 +6,20 @@ use super::{
     optimizer::{Optimizer, OptimizerBuilder},
 };
 
-pub struct MatrixLearnableAdam<'opgraph> {
+pub struct MatrixLearnableAdam<'g> {
     parameter: Matrix,
     beta1: Scalar,
     beta2: Scalar,
     epsilon: Scalar,
     m: Option<Matrix>, // first moment vector
     v: Option<Matrix>, // second moment vector
-    learning_rate: Box<dyn LearningRateScheduler<'opgraph> + 'opgraph>,
+    learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
 }
 
-impl<'opgraph> MatrixLearnableAdam<'opgraph> {
+impl<'g> MatrixLearnableAdam<'g> {
     pub fn new(
         parameter: Matrix,
-        learning_rate: Box<dyn LearningRateScheduler<'opgraph> + 'opgraph>,
+        learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
         beta1: Scalar,
         beta2: Scalar,
         epsilon: Scalar,
@@ -36,7 +36,7 @@ impl<'opgraph> MatrixLearnableAdam<'opgraph> {
     }
 }
 
-impl<'opgraph> Optimizer<'opgraph, Matrix> for MatrixLearnableAdam<'opgraph> {
+impl<'g> Optimizer<'g, Matrix> for MatrixLearnableAdam<'g> {
     fn step(&mut self, incoming_grad: &Matrix) {
         let alpha = self.learning_rate.get_learning_rate();
         self.learning_rate.increment_step();
@@ -76,23 +76,23 @@ impl<'opgraph> Optimizer<'opgraph, Matrix> for MatrixLearnableAdam<'opgraph> {
     }
 }
 
-impl<'opgraph> Model for MatrixLearnableAdam<'opgraph> {
+impl<'g> Model for MatrixLearnableAdam<'g> {
     impl_model_from_model_fields!(parameter);
 }
 
-pub struct MatrixLearnableAdamBuilder<'opgraph, Parent: 'opgraph> {
-    learning_rate: Box<dyn LearningRateScheduler<'opgraph> + 'opgraph>,
+pub struct MatrixLearnableAdamBuilder<'g, Parent: 'g> {
+    learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
     beta1: Scalar,
     beta2: Scalar,
     epsilon: Scalar,
     parent_acceptor:
-        Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<'opgraph, Parent>) -> Parent + 'opgraph>>,
+        Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<'g, Parent>) -> Parent + 'g>>,
 }
 
-impl<'opgraph, Parent: 'opgraph> MatrixLearnableAdamBuilder<'opgraph, Parent> {
+impl<'g, Parent: 'g> MatrixLearnableAdamBuilder<'g, Parent> {
     pub fn new(
         parent_acceptor: Option<
-            Box<dyn FnOnce(MatrixLearnableAdamBuilder<'opgraph, Parent>) -> Parent + 'opgraph>,
+            Box<dyn FnOnce(MatrixLearnableAdamBuilder<'g, Parent>) -> Parent + 'g>,
         >,
     ) -> Self {
         Self {
@@ -133,10 +133,10 @@ impl<'opgraph, Parent: 'opgraph> MatrixLearnableAdamBuilder<'opgraph, Parent> {
     }
 }
 
-impl<'opgraph, Parent: 'opgraph> OptimizerBuilder<'opgraph, Matrix>
-    for MatrixLearnableAdamBuilder<'opgraph, Parent>
+impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix>
+    for MatrixLearnableAdamBuilder<'g, Parent>
 {
-    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'opgraph, Matrix> + 'opgraph> {
+    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableAdam::new(
             parameter,
             self.learning_rate.clone_box(),
@@ -146,7 +146,7 @@ impl<'opgraph, Parent: 'opgraph> OptimizerBuilder<'opgraph, Matrix>
         ))
     }
 
-    fn clone_box(&self) -> Box<dyn OptimizerBuilder<'opgraph, Matrix> + 'opgraph> {
+    fn clone_box(&self) -> Box<dyn OptimizerBuilder<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableAdamBuilder::<bool> {
             learning_rate: self.learning_rate.clone_box(),
             parent_acceptor: None,

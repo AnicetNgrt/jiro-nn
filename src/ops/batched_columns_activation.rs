@@ -27,7 +27,7 @@ impl Model for BatchedColumnsActivation {
     impl_model_no_params!();
 }
 
-impl<'opgraph> LearnableOp<'opgraph, Matrix> for BatchedColumnsActivation {
+impl<'g> LearnableOp<'g, Matrix> for BatchedColumnsActivation {
     fn forward_inference(&mut self, input: Matrix) -> Matrix {
         (self.f)(&input)
     }
@@ -45,7 +45,7 @@ impl<'opgraph> LearnableOp<'opgraph, Matrix> for BatchedColumnsActivation {
     }
 }
 
-impl<'opgraph, DataRef: Data<'opgraph>> ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> ModelOp<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivation
 {
     impl_model_op_for_learnable_op!(Matrix, DataRef);
@@ -65,8 +65,8 @@ impl BatchedColumnsActivationBuilder {
     }
 }
 
-impl<'opgraph, DataRef: Data<'opgraph>>
-    OpSubgraphBuilder<'opgraph, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>>
+    OpSubgraphBuilder<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
     fn build(
@@ -74,7 +74,7 @@ impl<'opgraph, DataRef: Data<'opgraph>>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn ModelOp<'opgraph, Matrix, Matrix, DataRef, DataRef> + 'opgraph>,
+        Box<dyn ModelOp<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         (Matrix, DataRef),
     ) {
         (
@@ -84,14 +84,14 @@ impl<'opgraph, DataRef: Data<'opgraph>>
     }
 }
 
-impl<'opgraph, DataIn: Data<'opgraph>, DataRefIn: Data<'opgraph>, DataRefOut: Data<'opgraph>>
-    OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut>
+impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
+    OpGraphBuilder<'g, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn custom_activation(
         self,
         activation: fn(&Matrix) -> Matrix,
         activation_prime: fn(&Matrix) -> Matrix,
-    ) -> OpGraphBuilder<'opgraph, DataIn, Matrix, DataRefIn, DataRefOut> {
+    ) -> OpGraphBuilder<'g, DataIn, Matrix, DataRefIn, DataRefOut> {
         let builder = BatchedColumnsActivationBuilder::new(activation, activation_prime);
         self.push_and_pack(builder)
     }

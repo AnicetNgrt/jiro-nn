@@ -1,11 +1,11 @@
 use super::{model::Model, Data};
 
-pub trait Optimizer<'opgraph, T: Model + Data<'opgraph>>: Model {
+pub trait Optimizer<'g, T: Model + Data<'g>>: Model {
     fn get_param(&self) -> &T;
     fn step(&mut self, incoming_grad: &T);
 }
 
-pub trait OptimizerBuilder<'opgraph, T: Model + Data<'opgraph>> {
-    fn build(&self, parameter: T) -> Box<dyn Optimizer<'opgraph, T> + 'opgraph>;
-    fn clone_box(&self) -> Box<dyn OptimizerBuilder<'opgraph, T> + 'opgraph>;
+pub trait OptimizerBuilder<'g, T: Model + Data<'g>> {
+    fn build(&self, parameter: T) -> Box<dyn Optimizer<'g, T> + 'g>;
+    fn clone_box(&self) -> Box<dyn OptimizerBuilder<'g, T> + 'g>;
 }

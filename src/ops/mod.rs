@@ -23,29 +23,29 @@ pub mod model_op_builder;
 pub mod optimizer;
 pub mod vec_to_matrix;
 
-pub trait Data<'opgraph>: 'opgraph {}
+pub trait Data<'g>: 'g {}
 
-pub trait LearnableOp<'opgraph, D: Data<'opgraph>>: Model {
+pub trait LearnableOp<'g, D: Data<'g>>: Model {
     fn forward_inference(&mut self, input: D) -> D;
     fn forward(&mut self, input: D) -> D;
     fn backward(&mut self, incoming_grad: D) -> D;
 }
 
-pub trait InputTransformationOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>>:
+pub trait InputTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>:
     Model
 {
     fn transform(&mut self, input: DataIn) -> DataOut;
     fn revert(&mut self, output: DataOut) -> DataIn;
 }
 
-pub trait ReferenceTransformationOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>>:
+pub trait ReferenceTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>:
     Model
 {
     fn transform(&mut self, reference: DataIn) -> DataOut;
     fn revert(&mut self, reference: DataOut) -> DataIn;
 }
 
-pub trait TotalTransformationOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<'opgraph>>:
+pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>:
     Model
 {
     fn transform(&mut self, input_or_reference: DataIn) -> DataOut;
@@ -53,11 +53,11 @@ pub trait TotalTransformationOp<'opgraph, DataIn: Data<'opgraph>, DataOut: Data<
 }
 
 pub trait ModelOp<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefOut: Data<'g>,
 >: Model
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut;
@@ -146,41 +146,41 @@ macro_rules! impl_model_op_for_total_transformation_op {
 pub(crate) use impl_model_op_for_total_transformation_op;
 
 pub struct OpChain<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataMid: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefMid: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataMid: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefMid: Data<'g>,
+    DataRefOut: Data<'g>,
 > {
-    first_op: Box<dyn ModelOp<'opgraph, DataIn, DataMid, DataRefIn, DataRefMid> + 'opgraph>,
-    second_op: Box<dyn ModelOp<'opgraph, DataMid, DataOut, DataRefMid, DataRefOut> + 'opgraph>,
+    first_op: Box<dyn ModelOp<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+    second_op: Box<dyn ModelOp<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataMid: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefMid: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > Model for OpChain<'opgraph, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataMid: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefMid: Data<'g>,
+        DataRefOut: Data<'g>,
+    > Model for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     impl_model_from_model_fields!(first_op, second_op);
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataMid: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefMid: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpChain<'opgraph, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataMid: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefMid: Data<'g>,
+        DataRefOut: Data<'g>,
+    > ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
         let mid = self.first_op.forward_or_transform_inference(input);
@@ -207,18 +207,18 @@ impl<
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataMid: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefMid: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > OpChain<'opgraph, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataMid: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefMid: Data<'g>,
+        DataRefOut: Data<'g>,
+    > OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
-        first_op: Box<dyn ModelOp<'opgraph, DataIn, DataMid, DataRefIn, DataRefMid> + 'opgraph>,
-        second_op: Box<dyn ModelOp<'opgraph, DataMid, DataOut, DataRefMid, DataRefOut> + 'opgraph>,
+        first_op: Box<dyn ModelOp<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+        second_op: Box<dyn ModelOp<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
     ) -> Self {
         Self {
             first_op,
@@ -227,50 +227,50 @@ impl<
     }
 }
 
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for &'opgraph D {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for RefCell<D> {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for Arc<D> {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for Rc<D> {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for Box<D> {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for Option<D> {}
+impl<'g, D: Data<'g>> Data<'g> for &'g D {}
+impl<'g, D: Data<'g>> Data<'g> for RefCell<D> {}
+impl<'g, D: Data<'g>> Data<'g> for Arc<D> {}
+impl<'g, D: Data<'g>> Data<'g> for Rc<D> {}
+impl<'g, D: Data<'g>> Data<'g> for Box<D> {}
+impl<'g, D: Data<'g>> Data<'g> for Option<D> {}
 impl<
-        'opgraph,
-        D1: Data<'opgraph>,
-        D2: Data<'opgraph>,
-        D3: Data<'opgraph>,
-        D4: Data<'opgraph>,
-        D5: Data<'opgraph>,
-        D6: Data<'opgraph>,
-    > Data<'opgraph> for (D1, D2, D3, D4, D5, D6)
+        'g,
+        D1: Data<'g>,
+        D2: Data<'g>,
+        D3: Data<'g>,
+        D4: Data<'g>,
+        D5: Data<'g>,
+        D6: Data<'g>,
+    > Data<'g> for (D1, D2, D3, D4, D5, D6)
 {
 }
 impl<
-        'opgraph,
-        D1: Data<'opgraph>,
-        D2: Data<'opgraph>,
-        D3: Data<'opgraph>,
-        D4: Data<'opgraph>,
-        D5: Data<'opgraph>,
-    > Data<'opgraph> for (D1, D2, D3, D4, D5)
+        'g,
+        D1: Data<'g>,
+        D2: Data<'g>,
+        D3: Data<'g>,
+        D4: Data<'g>,
+        D5: Data<'g>,
+    > Data<'g> for (D1, D2, D3, D4, D5)
 {
 }
-impl<'opgraph, D1: Data<'opgraph>, D2: Data<'opgraph>, D3: Data<'opgraph>, D4: Data<'opgraph>>
-    Data<'opgraph> for (D1, D2, D3, D4)
+impl<'g, D1: Data<'g>, D2: Data<'g>, D3: Data<'g>, D4: Data<'g>>
+    Data<'g> for (D1, D2, D3, D4)
 {
 }
-impl<'opgraph, D1: Data<'opgraph>, D2: Data<'opgraph>, D3: Data<'opgraph>> Data<'opgraph>
+impl<'g, D1: Data<'g>, D2: Data<'g>, D3: Data<'g>> Data<'g>
     for (D1, D2, D3)
 {
 }
-impl<'opgraph, D1: Data<'opgraph>, D2: Data<'opgraph>> Data<'opgraph> for (D1, D2) {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for (D,) {}
-impl<'opgraph> Data<'opgraph> for () {}
-impl<'opgraph, D: Data<'opgraph>> Data<'opgraph> for Vec<D> {}
-impl<'opgraph, D: Data<'opgraph>, const S: usize> Data<'opgraph> for [D; S] {}
-impl<'opgraph> Data<'opgraph> for bool {}
-impl<'opgraph> Data<'opgraph> for String {}
-impl<'opgraph> Data<'opgraph> for usize {}
-impl<'opgraph> Data<'opgraph> for Scalar {}
-impl<'opgraph> Data<'opgraph> for Matrix {}
-impl<'opgraph> Data<'opgraph> for Image {}
-impl<'opgraph> Data<'opgraph> for DataTable {}
+impl<'g, D1: Data<'g>, D2: Data<'g>> Data<'g> for (D1, D2) {}
+impl<'g, D: Data<'g>> Data<'g> for (D,) {}
+impl<'g> Data<'g> for () {}
+impl<'g, D: Data<'g>> Data<'g> for Vec<D> {}
+impl<'g, D: Data<'g>, const S: usize> Data<'g> for [D; S] {}
+impl<'g> Data<'g> for bool {}
+impl<'g> Data<'g> for String {}
+impl<'g> Data<'g> for usize {}
+impl<'g> Data<'g> for Scalar {}
+impl<'g> Data<'g> for Matrix {}
+impl<'g> Data<'g> for Image {}
+impl<'g> Data<'g> for DataTable {}

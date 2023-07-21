@@ -5,11 +5,11 @@ use super::{
 };
 
 pub struct OpGraphBuilder<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefOut: Data<'g>,
 > {
     pub builder: Option<
         Box<
@@ -17,15 +17,15 @@ pub struct OpGraphBuilder<
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph>,
+                    Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
-                ) + 'opgraph,
+                ) + 'g,
         >,
     >,
 }
 
-impl<'opgraph, D: Data<'opgraph> + Clone, DataRef: Data<'opgraph> + Clone>
-    OpGraphBuilder<'opgraph, (), D, (), DataRef>
+impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone>
+    OpGraphBuilder<'g, (), D, (), DataRef>
 {
     pub fn data_as_entry_point(data: D, reference: DataRef) -> Self {
         let origin_op = OriginOp::<(), ()>::new();
@@ -43,7 +43,7 @@ impl<'opgraph, D: Data<'opgraph> + Clone, DataRef: Data<'opgraph> + Clone>
         }
     }
 
-    pub fn build_graph(&mut self) -> OpGraph<'opgraph, D, DataRef> {
+    pub fn build_graph(&mut self) -> OpGraph<'g, D, DataRef> {
         match self.builder.take() {
             None => panic!("OpGraphBuilder::build() called twice."),
             Some(builder) => OpGraph((builder)((), ()).0),
@@ -52,12 +52,12 @@ impl<'opgraph, D: Data<'opgraph> + Clone, DataRef: Data<'opgraph> + Clone>
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > OpGraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefOut: Data<'g>,
+    > OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     pub fn new_fn(
         builder: Box<
@@ -65,9 +65,9 @@ impl<
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph>,
+                    Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
-                ) + 'opgraph,
+                ) + 'g,
         >,
     ) -> Self {
         Self {
@@ -76,7 +76,7 @@ impl<
     }
 
     pub fn new_op_builder<
-        OpB: OpSubgraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph,
+        OpB: OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
     >(
         mut builder: OpB,
     ) -> Self {
@@ -89,20 +89,20 @@ impl<
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > OpSubgraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpGraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefOut: Data<'g>,
+    > OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     fn build(
         &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph>,
+        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         match self.builder.take() {
@@ -115,15 +115,15 @@ impl<
 macro_rules! plug_builder_on_opbuild_data_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
         impl<
-                'opgraph,
-                DataIn: Data<'opgraph>,
-                DataRefIn: Data<'opgraph>,
-                DataRefOut: Data<'opgraph>,
-            > OpGraphBuilder<'opgraph, DataIn, $plug_type, DataRefIn, DataRefOut>
+                'g,
+                DataIn: Data<'g>,
+                DataRefIn: Data<'g>,
+                DataRefOut: Data<'g>,
+            > OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, DataRefOut>
         {
             pub fn $plug_name(
                 self,
-            ) -> OpGraphBuilder<'opgraph, DataIn, $out_type, DataRefIn, DataRefOut> {
+            ) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, DataRefOut> {
                 self.push_and_pack($builder)
             }
         }
@@ -135,15 +135,15 @@ pub(crate) use plug_builder_on_opbuild_data_out;
 macro_rules! plug_builder_on_opbuild_reference_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
         impl<
-                'opgraph,
-                DataIn: Data<'opgraph>,
-                DataOut: Data<'opgraph>,
-                DataRefIn: Data<'opgraph>,
-            > OpGraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, $plug_type>
+                'g,
+                DataIn: Data<'g>,
+                DataOut: Data<'g>,
+                DataRefIn: Data<'g>,
+            > OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $plug_type>
         {
             pub fn $plug_name(
                 self,
-            ) -> OpGraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, $out_type> {
+            ) -> OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $out_type> {
                 self.push_and_pack($builder)
             }
         }
@@ -154,12 +154,12 @@ pub(crate) use plug_builder_on_opbuild_reference_out;
 
 macro_rules! plug_builder_on_opbuild_total_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
-        impl<'opgraph, DataIn: Data<'opgraph>, DataRefIn: Data<'opgraph>>
-            OpGraphBuilder<'opgraph, DataIn, $plug_type, DataRefIn, $plug_type>
+        impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>>
+            OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, $plug_type>
         {
             pub fn $plug_name(
                 self,
-            ) -> OpGraphBuilder<'opgraph, DataIn, $out_type, DataRefIn, $out_type> {
+            ) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, $out_type> {
                 self.push_and_pack($builder)
             }
         }
@@ -169,11 +169,11 @@ macro_rules! plug_builder_on_opbuild_total_out {
 pub(crate) use plug_builder_on_opbuild_total_out;
 
 pub trait OpSubgraphBuilder<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefOut: Data<'g>,
 >
 {
     fn build(
@@ -181,42 +181,42 @@ pub trait OpSubgraphBuilder<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph>,
+        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     );
 }
 
 pub struct OpBuilderChain<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataMid: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefMid: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataMid: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefMid: Data<'g>,
+    DataRefOut: Data<'g>,
 > {
     first_op:
-        Box<dyn OpSubgraphBuilder<'opgraph, DataIn, DataMid, DataRefIn, DataRefMid> + 'opgraph>,
+        Box<dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
     second_op:
-        Box<dyn OpSubgraphBuilder<'opgraph, DataMid, DataOut, DataRefMid, DataRefOut> + 'opgraph>,
+        Box<dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataMid: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefMid: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > OpBuilderChain<'opgraph, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataMid: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefMid: Data<'g>,
+        DataRefOut: Data<'g>,
+    > OpBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
         first_op: Box<
-            dyn OpSubgraphBuilder<'opgraph, DataIn, DataMid, DataRefIn, DataRefMid> + 'opgraph,
+            dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g,
         >,
         second_op: Box<
-            dyn OpSubgraphBuilder<'opgraph, DataMid, DataOut, DataRefMid, DataRefOut> + 'opgraph,
+            dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g,
         >,
     ) -> Self {
         Self {
@@ -227,22 +227,22 @@ impl<
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataMid: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefMid: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
-    > OpSubgraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpBuilderChain<'opgraph, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+        'g,
+        DataIn: Data<'g>,
+        DataMid: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefMid: Data<'g>,
+        DataRefOut: Data<'g>,
+    > OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn build(
         &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph>,
+        Box<dyn ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         let (mut first_op, (sample_data, sample_ref)) =
@@ -255,23 +255,23 @@ impl<
 }
 
 pub trait CombinatoryOpBuilder<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefOut: Data<'g>,
 >
 {
     fn push_and_chain<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpBuilderPushed: OpSubgraphBuilder<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
+            + 'g,
     >(
         self,
         op: OpBuilderPushed,
     ) -> OpBuilderChain<
-        'opgraph,
+        'g,
         DataIn,
         DataOut,
         DataOutPushed,
@@ -281,37 +281,37 @@ pub trait CombinatoryOpBuilder<
     >;
 
     fn push_and_pack<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpBuilderPushed: OpSubgraphBuilder<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
+            + 'g,
     >(
         self,
         op: OpBuilderPushed,
-    ) -> OpGraphBuilder<'opgraph, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed>;
+    ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed>;
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
+        'g,
+        DataIn: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefOut: Data<'g>,
         OpB,
-    > CombinatoryOpBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
+    > CombinatoryOpBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
 where
-    OpB: OpSubgraphBuilder<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph,
+    OpB: OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
     fn push_and_chain<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpBuilderPushed: OpSubgraphBuilder<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
+            + 'g,
     >(
         self,
         op: OpBuilderPushed,
     ) -> OpBuilderChain<
-        'opgraph,
+        'g,
         DataIn,
         DataOut,
         DataOutPushed,
@@ -323,14 +323,14 @@ where
     }
 
     fn push_and_pack<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpBuilderPushed: OpSubgraphBuilder<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
+            + 'g,
     >(
         self,
         op: OpBuilderPushed,
-    ) -> OpGraphBuilder<'opgraph, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed> {
+    ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed> {
         OpGraphBuilder::new_op_builder(self.push_and_chain(op))
     }
 }

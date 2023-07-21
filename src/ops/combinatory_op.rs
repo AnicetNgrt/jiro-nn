@@ -5,12 +5,12 @@ use super::{
     Data, ModelOp, OpChain,
 };
 
-pub struct OpGraph<'opgraph, DataOut: Data<'opgraph>, DataRefOut: Data<'opgraph>>(
-    pub Box<dyn ModelOp<'opgraph, (), DataOut, (), DataRefOut> + 'opgraph>,
+pub struct OpGraph<'g, DataOut: Data<'g>, DataRefOut: Data<'g>>(
+    pub Box<dyn ModelOp<'g, (), DataOut, (), DataRefOut> + 'g>,
 );
 
-impl<'opgraph, DataOut: Data<'opgraph>, DataRefOut: Data<'opgraph>>
-    OpGraph<'opgraph, DataOut, DataRefOut>
+impl<'g, DataOut: Data<'g>, DataRefOut: Data<'g>>
+    OpGraph<'g, DataOut, DataRefOut>
 {
     pub fn run_inference(&mut self) -> DataOut {
         self.0.forward_or_transform_inference(())
@@ -21,11 +21,11 @@ impl<'opgraph, DataOut: Data<'opgraph>, DataRefOut: Data<'opgraph>>
     }
 }
 
-pub struct OriginOp<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> {
-    _phantom: std::marker::PhantomData<&'opgraph (D, DataRef)>,
+pub struct OriginOp<'g, D: Data<'g>, DataRef: Data<'g>> {
+    _phantom: std::marker::PhantomData<&'g (D, DataRef)>,
 }
 
-impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> OriginOp<'opgraph, D, DataRef> {
+impl<'g, D: Data<'g>, DataRef: Data<'g>> OriginOp<'g, D, DataRef> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -33,14 +33,14 @@ impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> OriginOp<'opgraph, D,
     }
 }
 
-impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> Model
-    for OriginOp<'opgraph, D, DataRef>
+impl<'g, D: Data<'g>, DataRef: Data<'g>> Model
+    for OriginOp<'g, D, DataRef>
 {
     impl_model_no_params!();
 }
 
-impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> ModelOp<'opgraph, D, D, DataRef, DataRef>
-    for OriginOp<'opgraph, D, DataRef>
+impl<'g, D: Data<'g>, DataRef: Data<'g>> ModelOp<'g, D, D, DataRef, DataRef>
+    for OriginOp<'g, D, DataRef>
 {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
@@ -56,42 +56,42 @@ impl<'opgraph, D: Data<'opgraph>, DataRef: Data<'opgraph>> ModelOp<'opgraph, D, 
 }
 
 pub trait CombinatoryOp<
-    'opgraph,
-    DataIn: Data<'opgraph>,
-    DataOut: Data<'opgraph>,
-    DataRefIn: Data<'opgraph>,
-    DataRefOut: Data<'opgraph>,
+    'g,
+    DataIn: Data<'g>,
+    DataOut: Data<'g>,
+    DataRefIn: Data<'g>,
+    DataRefOut: Data<'g>,
 >
 {
     fn push<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpPushed: ModelOp<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpPushed: ModelOp<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,
-    ) -> OpChain<'opgraph, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
+    ) -> OpChain<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
 }
 
 impl<
-        'opgraph,
-        DataIn: Data<'opgraph>,
-        DataOut: Data<'opgraph>,
-        DataRefIn: Data<'opgraph>,
-        DataRefOut: Data<'opgraph>,
+        'g,
+        DataIn: Data<'g>,
+        DataOut: Data<'g>,
+        DataRefIn: Data<'g>,
+        DataRefOut: Data<'g>,
         MOp,
-    > CombinatoryOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
+    > CombinatoryOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
 where
-    MOp: ModelOp<'opgraph, DataIn, DataOut, DataRefIn, DataRefOut> + 'opgraph,
+    MOp: ModelOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
     fn push<
-        DataOutPushed: Data<'opgraph>,
-        DataRefOutPushed: Data<'opgraph>,
-        OpPushed: ModelOp<'opgraph, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'opgraph,
+        DataOutPushed: Data<'g>,
+        DataRefOutPushed: Data<'g>,
+        OpPushed: ModelOp<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,
-    ) -> OpChain<'opgraph, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>
+    ) -> OpChain<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>
     {
         OpChain::new(Box::new(self), Box::new(op))
     }

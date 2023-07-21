@@ -5,22 +5,22 @@ use super::{
     Data, ModelOp,
 };
 
-pub trait MeanableData<'opgraph>: Data<'opgraph> {
+pub trait MeanableData<'g>: Data<'g> {
     fn mean(&self) -> Scalar;
 }
 
-pub struct Loss<'opgraph, D: MeanableData<'opgraph>> {
+pub struct Loss<'g, D: MeanableData<'g>> {
     pub loss: fn(&D, &D) -> D,
     pub grad: fn(D, &D) -> D,
     pub input: Option<D>,
-    _phantom: std::marker::PhantomData<&'opgraph D>,
+    _phantom: std::marker::PhantomData<&'g D>,
 }
 
-impl<'opgraph, D: MeanableData<'opgraph>> Model for Loss<'opgraph, D> {
+impl<'g, D: MeanableData<'g>> Model for Loss<'g, D> {
     impl_model_no_params!();
 }
 
-impl<'opgraph, D: MeanableData<'opgraph>> Loss<'opgraph, D> {
+impl<'g, D: MeanableData<'g>> Loss<'g, D> {
     pub fn new(loss: fn(&D, &D) -> D, grad: fn(D, &D) -> D) -> Self {
         Self {
             loss,
@@ -30,12 +30,12 @@ impl<'opgraph, D: MeanableData<'opgraph>> Loss<'opgraph, D> {
         }
     }
 
-    pub fn loss(&self, input: &'opgraph D, reference: &'opgraph D) -> Scalar {
+    pub fn loss(&self, input: &'g D, reference: &'g D) -> Scalar {
         (self.loss)(input, reference).mean()
     }
 }
 
-impl<'opgraph, D: MeanableData<'opgraph>> ModelOp<'opgraph, D, D, D, D> for Loss<'opgraph, D> {
+impl<'g, D: MeanableData<'g>> ModelOp<'g, D, D, D, D> for Loss<'g, D> {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
     }
@@ -57,21 +57,21 @@ impl<'opgraph, D: MeanableData<'opgraph>> ModelOp<'opgraph, D, D, D, D> for Loss
     }
 }
 
-impl<'opgraph> MeanableData<'opgraph> for Scalar {
+impl<'g> MeanableData<'g> for Scalar {
     fn mean(&self) -> Scalar {
         self.clone()
     }
 }
 
-impl<'opgraph> MeanableData<'opgraph> for Matrix {
+impl<'g> MeanableData<'g> for Matrix {
     fn mean(&self) -> Scalar {
         MatrixTrait::mean(self)
     }
 }
 
-impl<'opgraph, T: MeanableData<'opgraph>> MeanableData<'opgraph> for Vec<T>
+impl<'g, T: MeanableData<'g>> MeanableData<'g> for Vec<T>
 where
-    Vec<T>: Data<'opgraph>,
+    Vec<T>: Data<'g>,
 {
     fn mean(&self) -> Scalar {
         self.iter().map(|x| x.mean()).sum::<Scalar>() / self.len() as Scalar
