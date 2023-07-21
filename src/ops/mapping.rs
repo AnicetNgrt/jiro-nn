@@ -1,10 +1,8 @@
 use crate::linalg::Scalar;
 
 use super::{
-    impl_op_subgraph_for_input_transformation_op, impl_op_subgraph_for_reference_transformation_op,
-    impl_op_subgraph_for_total_transformation_op,
     model::{impl_model_no_params, Model},
-    Data, InputTransformationOp, OpSubgraph, ReferenceTransformationOp, TotalTransformationOp,
+    Data, InputTransformationOp, ReferenceTransformationOp, TotalTransformationOp, op_graph::{OpSubgraphTrait, impl_op_subgraph_for_input_transformation_op, impl_op_subgraph_for_reference_transformation_op, impl_op_subgraph_for_total_transformation_op},
 };
 
 pub struct InputMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP>
@@ -58,7 +56,7 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRef: Data<'g>, F, FP>
-    OpSubgraph<'g, DataIn, DataOut, DataRef, DataRef>
+    OpSubgraphTrait<'g, DataIn, DataOut, DataRef, DataRef>
     for InputMappingOp<'g, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
@@ -77,7 +75,7 @@ macro_rules! impl_op_builder_from_input_transformation_closures {
                 sample_data: $in_type,
                 sample_ref: DataRef,
             ) -> (
-                Box<dyn OpSubgraph<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
+                Box<dyn OpSubgraphTrait<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
                 ($in_type, DataRef),
             ) {
                 let op = InputMappingOp::new($transform, $revert);
@@ -146,7 +144,7 @@ where
 }
 
 impl<'g, D: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP>
-    OpSubgraph<'g, D, D, DataRefIn, DataRefOut>
+    OpSubgraphTrait<'g, D, D, DataRefIn, DataRefOut>
     for ReferenceMappingOp<'g, DataRefIn, DataRefOut, F, FP>
 where
     F: Fn(DataRefIn) -> DataRefOut,
@@ -165,7 +163,7 @@ macro_rules! impl_op_builder_from_reference_transformation_closures {
                 sample_data: D,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn OpSubgraph<'g, D, D, $in_type, $out_type> + 'g>,
+                Box<dyn OpSubgraphTrait<'g, D, D, $in_type, $out_type> + 'g>,
                 (D, $in_type),
             ) {
                 let op = ReferenceMappingOp::new($transform, $revert);
@@ -229,7 +227,7 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP>
-    OpSubgraph<'g, DataIn, DataOut, DataIn, DataOut>
+    OpSubgraphTrait<'g, DataIn, DataOut, DataIn, DataOut>
     for TotalMappingOp<'g, DataIn, DataOut, F, FP>
 where
     F: Fn(DataIn) -> DataOut,
@@ -248,7 +246,7 @@ macro_rules! impl_op_builder_from_total_transformation_closures {
                 sample_data: $in_type,
                 sample_ref: $in_type,
             ) -> (
-                Box<dyn OpSubgraph<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
+                Box<dyn OpSubgraphTrait<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
                 ($in_type, $in_type),
             ) {
                 let op = TotalMappingOp::new($transform, $revert);

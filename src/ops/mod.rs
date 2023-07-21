@@ -6,7 +6,10 @@ use crate::{
     vision::image::Image,
 };
 
-use self::model::{impl_model_from_model_fields, Model};
+use self::{
+    model::{impl_model_from_model_fields, Model},
+    op_graph::OpSubgraphTrait
+};
 
 pub mod batched_columns_activation;
 pub mod batched_columns_dense_layer;
@@ -22,6 +25,7 @@ pub mod model;
 pub mod op_graph_builder;
 pub mod optimizer;
 pub mod vec_to_matrix;
+pub mod op_graph;
 
 pub trait Data<'g>: 'g {}
 
@@ -52,99 +56,6 @@ pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>:
     fn revert(&mut self, output_or_reference: DataOut) -> DataIn;
 }
 
-pub trait OpSubgraph<
-    'g,
-    DataIn: Data<'g>,
-    DataOut: Data<'g>,
-    DataRefIn: Data<'g>,
-    DataRefOut: Data<'g>,
->: Model
-{
-    fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut;
-    fn forward_or_transform(
-        &mut self,
-        input: DataIn,
-        reference: DataRefIn,
-    ) -> (DataOut, DataRefOut);
-    fn backward_or_revert(
-        &mut self,
-        incoming_grad: DataOut,
-        reference: DataRefOut,
-    ) -> (DataIn, DataRefIn);
-}
-
-macro_rules! impl_op_subgraph_for_learnable_op {
-    ($d:ident, $dref:ident) => {
-        fn forward_or_transform_inference(&mut self, input: $d) -> $d {
-            self.forward_inference(input)
-        }
-
-        fn forward_or_transform(&mut self, input: $d, reference: $dref) -> ($d, $dref) {
-            (self.forward(input), reference)
-        }
-
-        fn backward_or_revert(&mut self, output: $d, reference: $dref) -> ($d, $dref) {
-            (self.backward(output), reference)
-        }
-    };
-}
-
-pub(crate) use impl_op_subgraph_for_learnable_op;
-
-macro_rules! impl_op_subgraph_for_input_transformation_op {
-    ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
-        fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
-            self.transform(input)
-        }
-
-        fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
-            (self.transform(input), reference)
-        }
-
-        fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
-            (self.revert(output), reference)
-        }
-    };
-}
-
-pub(crate) use impl_op_subgraph_for_input_transformation_op;
-
-macro_rules! impl_op_subgraph_for_reference_transformation_op {
-    ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
-        fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
-            input
-        }
-
-        fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
-            (input, self.transform(reference))
-        }
-
-        fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
-            (output, self.revert(reference))
-        }
-    };
-}
-
-pub(crate) use impl_op_subgraph_for_reference_transformation_op;
-
-macro_rules! impl_op_subgraph_for_total_transformation_op {
-    ($din:ident, $dout:ident, $dref:ident, $drefout:ident) => {
-        fn forward_or_transform_inference(&mut self, input: $din) -> $dout {
-            self.transform(input)
-        }
-
-        fn forward_or_transform(&mut self, input: $din, reference: $dref) -> ($dout, $drefout) {
-            (self.transform(input), self.transform(reference))
-        }
-
-        fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
-            (self.revert(output), self.revert(reference))
-        }
-    };
-}
-
-pub(crate) use impl_op_subgraph_for_total_transformation_op;
-
 pub struct OpChain<
     'g,
     DataIn: Data<'g>,
@@ -154,8 +65,8 @@ pub struct OpChain<
     DataRefMid: Data<'g>,
     DataRefOut: Data<'g>,
 > {
-    first_op: Box<dyn OpSubgraph<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-    second_op: Box<dyn OpSubgraph<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
+    first_op: Box<dyn OpSubgraphTrait<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+    second_op: Box<dyn OpSubgraphTrait<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
 }
 
 impl<
@@ -179,7 +90,7 @@ impl<
         DataRefIn: Data<'g>,
         DataRefMid: Data<'g>,
         DataRefOut: Data<'g>,
-    > OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    > OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut>
     for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
@@ -217,8 +128,8 @@ impl<
     > OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
-        first_op: Box<dyn OpSubgraph<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-        second_op: Box<dyn OpSubgraph<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
+        first_op: Box<dyn OpSubgraphTrait<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+        second_op: Box<dyn OpSubgraphTrait<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
     ) -> Self {
         Self {
             first_op,

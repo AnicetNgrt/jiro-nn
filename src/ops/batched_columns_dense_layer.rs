@@ -1,14 +1,13 @@
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
-    impl_op_subgraph_for_learnable_op,
     matrix_learnable_adam::MatrixLearnableAdamBuilder,
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
     op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
     optimizer::{Optimizer, OptimizerBuilder},
-    Data, LearnableOp, OpSubgraph,
+    Data, LearnableOp, op_graph::{OpSubgraphTrait, impl_op_subgraph_for_learnable_op}
 };
 
 pub struct BatchedColumnsDenseLayer<'g> {
@@ -69,7 +68,7 @@ impl<'g> Model for BatchedColumnsDenseLayer<'g> {
     impl_model_from_model_fields!(weights_optimizer, biases_optimizer);
 }
 
-impl<'g, DataRef: Data<'g>> OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayer<'g>
 {
     impl_op_subgraph_for_learnable_op!(Matrix, DataRef);
@@ -189,7 +188,7 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         (Matrix, DataRef),
     ) {
         let input_dims = sample_data.dim();

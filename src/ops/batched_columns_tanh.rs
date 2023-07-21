@@ -3,7 +3,7 @@ use crate::linalg::{Matrix, MatrixTrait};
 use super::{
     batched_columns_activation::BatchedColumnsActivation,
     op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
-    Data, OpSubgraph,
+    Data, OpSubgraphTrait,
 };
 
 fn tanh(m: &Matrix) -> Matrix {
@@ -33,7 +33,7 @@ impl<'g, DataRef: Data<'g>>
         sample_data: Matrix,
         sample_ref: DataRef,
     ) -> (
-        Box<dyn OpSubgraph<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         (Matrix, DataRef),
     ) {
         (Box::new(batched_columns_tanh()), (sample_data, sample_ref))

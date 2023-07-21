@@ -2,7 +2,7 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
     model::{impl_model_no_params, Model},
-    Data, OpSubgraph,
+    Data, OpSubgraphTrait,
 };
 
 pub trait MeanableData<'g>: Data<'g> {
@@ -35,7 +35,7 @@ impl<'g, D: MeanableData<'g>> Loss<'g, D> {
     }
 }
 
-impl<'g, D: MeanableData<'g>> OpSubgraph<'g, D, D, D, D> for Loss<'g, D> {
+impl<'g, D: MeanableData<'g>> OpSubgraphTrait<'g, D, D, D, D> for Loss<'g, D> {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
     }

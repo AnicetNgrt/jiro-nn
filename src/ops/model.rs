@@ -66,6 +66,20 @@ macro_rules! impl_model_no_params {
 pub(crate) use impl_model_no_params;
 
 macro_rules! impl_model_from_model_fields {
+    (0) => {
+        fn get_learnable_params_count(&self) -> usize {
+            self.0.get_learnable_params_count()
+        }
+
+        fn load_learnable_params(&mut self, params: Vec<Scalar>) {
+            self.0.load_learnable_params(params);
+        }
+
+        fn get_learnable_params(&self) -> Vec<Scalar> {
+            self.0.get_learnable_params()
+        }
+    };
+
     ($p:ident) => {
         fn get_learnable_params_count(&self) -> usize {
             self.$p.get_learnable_params_count()

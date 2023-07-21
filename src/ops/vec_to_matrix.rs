@@ -13,7 +13,8 @@ use super::{
         plug_builder_on_op_subgraph_builder_data_out, plug_builder_on_op_subgraph_builder_reference_out,
         plug_builder_on_op_subgraph_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
     },
-    Data, OpSubgraph,
+    Data, 
+    op_graph::OpSubgraphTrait,
 };
 
 pub struct InputVec2ToMatrixBuilder;

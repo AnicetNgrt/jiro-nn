@@ -1,7 +1,9 @@
+use std::sync::mpsc::Sender;
+
 use super::{
-    combinatory_op::{OpGraph, OriginOp},
+    combinatory_op::OriginOp,
     mapping::{InputMappingOp, ReferenceMappingOp},
-    Data, OpSubgraph, OpChain,
+    Data, OpChain, op_graph::{OpSubgraphTrait, OpGraphShared, OpGraphThreadShared, OpGraph},
 };
 
 pub struct OpGraphBuilder<
@@ -17,16 +19,14 @@ pub struct OpGraphBuilder<
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+                    Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
                 ) + 'g,
         >,
     >,
 }
 
-impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone>
-    OpGraphBuilder<'g, (), D, (), DataRef>
-{
+impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone> OpGraphBuilder<'g, (), D, (), DataRef> {
     pub fn data_as_entry_point(data: D, reference: DataRef) -> Self {
         let origin_op = OriginOp::<(), ()>::new();
         let chain_op = OpChain::new(
@@ -43,29 +43,62 @@ impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone>
         }
     }
 
+    // pub fn subgraph_as_entry_point<Op: OpSubgraphTrait<'g, (), D, (), DataRef> + 'g>(op: Op) -> Self {
+    //     Self {
+    //         builder: Some(Box::new(move |_, _| (Box::new(op), ((), ())))),
+    //     }
+    // }
+
+    // pub fn build_partial(
+    //     &mut self,
+    // ) -> (Box<dyn OpSubgraphTrait<'g, (), D, (), DataRef> + 'g>, ((), ())) {
+    //     match self.builder.take() {
+    //         None => panic!("Building called twice."),
+    //         Some(builder) => (builder)((), ()),
+    //     }
+    // }
+
     pub fn build_graph(&mut self) -> OpGraph<'g, D, DataRef> {
         match self.builder.take() {
-            None => panic!("OpGraphBuilder::build() called twice."),
-            Some(builder) => OpGraph((builder)((), ()).0),
+            None => panic!("Building called twice."),
+            Some(builder) => OpGraph::new((builder)((), ()).0),
         }
     }
+
+    // pub fn build_graph_shared(&mut self) -> OpGraphShared<'g, D, DataRef> {
+    //     match self.builder.take() {
+    //         None => panic!("Building called twice."),
+    //         Some(builder) => OpGraphShared::new((builder)((), ()).0),
+    //     }
+    // }
+
+    // pub fn build_graph_thread_shared(&mut self) -> OpGraphThreadShared<'g, D, DataRef> {
+    //     match self.builder.take() {
+    //         None => panic!("Building called twice."),
+    //         Some(builder) => OpGraphThreadShared::new((builder)((), ()).0),
+    //     }
+    // }
+
+    // pub fn checkpoint(mut self, cx: Sender<OpGraphShared<'g, D, DataRef>>) -> Self {
+    //     let shared_subgraph = self.build_graph_shared();
+    //     cx.send(shared_subgraph.clone())
+    //         .expect("Failed to send checkpoint to receiver");
+    //     Self {
+    //         builder: Some(Box::new(move |_, _| (Box::new(shared_subgraph), ((), ())))),
+    //     }
+    // }
 }
 
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefOut: Data<'g>,
-    > OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
+    OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    pub fn new_fn(
+    pub fn from_fn(
         builder: Box<
             dyn FnOnce(
                     DataIn,
                     DataRefIn,
                 ) -> (
-                    Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+                    Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
                     (DataIn, DataRefIn),
                 ) + 'g,
         >,
@@ -75,7 +108,7 @@ impl<
         }
     }
 
-    pub fn new_op_builder<
+    pub fn from_op_builder<
         OpB: OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
     >(
         mut builder: OpB,
@@ -86,15 +119,22 @@ impl<
             })),
         }
     }
+
+    pub fn from_op_and_data<Op: OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>(
+        op: Op,
+        sample_data: DataIn,
+        sample_ref: DataRefIn,
+    ) -> Self {
+        Self {
+            builder: Some(Box::new(move |_, _| {
+                (Box::new(op), (sample_data, sample_ref))
+            })),
+        }
+    }
 }
 
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefOut: Data<'g>,
-    > OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
+    OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
     for OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     fn build(
@@ -102,7 +142,7 @@ impl<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         match self.builder.take() {
@@ -114,12 +154,8 @@ impl<
 
 macro_rules! plug_builder_on_op_subgraph_builder_data_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
-        impl<
-                'g,
-                DataIn: Data<'g>,
-                DataRefIn: Data<'g>,
-                DataRefOut: Data<'g>,
-            > OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, DataRefOut>
+        impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
+            OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, DataRefOut>
         {
             pub fn $plug_name(
                 self,
@@ -134,16 +170,10 @@ pub(crate) use plug_builder_on_op_subgraph_builder_data_out;
 
 macro_rules! plug_builder_on_op_subgraph_builder_reference_out {
     ($plug_name:ident, $plug_type:ty, $out_type:ty, $builder:expr) => {
-        impl<
-                'g,
-                DataIn: Data<'g>,
-                DataOut: Data<'g>,
-                DataRefIn: Data<'g>,
-            > OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $plug_type>
+        impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>>
+            OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $plug_type>
         {
-            pub fn $plug_name(
-                self,
-            ) -> OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $out_type> {
+            pub fn $plug_name(self) -> OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $out_type> {
                 self.push_and_pack($builder)
             }
         }
@@ -157,9 +187,7 @@ macro_rules! plug_builder_on_op_subgraph_builder_total_out {
         impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>>
             OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, $plug_type>
         {
-            pub fn $plug_name(
-                self,
-            ) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, $out_type> {
+            pub fn $plug_name(self) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, $out_type> {
                 self.push_and_pack($builder)
             }
         }
@@ -181,12 +209,12 @@ pub trait OpSubgraphBuilder<
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     );
 }
 
-pub struct OpBuilderChain<
+pub struct OpSubgraphBuilderChain<
     'g,
     DataIn: Data<'g>,
     DataMid: Data<'g>,
@@ -195,10 +223,8 @@ pub struct OpBuilderChain<
     DataRefMid: Data<'g>,
     DataRefOut: Data<'g>,
 > {
-    first_op:
-        Box<dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-    second_op:
-        Box<dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
+    first_op: Box<dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+    second_op: Box<dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
 }
 
 impl<
@@ -209,15 +235,11 @@ impl<
         DataRefIn: Data<'g>,
         DataRefMid: Data<'g>,
         DataRefOut: Data<'g>,
-    > OpBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+    > OpSubgraphBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     pub fn new(
-        first_op: Box<
-            dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g,
-        >,
-        second_op: Box<
-            dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g,
-        >,
+        first_op: Box<dyn OpSubgraphBuilder<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
+        second_op: Box<dyn OpSubgraphBuilder<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
     ) -> Self {
         Self {
             first_op,
@@ -235,14 +257,14 @@ impl<
         DataRefMid: Data<'g>,
         DataRefOut: Data<'g>,
     > OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
+    for OpSubgraphBuilderChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
 {
     fn build(
         &mut self,
         sample_data: DataIn,
         sample_ref: DataRefIn,
     ) -> (
-        Box<dyn OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
+        Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataIn, DataRefIn),
     ) {
         let (mut first_op, (sample_data, sample_ref)) =
@@ -265,12 +287,11 @@ pub trait CombinatoryOpBuilder<
     fn push_and_chain<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'g,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpBuilderPushed,
-    ) -> OpBuilderChain<
+    ) -> OpSubgraphBuilderChain<
         'g,
         DataIn,
         DataOut,
@@ -283,34 +304,26 @@ pub trait CombinatoryOpBuilder<
     fn push_and_pack<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'g,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpBuilderPushed,
     ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed>;
 }
 
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefOut: Data<'g>,
-        OpB,
-    > CombinatoryOpBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, OpB>
+    CombinatoryOpBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
 where
     OpB: OpSubgraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
     fn push_and_chain<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'g,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpBuilderPushed,
-    ) -> OpBuilderChain<
+    ) -> OpSubgraphBuilderChain<
         'g,
         DataIn,
         DataOut,
@@ -319,18 +332,17 @@ where
         DataRefOut,
         DataRefOutPushed,
     > {
-        OpBuilderChain::new(Box::new(self), Box::new(op))
+        OpSubgraphBuilderChain::new(Box::new(self), Box::new(op))
     }
 
     fn push_and_pack<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed>
-            + 'g,
+        OpBuilderPushed: OpSubgraphBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpBuilderPushed,
     ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed> {
-        OpGraphBuilder::new_op_builder(self.push_and_chain(op))
+        OpGraphBuilder::from_op_builder(self.push_and_chain(op))
     }
 }
