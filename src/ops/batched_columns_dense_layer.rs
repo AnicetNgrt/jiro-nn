@@ -185,13 +185,13 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
 {
     fn build(
         &mut self,
-        sample_data: Matrix,
-        sample_ref: DataRef,
+        meta_data: (usize, usize),
+        meta_ref: DataRef::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
-        (Matrix, DataRef),
+        ((usize, usize), DataRef::Meta),
     ) {
-        let input_dims = sample_data.dim();
+        let input_dims = meta_data;
         let input_neurons = input_dims.0;
         let weights_optimizer = self
             .weights_optimizer
@@ -201,7 +201,7 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
             .build(Matrix::zeros(self.output_neurons, 1));
         let layer = BatchedColumnsDenseLayer::new(weights_optimizer, biases_optimizer);
 
-        (Box::new(layer), (sample_data, sample_ref))
+        (Box::new(layer), ((self.output_neurons, input_dims.1), meta_ref))
     }
 }
 

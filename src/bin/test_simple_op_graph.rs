@@ -1,7 +1,7 @@
 use jiro_nn::{linalg::Matrix, ops::op_graph_builder::OpGraphBuilder};
 
 fn model() -> Matrix {
-    let mut op_build = OpGraphBuilder::data_as_entry_point(
+    let mut op_build = OpGraphBuilder::from_data(
         vec![
             vec![0.0, 0.0],
             vec![0.0, 1.0],

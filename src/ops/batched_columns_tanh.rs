@@ -30,13 +30,13 @@ impl<'g, DataRef: Data<'g>>
 {
     fn build(
         &mut self,
-        sample_data: Matrix,
-        sample_ref: DataRef,
+        meta_data: (usize, usize),
+        meta_ref: DataRef::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
-        (Matrix, DataRef),
+        ((usize, usize), DataRef::Meta),
     ) {
-        (Box::new(batched_columns_tanh()), (sample_data, sample_ref))
+        (Box::new(batched_columns_tanh()), (meta_data, meta_ref))
     }
 }
 

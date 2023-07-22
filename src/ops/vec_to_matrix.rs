@@ -4,17 +4,22 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
     mapping::{
-        impl_op_builder_from_input_transformation_closures,
-        impl_op_builder_from_reference_transformation_closures,
-        impl_op_builder_from_total_transformation_closures, InputMappingOp, ReferenceMappingOp,
-        TotalMappingOp,
+        input_mapping::{impl_op_builder_from_input_transformation_closures, InputMappingOp},
+        reference_mapping::{
+            impl_op_builder_from_reference_transformation_closures, ReferenceMappingOp,
+        },
+        total_mapping::{
+            impl_op_builder_from_total_transformation_closures, TotalMappingOp,
+        },
     },
+    op_graph::OpSubgraphTrait,
     op_graph_builder::{
-        plug_builder_on_op_subgraph_builder_data_out, plug_builder_on_op_subgraph_builder_reference_out,
-        plug_builder_on_op_subgraph_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder,
+        plug_builder_on_op_subgraph_builder_data_out,
+        plug_builder_on_op_subgraph_builder_reference_out,
+        plug_builder_on_op_subgraph_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder,
+        OpSubgraphBuilder,
     },
     Data, 
-    op_graph::OpSubgraphTrait,
 };
 
 pub struct InputVec2ToMatrixBuilder;
@@ -24,7 +29,8 @@ impl_op_builder_from_input_transformation_closures!(
     Vec<Vec<Scalar>>,
     Matrix,
     (|vecs| Matrix::from_column_leading_vector2(&vecs)),
-    (|matrix| matrix.get_data_col_leading())
+    (|matrix| matrix.get_data_col_leading()),
+    (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
 plug_builder_on_op_subgraph_builder_data_out!(
@@ -41,7 +47,8 @@ impl_op_builder_from_reference_transformation_closures!(
     Vec<Vec<Scalar>>,
     Matrix,
     (|vecs| Matrix::from_column_leading_vector2(&vecs)),
-    (|matrix| matrix.get_data_col_leading())
+    (|matrix| matrix.get_data_col_leading()),
+    (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
 plug_builder_on_op_subgraph_builder_reference_out!(
@@ -58,7 +65,8 @@ impl_op_builder_from_total_transformation_closures!(
     Vec<Vec<Scalar>>,
     Matrix,
     (|vecs| Matrix::from_column_leading_vector2(&vecs)),
-    (|matrix| matrix.get_data_col_leading())
+    (|matrix| matrix.get_data_col_leading()),
+    (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
 plug_builder_on_op_subgraph_builder_total_out!(

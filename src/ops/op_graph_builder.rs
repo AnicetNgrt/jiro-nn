@@ -1,9 +1,8 @@
-use std::sync::mpsc::Sender;
-
 use super::{
     combinatory_op::OriginOp,
-    mapping::{InputMappingOp, ReferenceMappingOp},
-    Data, OpChain, op_graph::{OpSubgraphTrait, OpGraphShared, OpGraphThreadShared, OpGraph},
+    mapping::{input_mapping::InputMappingOp, reference_mapping::ReferenceMappingOp},
+    op_graph::{OpGraph, OpGraphShared, OpGraphThreadShared, OpSubgraphTrait},
+    Data, OpChain,
 };
 
 pub struct OpGraphBuilder<
@@ -16,47 +15,67 @@ pub struct OpGraphBuilder<
     pub builder: Option<
         Box<
             dyn FnOnce(
-                    DataIn,
-                    DataRefIn,
+                    DataIn::Meta,
+                    DataRefIn::Meta,
                 ) -> (
                     Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
-                    (DataIn, DataRefIn),
+                    (DataOut::Meta, DataRefOut::Meta),
                 ) + 'g,
         >,
     >,
 }
 
 impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone> OpGraphBuilder<'g, (), D, (), DataRef> {
-    pub fn data_as_entry_point(data: D, reference: DataRef) -> Self {
+    pub fn from_data(data: D, reference: DataRef) -> Self {
         let origin_op = OriginOp::<(), ()>::new();
+        let data1 = data.clone();
+        let data2 = data.clone();
         let chain_op = OpChain::new(
             Box::new(origin_op),
-            Box::new(InputMappingOp::new(move |_| data.clone(), |_| ())),
+            Box::new(InputMappingOp::new(
+                move |_| data1.clone(),
+                |_| (),
+                move |_| data2.meta(),
+            )),
         );
-        let chain_op = OpChain::new(
+        let ref1 = reference.clone();
+        let ref2 = reference.clone();
+        let mut chain_op = OpChain::new(
             Box::new(chain_op),
-            Box::new(ReferenceMappingOp::new(move |_| reference.clone(), |_| ())),
+            Box::new(ReferenceMappingOp::new(
+                move |_| ref1.clone(),
+                |_| (),
+                move |_| ref2.meta(),
+            )),
         );
 
         Self {
-            builder: Some(Box::new(move |_, _| (Box::new(chain_op), ((), ())))),
+            builder: Some(Box::new(move |_, _| {
+                let (data, reference) = chain_op.forward_or_transform((), ());
+                (Box::new(chain_op), (data.meta(), reference.meta()))
+            })),
         }
     }
+}
 
+impl<'g, D: Data<'g>, DataRef: Data<'g>> OpGraphBuilder<'g, (), D, (), DataRef> {
     // pub fn subgraph_as_entry_point<Op: OpSubgraphTrait<'g, (), D, (), DataRef> + 'g>(op: Op) -> Self {
     //     Self {
     //         builder: Some(Box::new(move |_, _| (Box::new(op), ((), ())))),
     //     }
     // }
 
-    // pub fn build_partial(
-    //     &mut self,
-    // ) -> (Box<dyn OpSubgraphTrait<'g, (), D, (), DataRef> + 'g>, ((), ())) {
-    //     match self.builder.take() {
-    //         None => panic!("Building called twice."),
-    //         Some(builder) => (builder)((), ()),
-    //     }
-    // }
+    pub fn build_partial(
+        &mut self,
+    ) -> (
+        Box<dyn OpSubgraphTrait<'g, (), D, (), DataRef> + 'g>,
+        (D::Meta, DataRef::Meta),
+    ) {
+        match self.builder.take() {
+            None => panic!("Building called twice."),
+            Some(builder) => (builder)((), ()),
+        }
+    }
 
     pub fn build_graph(&mut self) -> OpGraph<'g, D, DataRef> {
         match self.builder.take() {
@@ -65,19 +84,19 @@ impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone> OpGraphBuilder<'g, (), 
         }
     }
 
-    // pub fn build_graph_shared(&mut self) -> OpGraphShared<'g, D, DataRef> {
-    //     match self.builder.take() {
-    //         None => panic!("Building called twice."),
-    //         Some(builder) => OpGraphShared::new((builder)((), ()).0),
-    //     }
-    // }
+    pub fn build_graph_shared(&mut self) -> OpGraphShared<'g, D, DataRef> {
+        match self.builder.take() {
+            None => panic!("Building called twice."),
+            Some(builder) => OpGraphShared::new((builder)((), ()).0),
+        }
+    }
 
-    // pub fn build_graph_thread_shared(&mut self) -> OpGraphThreadShared<'g, D, DataRef> {
-    //     match self.builder.take() {
-    //         None => panic!("Building called twice."),
-    //         Some(builder) => OpGraphThreadShared::new((builder)((), ()).0),
-    //     }
-    // }
+    pub fn build_graph_thread_shared(&mut self) -> OpGraphThreadShared<'g, D, DataRef> {
+        match self.builder.take() {
+            None => panic!("Building called twice."),
+            Some(builder) => OpGraphThreadShared::new((builder)((), ()).0),
+        }
+    }
 
     // pub fn checkpoint(mut self, cx: Sender<OpGraphShared<'g, D, DataRef>>) -> Self {
     //     let shared_subgraph = self.build_graph_shared();
@@ -95,11 +114,11 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
     pub fn from_fn(
         builder: Box<
             dyn FnOnce(
-                    DataIn,
-                    DataRefIn,
+                    DataIn::Meta,
+                    DataRefIn::Meta,
                 ) -> (
                     Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
-                    (DataIn, DataRefIn),
+                    (DataOut::Meta, DataRefOut::Meta),
                 ) + 'g,
         >,
     ) -> Self {
@@ -114,23 +133,26 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
         mut builder: OpB,
     ) -> Self {
         Self {
-            builder: Some(Box::new(move |sample_data, sample_ref| {
-                builder.build(sample_data, sample_ref)
+            builder: Some(Box::new(move |meta_data, meta_ref| {
+                builder.build(meta_data, meta_ref)
             })),
         }
     }
 
-    pub fn from_op_and_data<Op: OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>(
-        op: Op,
-        sample_data: DataIn,
-        sample_ref: DataRefIn,
-    ) -> Self {
-        Self {
-            builder: Some(Box::new(move |_, _| {
-                (Box::new(op), (sample_data, sample_ref))
-            })),
-        }
-    }
+    // pub fn from_op_and_data<
+    //     Op: OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
+    // >(
+    //     op: Op,
+    //     sample_data: DataIn,
+    //     sample_ref: DataRefIn,
+    // ) -> Self {
+    //     Self {
+    //         builder: Some(Box::new(move |_, _| {
+                
+    //             (Box::new(op), data_and_ref)
+    //         })),
+    //     }
+    // }
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
@@ -139,15 +161,15 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 {
     fn build(
         &mut self,
-        sample_data: DataIn,
-        sample_ref: DataRefIn,
+        meta_data: DataIn::Meta,
+        meta_ref: DataRefIn::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
-        (DataIn, DataRefIn),
+        (DataOut::Meta, DataRefOut::Meta),
     ) {
         match self.builder.take() {
             None => panic!("OpGraphBuilder::build() called twice."),
-            Some(builder) => (builder)(sample_data, sample_ref),
+            Some(builder) => (builder)(meta_data, meta_ref),
         }
     }
 }
@@ -206,11 +228,11 @@ pub trait OpSubgraphBuilder<
 {
     fn build(
         &mut self,
-        sample_data: DataIn,
-        sample_ref: DataRefIn,
+        meta_data: DataIn::Meta,
+        meta_ref: DataRefIn::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
-        (DataIn, DataRefIn),
+        (DataOut::Meta, DataRefOut::Meta),
     );
 }
 
@@ -261,18 +283,16 @@ impl<
 {
     fn build(
         &mut self,
-        sample_data: DataIn,
-        sample_ref: DataRefIn,
+        meta_data: DataIn::Meta,
+        meta_ref: DataRefIn::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
-        (DataIn, DataRefIn),
+        (DataOut::Meta, DataRefOut::Meta),
     ) {
-        let (mut first_op, (sample_data, sample_ref)) =
-            self.first_op.build(sample_data, sample_ref);
-        let (sample_data, sample_ref) = first_op.forward_or_transform(sample_data, sample_ref);
-        let (second_op, (sample_data, sample_ref)) = self.second_op.build(sample_data, sample_ref);
-        let data_and_ref = first_op.backward_or_revert(sample_data, sample_ref);
-        (Box::new(OpChain::new(first_op, second_op)), data_and_ref)
+        let (first_op, (meta_data, meta_ref)) =
+            self.first_op.build(meta_data, meta_ref);
+        let (second_op, (meta_data, meta_ref)) = self.second_op.build(meta_data, meta_ref);
+        (Box::new(OpChain::new(first_op, second_op)), (meta_data, meta_ref))
     }
 }
 

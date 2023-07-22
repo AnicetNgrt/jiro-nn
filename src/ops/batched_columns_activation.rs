@@ -70,15 +70,15 @@ impl<'g, DataRef: Data<'g>>
 {
     fn build(
         &mut self,
-        sample_data: Matrix,
-        sample_ref: DataRef,
+        meta_data: (usize, usize),
+        meta_ref: DataRef::Meta,
     ) -> (
         Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
-        (Matrix, DataRef),
+        ((usize, usize), DataRef::Meta),
     ) {
         (
             Box::new(BatchedColumnsActivation::new(self.f, self.fp)),
-            (sample_data, sample_ref),
+            (meta_data, meta_ref),
         )
     }
 }
