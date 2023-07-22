@@ -39,7 +39,7 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
     }
 }
 
-pub trait CombinatoryOp<
+pub trait LinkableOp<
     'g,
     DataIn: Data<'g>,
     DataOut: Data<'g>,
@@ -58,7 +58,7 @@ pub trait CombinatoryOp<
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, MOp>
-    CombinatoryOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
+    LinkableOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
 where
     MOp: OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {

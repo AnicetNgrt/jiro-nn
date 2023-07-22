@@ -299,7 +299,7 @@ impl<
     }
 }
 
-pub trait CombinatoryOpBuilder<
+pub trait LinkableOpBuilder<
     'g,
     DataIn: Data<'g>,
     DataOut: Data<'g>,
@@ -335,7 +335,7 @@ pub trait CombinatoryOpBuilder<
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, OpB>
-    CombinatoryOpBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
+    LinkableOpBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> for OpB
 where
     OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
