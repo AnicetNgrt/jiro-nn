@@ -11,8 +11,8 @@ use crate::{
 };
 
 use self::{
-    model::{impl_model_from_model_fields, Model},
-    op_graph::OpSubgraphTrait,
+    model::Model,
+    op_graphs::op_node::OpNodeTrait,
 };
 
 pub mod batched_columns_activation;
@@ -21,12 +21,13 @@ pub mod batched_columns_tanh;
 pub mod combinatory_op;
 pub mod learning_rate;
 pub mod loss;
-pub mod mapping;
+pub mod transformations;
+pub mod mappings;
 pub mod matrix_learnable_adam;
 pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
-pub mod op_graph;
+pub mod op_graphs;
 pub mod op_graph_builder;
 pub mod optimizer;
 pub mod vec_to_matrix;
@@ -55,88 +56,6 @@ pub trait ReferenceTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Mo
 pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
     fn transform(&mut self, input_or_reference: DataIn) -> DataOut;
     fn revert(&mut self, output_or_reference: DataOut) -> DataIn;
-}
-
-pub struct OpChain<
-    'g,
-    DataIn: Data<'g>,
-    DataMid: Data<'g>,
-    DataOut: Data<'g>,
-    DataRefIn: Data<'g>,
-    DataRefMid: Data<'g>,
-    DataRefOut: Data<'g>,
-> {
-    first_op: Box<dyn OpSubgraphTrait<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-    second_op: Box<dyn OpSubgraphTrait<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
-}
-
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataMid: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefMid: Data<'g>,
-        DataRefOut: Data<'g>,
-    > Model for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
-{
-    impl_model_from_model_fields!(first_op, second_op);
-}
-
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataMid: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefMid: Data<'g>,
-        DataRefOut: Data<'g>,
-    > OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
-{
-    fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
-        let mid = self.first_op.forward_or_transform_inference(input);
-        self.second_op.forward_or_transform_inference(mid)
-    }
-
-    fn forward_or_transform(
-        &mut self,
-        input: DataIn,
-        reference: DataRefIn,
-    ) -> (DataOut, DataRefOut) {
-        let (mid, reference) = self.first_op.forward_or_transform(input, reference);
-        self.second_op.forward_or_transform(mid, reference)
-    }
-
-    fn backward_or_revert(
-        &mut self,
-        output: DataOut,
-        reference: DataRefOut,
-    ) -> (DataIn, DataRefIn) {
-        let (mid, reference) = self.second_op.backward_or_revert(output, reference);
-        self.first_op.backward_or_revert(mid, reference)
-    }
-}
-
-impl<
-        'g,
-        DataIn: Data<'g>,
-        DataMid: Data<'g>,
-        DataOut: Data<'g>,
-        DataRefIn: Data<'g>,
-        DataRefMid: Data<'g>,
-        DataRefOut: Data<'g>,
-    > OpChain<'g, DataIn, DataMid, DataOut, DataRefIn, DataRefMid, DataRefOut>
-{
-    pub fn new(
-        first_op: Box<dyn OpSubgraphTrait<'g, DataIn, DataMid, DataRefIn, DataRefMid> + 'g>,
-        second_op: Box<dyn OpSubgraphTrait<'g, DataMid, DataOut, DataRefMid, DataRefOut> + 'g>,
-    ) -> Self {
-        Self {
-            first_op,
-            second_op,
-        }
-    }
 }
 
 impl<'g, D: Data<'g>> Data<'g> for &'g D {

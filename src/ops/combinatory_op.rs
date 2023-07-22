@@ -2,7 +2,7 @@ use crate::linalg::Scalar;
 
 use super::{
     model::{impl_model_no_params, Model},
-    Data, OpChain, OpSubgraphTrait,
+    Data, OpNodeTrait, op_graphs::op_vertex::OpVertex,
 };
 
 pub struct OriginOp<'g, D: Data<'g>, DataRef: Data<'g>> {
@@ -21,7 +21,7 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> Model for OriginOp<'g, D, DataRef> {
     impl_model_no_params!();
 }
 
-impl<'g, D: Data<'g>, DataRef: Data<'g>> OpSubgraphTrait<'g, D, D, DataRef, DataRef>
+impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
     for OriginOp<'g, D, DataRef>
 {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
@@ -48,26 +48,26 @@ pub trait CombinatoryOp<
     fn push<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpPushed: OpSubgraphTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+        OpPushed: OpNodeTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,
-    ) -> OpChain<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
+    ) -> OpVertex<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, MOp>
     CombinatoryOp<'g, DataIn, DataOut, DataRefIn, DataRefOut> for MOp
 where
-    MOp: OpSubgraphTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
+    MOp: OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
     fn push<
         DataOutPushed: Data<'g>,
         DataRefOutPushed: Data<'g>,
-        OpPushed: OpSubgraphTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+        OpPushed: OpNodeTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
     >(
         self,
         op: OpPushed,
-    ) -> OpChain<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed> {
-        OpChain::new(Box::new(self), Box::new(op))
+    ) -> OpVertex<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed> {
+        OpVertex::new(Box::new(self), Box::new(op))
     }
 }

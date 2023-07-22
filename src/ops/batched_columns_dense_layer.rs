@@ -5,9 +5,9 @@ use super::{
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
-    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
+    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpNodeBuilder},
     optimizer::{Optimizer, OptimizerBuilder},
-    Data, LearnableOp, op_graph::{OpSubgraphTrait, impl_op_subgraph_for_learnable_op}
+    Data, LearnableOp, op_graphs::op_node::{OpNodeTrait, impl_op_node_for_learnable_op}
 };
 
 pub struct BatchedColumnsDenseLayer<'g> {
@@ -68,10 +68,10 @@ impl<'g> Model for BatchedColumnsDenseLayer<'g> {
     impl_model_from_model_fields!(weights_optimizer, biases_optimizer);
 }
 
-impl<'g, DataRef: Data<'g>> OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpNodeTrait<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayer<'g>
 {
-    impl_op_subgraph_for_learnable_op!(Matrix, DataRef);
+    impl_op_node_for_learnable_op!(Matrix, DataRef);
 }
 
 pub struct BatchedColumnsDenseLayerBuilder<'g, Parent: 'g> {
@@ -180,7 +180,7 @@ impl<'g, Parent: 'g> BatchedColumnsDenseLayerBuilder<'g, Parent> {
 }
 
 impl<'g, Parent: 'g, DataRef: Data<'g>>
-    OpSubgraphBuilder<'g, Matrix, Matrix, DataRef, DataRef>
+    OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayerBuilder<'g, Parent>
 {
     fn build(
@@ -188,7 +188,7 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
         meta_data: (usize, usize),
         meta_ref: DataRef::Meta,
     ) -> (
-        Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpNodeTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         ((usize, usize), DataRef::Meta),
     ) {
         let input_dims = meta_data;

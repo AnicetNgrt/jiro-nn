@@ -1,13 +1,15 @@
 use crate::linalg::Scalar;
 
-use crate::ops::op_graph::impl_op_subgraph_for_total_transformation_op;
 use crate::ops::{
     model::{impl_model_no_params, Model},
-    op_graph::OpSubgraphTrait,
-    Data, TotalTransformationOp,
+    op_graphs::op_node::{
+        impl_op_node_for_input_transformation_op,
+        OpNodeTrait,
+    },
+    Data, InputTransformationOp,
 };
 
-pub struct TotalMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>
+pub struct InputMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -20,7 +22,7 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>
-    TotalMappingOp<'g, DataIn, DataOut, F, FP, FM>
+    InputMappingOp<'g, DataIn, DataOut, F, FP, FM>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -41,7 +43,7 @@ where
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM> Model
-    for TotalMappingOp<'g, DataIn, DataOut, F, FP, FM>
+    for InputMappingOp<'g, DataIn, DataOut, F, FP, FM>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -50,8 +52,8 @@ where
     impl_model_no_params!();
 }
 
-impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM> TotalTransformationOp<'g, DataIn, DataOut>
-    for TotalMappingOp<'g, DataIn, DataOut, F, FP, FM>
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM> InputTransformationOp<'g, DataIn, DataOut>
+    for InputMappingOp<'g, DataIn, DataOut, F, FP, FM>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
@@ -66,33 +68,32 @@ where
     }
 }
 
-impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>
-    OpSubgraphTrait<'g, DataIn, DataOut, DataIn, DataOut>
-    for TotalMappingOp<'g, DataIn, DataOut, F, FP, FM>
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRef: Data<'g>, F, FP, FM>
+    OpNodeTrait<'g, DataIn, DataOut, DataRef, DataRef>
+    for InputMappingOp<'g, DataIn, DataOut, F, FP, FM>
 where
     F: Fn(DataIn) -> DataOut,
     FP: Fn(DataOut) -> DataIn,
     FM: Fn(DataIn::Meta) -> DataOut::Meta,
 {
-    impl_op_subgraph_for_total_transformation_op!(DataIn, DataOut, DataIn, DataOut);
+    impl_op_node_for_input_transformation_op!(DataIn, DataOut, DataRef, DataRef);
 }
 
-macro_rules! impl_op_builder_from_total_transformation_closures {
+macro_rules! impl_op_builder_from_input_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt, $meta:tt) => {
-        impl<'g> OpSubgraphBuilder<'g, $in_type, $out_type, $in_type, $out_type>
+        impl<'g, DataRef: Data<'g>> OpNodeBuilder<'g, $in_type, $out_type, DataRef, DataRef>
             for $t
         {
             fn build(
                 &mut self,
                 meta_data: <$in_type as Data>::Meta,
-                meta_ref: <$in_type as Data>::Meta,
+                meta_ref: DataRef::Meta,
             ) -> (
-                Box<dyn OpSubgraphTrait<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
-                (<$out_type as Data>::Meta, <$out_type as Data>::Meta),
+                Box<dyn OpNodeTrait<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
+                (<$out_type as Data>::Meta, DataRef::Meta),
             ) {
-                let op = TotalMappingOp::new($transform, $revert, $meta);
+                let op = InputMappingOp::new($transform, $revert, $meta);
                 let meta_data = op.map_meta(meta_data);
-                let meta_ref = op.map_meta(meta_ref);
 
                 (Box::new(op), (meta_data, meta_ref))
             }
@@ -100,4 +101,4 @@ macro_rules! impl_op_builder_from_total_transformation_closures {
     };
 }
 
-pub(crate) use impl_op_builder_from_total_transformation_closures;
+pub(crate) use impl_op_builder_from_input_transformation_closures;

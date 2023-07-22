@@ -2,9 +2,9 @@ use crate::linalg::Scalar;
 
 use crate::ops::{
     model::{impl_model_no_params, Model},
-    op_graph::{
-        impl_op_subgraph_for_reference_transformation_op,
-        OpSubgraphTrait,
+    op_graphs::op_node::{
+        impl_op_node_for_reference_transformation_op,
+        OpNodeTrait,
     },
     Data, ReferenceTransformationOp,
 };
@@ -70,19 +70,19 @@ where
 }
 
 impl<'g, D: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP, FM>
-    OpSubgraphTrait<'g, D, D, DataRefIn, DataRefOut>
+    OpNodeTrait<'g, D, D, DataRefIn, DataRefOut>
     for ReferenceMappingOp<'g, DataRefIn, DataRefOut, F, FP, FM>
 where
     F: Fn(DataRefIn) -> DataRefOut,
     FP: Fn(DataRefOut) -> DataRefIn,
     FM: Fn(DataRefIn::Meta) -> DataRefOut::Meta,
 {
-    impl_op_subgraph_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
+    impl_op_node_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
 }
 
 macro_rules! impl_op_builder_from_reference_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt, $meta:tt) => {
-        impl<'g, D: Data<'g>> OpSubgraphBuilder<'g, D, D, $in_type, $out_type>
+        impl<'g, D: Data<'g>> OpNodeBuilder<'g, D, D, $in_type, $out_type>
             for $t
         {
             fn build(
@@ -90,7 +90,7 @@ macro_rules! impl_op_builder_from_reference_transformation_closures {
                 meta_data: D::Meta,
                 meta_ref: <$in_type as Data>::Meta,
             ) -> (
-                Box<dyn OpSubgraphTrait<'g, D, D, $in_type, $out_type> + 'g>,
+                Box<dyn OpNodeTrait<'g, D, D, $in_type, $out_type> + 'g>,
                 (D::Meta, <$out_type as Data>::Meta),
             ) {
                 let op = ReferenceMappingOp::new($transform, $revert, $meta);

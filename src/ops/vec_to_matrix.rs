@@ -3,7 +3,7 @@
 use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
-    mapping::{
+    mappings::{
         input_mapping::{impl_op_builder_from_input_transformation_closures, InputMappingOp},
         reference_mapping::{
             impl_op_builder_from_reference_transformation_closures, ReferenceMappingOp,
@@ -12,12 +12,12 @@ use super::{
             impl_op_builder_from_total_transformation_closures, TotalMappingOp,
         },
     },
-    op_graph::OpSubgraphTrait,
+    op_graphs::op_node::OpNodeTrait,
     op_graph_builder::{
-        plug_builder_on_op_subgraph_builder_data_out,
-        plug_builder_on_op_subgraph_builder_reference_out,
-        plug_builder_on_op_subgraph_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder,
-        OpSubgraphBuilder,
+        plug_builder_on_op_node_builder_data_out,
+        plug_builder_on_op_node_builder_reference_out,
+        plug_builder_on_op_node_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder,
+        OpNodeBuilder,
     },
     Data, 
 };
@@ -33,7 +33,7 @@ impl_op_builder_from_input_transformation_closures!(
     (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
-plug_builder_on_op_subgraph_builder_data_out!(
+plug_builder_on_op_node_builder_data_out!(
     data_vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,
@@ -51,7 +51,7 @@ impl_op_builder_from_reference_transformation_closures!(
     (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
-plug_builder_on_op_subgraph_builder_reference_out!(
+plug_builder_on_op_node_builder_reference_out!(
     reference_vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,
@@ -69,7 +69,7 @@ impl_op_builder_from_total_transformation_closures!(
     (|vec_meta| (vec_meta[0].len(), vec_meta.len()))
 );
 
-plug_builder_on_op_subgraph_builder_total_out!(
+plug_builder_on_op_node_builder_total_out!(
     vec2_to_matrix,
     Vec<Vec<Scalar>>,
     Matrix,

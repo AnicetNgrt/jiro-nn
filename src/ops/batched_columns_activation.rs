@@ -2,8 +2,8 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
     model::{impl_model_no_params, Model},
-    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpSubgraphBuilder},
-    Data, LearnableOp, op_graph::{impl_op_subgraph_for_learnable_op, OpSubgraphTrait},
+    op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpNodeBuilder},
+    Data, LearnableOp, op_graphs::op_node::{impl_op_node_for_learnable_op, OpNodeTrait},
 };
 
 pub struct BatchedColumnsActivation {
@@ -44,10 +44,10 @@ impl<'g> LearnableOp<'g, Matrix> for BatchedColumnsActivation {
     }
 }
 
-impl<'g, DataRef: Data<'g>> OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpNodeTrait<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivation
 {
-    impl_op_subgraph_for_learnable_op!(Matrix, DataRef);
+    impl_op_node_for_learnable_op!(Matrix, DataRef);
 }
 
 pub struct BatchedColumnsActivationBuilder {
@@ -65,7 +65,7 @@ impl BatchedColumnsActivationBuilder {
 }
 
 impl<'g, DataRef: Data<'g>>
-    OpSubgraphBuilder<'g, Matrix, Matrix, DataRef, DataRef>
+    OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
     fn build(
@@ -73,7 +73,7 @@ impl<'g, DataRef: Data<'g>>
         meta_data: (usize, usize),
         meta_ref: DataRef::Meta,
     ) -> (
-        Box<dyn OpSubgraphTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
+        Box<dyn OpNodeTrait<'g, Matrix, Matrix, DataRef, DataRef> + 'g>,
         ((usize, usize), DataRef::Meta),
     ) {
         (
