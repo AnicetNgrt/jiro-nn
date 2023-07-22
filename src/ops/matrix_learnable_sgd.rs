@@ -12,10 +12,7 @@ pub struct MatrixLearnableSGD<'g> {
 }
 
 impl<'g> MatrixLearnableSGD<'g> {
-    pub fn new(
-        parameter: Matrix,
-        learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
-    ) -> Self {
+    pub fn new(parameter: Matrix, learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>) -> Self {
         Self {
             parameter,
             learning_rate,
@@ -41,8 +38,7 @@ impl<'g> Model for MatrixLearnableSGD<'g> {
 
 pub struct MatrixLearnableSGDBuilder<'g, Parent: 'g> {
     learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
-    parent_acceptor:
-        Option<Box<dyn FnOnce(MatrixLearnableSGDBuilder<'g, Parent>) -> Parent + 'g>>,
+    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableSGDBuilder<'g, Parent>) -> Parent + 'g>>,
 }
 
 impl<'g, Parent: 'g> MatrixLearnableSGDBuilder<'g, Parent> {
@@ -71,9 +67,7 @@ impl<'g, Parent: 'g> MatrixLearnableSGDBuilder<'g, Parent> {
     }
 }
 
-impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix>
-    for MatrixLearnableSGDBuilder<'g, Parent>
-{
+impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix> for MatrixLearnableSGDBuilder<'g, Parent> {
     fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableSGD::new(
             parameter,

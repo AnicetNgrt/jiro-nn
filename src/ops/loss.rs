@@ -2,7 +2,8 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
     model::{impl_model_no_params, Model},
-    Data, OpNodeTrait,
+    op_graphs::op_node::OpNodeTrait,
+    Data,
 };
 
 pub trait MeanableData<'g>: Data<'g> {

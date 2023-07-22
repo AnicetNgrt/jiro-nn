@@ -8,18 +8,15 @@ use super::{
         reference_mapping::{
             impl_op_builder_from_reference_transformation_closures, ReferenceMappingOp,
         },
-        total_mapping::{
-            impl_op_builder_from_total_transformation_closures, TotalMappingOp,
-        },
+        total_mapping::{impl_op_builder_from_total_transformation_closures, TotalMappingOp},
     },
-    op_graphs::op_node::OpNodeTrait,
     op_graph_builder::{
-        plug_builder_on_op_node_builder_data_out,
-        plug_builder_on_op_node_builder_reference_out,
+        plug_builder_on_op_node_builder_data_out, plug_builder_on_op_node_builder_reference_out,
         plug_builder_on_op_node_builder_total_out, CombinatoryOpBuilder, OpGraphBuilder,
         OpNodeBuilder,
     },
-    Data, 
+    op_graphs::op_node::OpNodeTrait,
+    Data,
 };
 
 pub struct InputVec2ToMatrixBuilder;

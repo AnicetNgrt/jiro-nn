@@ -6,8 +6,9 @@ use super::{
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
     op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpNodeBuilder},
+    op_graphs::op_node::{impl_op_node_for_learnable_op, LearnableOp, OpNodeTrait},
     optimizer::{Optimizer, OptimizerBuilder},
-    Data, LearnableOp, op_graphs::op_node::{OpNodeTrait, impl_op_node_for_learnable_op}
+    Data,
 };
 
 pub struct BatchedColumnsDenseLayer<'g> {
@@ -78,9 +79,8 @@ pub struct BatchedColumnsDenseLayerBuilder<'g, Parent: 'g> {
     output_neurons: usize,
     weights_optimizer: Box<dyn OptimizerBuilder<'g, Matrix> + 'g>,
     biases_optimizer: Box<dyn OptimizerBuilder<'g, Matrix> + 'g>,
-    parent_acceptor: Option<
-        Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'g, Parent>) -> Parent + 'g>,
-    >,
+    parent_acceptor:
+        Option<Box<dyn FnOnce(BatchedColumnsDenseLayerBuilder<'g, Parent>) -> Parent + 'g>>,
 }
 
 impl<'g, Parent: 'g> BatchedColumnsDenseLayerBuilder<'g, Parent> {
@@ -120,27 +120,21 @@ impl<'g, Parent: 'g> BatchedColumnsDenseLayerBuilder<'g, Parent> {
         })))
     }
 
-    pub fn with_momentum_optimized_weights(
-        mut self,
-    ) -> MatrixLearnableMomentumBuilder<'g, Self> {
+    pub fn with_momentum_optimized_weights(mut self) -> MatrixLearnableMomentumBuilder<'g, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.weights_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn with_momentum_optimized_biases(
-        mut self,
-    ) -> MatrixLearnableMomentumBuilder<'g, Self> {
+    pub fn with_momentum_optimized_biases(mut self) -> MatrixLearnableMomentumBuilder<'g, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = Box::new(builder);
             self
         })))
     }
 
-    pub fn everything_momentum_optimized(
-        mut self,
-    ) -> MatrixLearnableMomentumBuilder<'g, Self> {
+    pub fn everything_momentum_optimized(mut self) -> MatrixLearnableMomentumBuilder<'g, Self> {
         MatrixLearnableMomentumBuilder::new(Some(Box::new(move |builder| {
             self.biases_optimizer = builder.clone_box();
             self.weights_optimizer = Box::new(builder);
@@ -179,8 +173,7 @@ impl<'g, Parent: 'g> BatchedColumnsDenseLayerBuilder<'g, Parent> {
     }
 }
 
-impl<'g, Parent: 'g, DataRef: Data<'g>>
-    OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, Parent: 'g, DataRef: Data<'g>> OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsDenseLayerBuilder<'g, Parent>
 {
     fn build(
@@ -201,7 +194,10 @@ impl<'g, Parent: 'g, DataRef: Data<'g>>
             .build(Matrix::zeros(self.output_neurons, 1));
         let layer = BatchedColumnsDenseLayer::new(weights_optimizer, biases_optimizer);
 
-        (Box::new(layer), ((self.output_neurons, input_dims.1), meta_ref))
+        (
+            Box::new(layer),
+            ((self.output_neurons, input_dims.1), meta_ref),
+        )
     }
 }
 

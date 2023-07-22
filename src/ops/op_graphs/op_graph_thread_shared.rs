@@ -1,9 +1,11 @@
 use std::sync::{Arc, Mutex};
 
-use crate::{linalg::Scalar, ops::{Data, model::Model}};
+use crate::{
+    linalg::Scalar,
+    ops::{model::Model, Data},
+};
 
 use super::op_node::OpNodeTrait;
-
 
 #[derive(Clone)]
 pub struct OpNodeThreadShared<

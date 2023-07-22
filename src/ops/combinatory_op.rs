@@ -2,7 +2,9 @@ use crate::linalg::Scalar;
 
 use super::{
     model::{impl_model_no_params, Model},
-    Data, OpNodeTrait, op_graphs::op_vertex::OpVertex,
+    op_graphs::op_node::OpNodeTrait,
+    op_graphs::op_vertex::OpVertex,
+    Data,
 };
 
 pub struct OriginOp<'g, D: Data<'g>, DataRef: Data<'g>> {

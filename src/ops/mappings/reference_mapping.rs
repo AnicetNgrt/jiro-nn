@@ -3,12 +3,10 @@ use crate::linalg::Scalar;
 use crate::ops::{
     model::{impl_model_no_params, Model},
     op_graphs::op_node::{
-        impl_op_node_for_reference_transformation_op,
-        OpNodeTrait,
+        impl_op_node_for_reference_transformation_op, OpNodeTrait, ReferenceTransformationOp,
     },
-    Data, ReferenceTransformationOp,
+    Data,
 };
-
 
 pub struct ReferenceMappingOp<'g, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP, FM>
 where
@@ -53,7 +51,8 @@ where
     impl_model_no_params!();
 }
 
-impl<'g, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP, FM> ReferenceTransformationOp<'g, DataRefIn, DataRefOut>
+impl<'g, DataRefIn: Data<'g>, DataRefOut: Data<'g>, F, FP, FM>
+    ReferenceTransformationOp<'g, DataRefIn, DataRefOut>
     for ReferenceMappingOp<'g, DataRefIn, DataRefOut, F, FP, FM>
 where
     F: Fn(DataRefIn) -> DataRefOut,
@@ -82,9 +81,7 @@ where
 
 macro_rules! impl_op_builder_from_reference_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt, $meta:tt) => {
-        impl<'g, D: Data<'g>> OpNodeBuilder<'g, D, D, $in_type, $out_type>
-            for $t
-        {
+        impl<'g, D: Data<'g>> OpNodeBuilder<'g, D, D, $in_type, $out_type> for $t {
             fn build(
                 &mut self,
                 meta_data: D::Meta,

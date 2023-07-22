@@ -3,10 +3,9 @@ use crate::linalg::Scalar;
 use crate::ops::{
     model::{impl_model_no_params, Model},
     op_graphs::op_node::{
-        impl_op_node_for_input_transformation_op,
-        OpNodeTrait,
+        impl_op_node_for_input_transformation_op, InputTransformationOp, OpNodeTrait,
     },
-    Data, InputTransformationOp,
+    Data,
 };
 
 pub struct InputMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>

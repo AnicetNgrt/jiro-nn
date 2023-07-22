@@ -1,7 +1,10 @@
 use super::{
     combinatory_op::OriginOp,
     mappings::{input_mapping::InputMappingOp, reference_mapping::ReferenceMappingOp},
-    op_graphs::{op_node::OpNodeTrait, op_graph_shared::OpGraphShared, op_graph_thread_shared::OpGraphThreadShared, op_graph::OpGraph, op_vertex::OpVertex},
+    op_graphs::{
+        op_graph::OpGraph, op_graph_shared::OpGraphShared,
+        op_graph_thread_shared::OpGraphThreadShared, op_node::OpNodeTrait, op_vertex::OpVertex,
+    },
     Data,
 };
 
@@ -127,9 +130,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
         }
     }
 
-    pub fn from_op_builder<
-        OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
-    >(
+    pub fn from_op_builder<OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>(
         mut builder: OpB,
     ) -> Self {
         Self {
@@ -148,7 +149,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
     // ) -> Self {
     //     Self {
     //         builder: Some(Box::new(move |_, _| {
-                
+
     //             (Box::new(op), data_and_ref)
     //         })),
     //     }
@@ -289,10 +290,12 @@ impl<
         Box<dyn OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>,
         (DataOut::Meta, DataRefOut::Meta),
     ) {
-        let (first_op, (meta_data, meta_ref)) =
-            self.first_op.build(meta_data, meta_ref);
+        let (first_op, (meta_data, meta_ref)) = self.first_op.build(meta_data, meta_ref);
         let (second_op, (meta_data, meta_ref)) = self.second_op.build(meta_data, meta_ref);
-        (Box::new(OpVertex::new(first_op, second_op)), (meta_data, meta_ref))
+        (
+            Box::new(OpVertex::new(first_op, second_op)),
+            (meta_data, meta_ref),
+        )
     }
 }
 

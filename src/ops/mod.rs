@@ -10,52 +10,26 @@ use crate::{
     vision::image::{Image, ImageTrait},
 };
 
-use self::{
-    model::Model,
-    op_graphs::op_node::OpNodeTrait,
-};
-
 pub mod batched_columns_activation;
 pub mod batched_columns_dense_layer;
 pub mod batched_columns_tanh;
 pub mod combinatory_op;
 pub mod learning_rate;
 pub mod loss;
-pub mod transformations;
 pub mod mappings;
 pub mod matrix_learnable_adam;
 pub mod matrix_learnable_momentum;
 pub mod matrix_learnable_sgd;
 pub mod model;
-pub mod op_graphs;
 pub mod op_graph_builder;
+pub mod op_graphs;
 pub mod optimizer;
+pub mod transformations;
 pub mod vec_to_matrix;
 
 pub trait Data<'g>: 'g {
     type Meta;
     fn meta(&self) -> Self::Meta;
-}
-
-pub trait LearnableOp<'g, D: Data<'g>>: Model {
-    fn forward_inference(&mut self, input: D) -> D;
-    fn forward(&mut self, input: D) -> D;
-    fn backward(&mut self, incoming_grad: D) -> D;
-}
-
-pub trait InputTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
-    fn transform(&mut self, input: DataIn) -> DataOut;
-    fn revert(&mut self, output: DataOut) -> DataIn;
-}
-
-pub trait ReferenceTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
-    fn transform(&mut self, reference: DataIn) -> DataOut;
-    fn revert(&mut self, reference: DataOut) -> DataIn;
-}
-
-pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
-    fn transform(&mut self, input_or_reference: DataIn) -> DataOut;
-    fn revert(&mut self, output_or_reference: DataOut) -> DataIn;
 }
 
 impl<'g, D: Data<'g>> Data<'g> for &'g D {

@@ -85,8 +85,7 @@ pub struct MatrixLearnableAdamBuilder<'g, Parent: 'g> {
     beta1: Scalar,
     beta2: Scalar,
     epsilon: Scalar,
-    parent_acceptor:
-        Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<'g, Parent>) -> Parent + 'g>>,
+    parent_acceptor: Option<Box<dyn FnOnce(MatrixLearnableAdamBuilder<'g, Parent>) -> Parent + 'g>>,
 }
 
 impl<'g, Parent: 'g> MatrixLearnableAdamBuilder<'g, Parent> {
@@ -133,9 +132,7 @@ impl<'g, Parent: 'g> MatrixLearnableAdamBuilder<'g, Parent> {
     }
 }
 
-impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix>
-    for MatrixLearnableAdamBuilder<'g, Parent>
-{
+impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix> for MatrixLearnableAdamBuilder<'g, Parent> {
     fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableAdam::new(
             parameter,

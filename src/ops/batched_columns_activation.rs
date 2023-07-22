@@ -3,7 +3,8 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 use super::{
     model::{impl_model_no_params, Model},
     op_graph_builder::{CombinatoryOpBuilder, OpGraphBuilder, OpNodeBuilder},
-    Data, LearnableOp, op_graphs::op_node::{impl_op_node_for_learnable_op, OpNodeTrait},
+    op_graphs::op_node::{impl_op_node_for_learnable_op, LearnableOp, OpNodeTrait},
+    Data,
 };
 
 pub struct BatchedColumnsActivation {
@@ -64,8 +65,7 @@ impl BatchedColumnsActivationBuilder {
     }
 }
 
-impl<'g, DataRef: Data<'g>>
-    OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
+impl<'g, DataRef: Data<'g>> OpNodeBuilder<'g, Matrix, Matrix, DataRef, DataRef>
     for BatchedColumnsActivationBuilder
 {
     fn build(

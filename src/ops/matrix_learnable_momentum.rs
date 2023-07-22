@@ -60,9 +60,8 @@ impl<'g> Model for MatrixLearnableMomentum<'g> {
 pub struct MatrixLearnableMomentumBuilder<'g, Parent: 'g> {
     learning_rate: Box<dyn LearningRateScheduler<'g> + 'g>,
     momentum: Scalar,
-    parent_acceptor: Option<
-        Box<dyn FnOnce(MatrixLearnableMomentumBuilder<'g, Parent>) -> Parent + 'g>,
-    >,
+    parent_acceptor:
+        Option<Box<dyn FnOnce(MatrixLearnableMomentumBuilder<'g, Parent>) -> Parent + 'g>>,
 }
 
 impl<'g, Parent: 'g> MatrixLearnableMomentumBuilder<'g, Parent> {
@@ -97,9 +96,7 @@ impl<'g, Parent: 'g> MatrixLearnableMomentumBuilder<'g, Parent> {
     }
 }
 
-impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix>
-    for MatrixLearnableMomentumBuilder<'g, Parent>
-{
+impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix> for MatrixLearnableMomentumBuilder<'g, Parent> {
     fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableMomentum::new(
             parameter,

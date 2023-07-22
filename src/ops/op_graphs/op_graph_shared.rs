@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::ops::{Data, model::Model};
 use crate::linalg::Scalar;
+use crate::ops::{model::Model, Data};
 
 use super::op_node::OpNodeTrait;
 
@@ -59,7 +59,9 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
         incoming_grad: DataOut,
         reference: DataRefOut,
     ) -> (DataIn, DataRefIn) {
-        self.0.borrow_mut().backward_or_revert(incoming_grad, reference)
+        self.0
+            .borrow_mut()
+            .backward_or_revert(incoming_grad, reference)
     }
 }
 

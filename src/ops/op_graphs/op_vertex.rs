@@ -1,5 +1,8 @@
-use crate::ops::{Data, model::{Model, impl_model_from_model_fields}};
 use crate::linalg::Scalar;
+use crate::ops::{
+    model::{impl_model_from_model_fields, Model},
+    Data,
+};
 
 use super::op_node::OpNodeTrait;
 

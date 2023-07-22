@@ -2,8 +2,10 @@ use crate::linalg::Scalar;
 
 use crate::ops::{
     model::{impl_model_no_params, Model},
-    op_graphs::op_node::{OpNodeTrait, impl_op_node_for_total_transformation_op},
-    Data, TotalTransformationOp,
+    op_graphs::op_node::{
+        impl_op_node_for_total_transformation_op, OpNodeTrait, TotalTransformationOp,
+    },
+    Data,
 };
 
 pub struct TotalMappingOp<'g, DataIn: Data<'g>, DataOut: Data<'g>, F, FP, FM>
@@ -78,9 +80,7 @@ where
 
 macro_rules! impl_op_builder_from_total_transformation_closures {
     ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt, $meta:tt) => {
-        impl<'g> OpNodeBuilder<'g, $in_type, $out_type, $in_type, $out_type>
-            for $t
-        {
+        impl<'g> OpNodeBuilder<'g, $in_type, $out_type, $in_type, $out_type> for $t {
             fn build(
                 &mut self,
                 meta_data: <$in_type as Data>::Meta,

@@ -21,6 +21,27 @@ pub trait OpNodeTrait<
     ) -> (DataIn, DataRefIn);
 }
 
+pub trait LearnableOp<'g, D: Data<'g>>: Model {
+    fn forward_inference(&mut self, input: D) -> D;
+    fn forward(&mut self, input: D) -> D;
+    fn backward(&mut self, incoming_grad: D) -> D;
+}
+
+pub trait InputTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
+    fn transform(&mut self, input: DataIn) -> DataOut;
+    fn revert(&mut self, output: DataOut) -> DataIn;
+}
+
+pub trait ReferenceTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
+    fn transform(&mut self, reference: DataIn) -> DataOut;
+    fn revert(&mut self, reference: DataOut) -> DataIn;
+}
+
+pub trait TotalTransformationOp<'g, DataIn: Data<'g>, DataOut: Data<'g>>: Model {
+    fn transform(&mut self, input_or_reference: DataIn) -> DataOut;
+    fn revert(&mut self, output_or_reference: DataOut) -> DataIn;
+}
+
 macro_rules! impl_op_node_for_learnable_op {
     ($d:ident, $dref:ident) => {
         fn forward_or_transform_inference(&mut self, input: $d) -> $d {

@@ -1,5 +1,5 @@
-use crate::ops::{Data, model::Model};
 use crate::linalg::Scalar;
+use crate::ops::{model::Model, Data};
 
 use super::op_node::OpNodeTrait;
 
