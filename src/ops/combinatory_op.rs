@@ -47,14 +47,14 @@ pub trait CombinatoryOp<
     DataRefOut: Data<'g>,
 >
 {
-    fn push<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpPushed: OpNodeTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpLinked: OpNodeTrait<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpPushed,
-    ) -> OpVertex<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed>;
+        op: OpLinked,
+    ) -> OpVertex<'g, DataIn, DataOut, DataOutLinked, DataRefIn, DataRefOut, DataRefOutLinked>;
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, MOp>
@@ -62,14 +62,14 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 where
     MOp: OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
-    fn push<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpPushed: OpNodeTrait<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpLinked: OpNodeTrait<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpPushed,
-    ) -> OpVertex<'g, DataIn, DataOut, DataOutPushed, DataRefIn, DataRefOut, DataRefOutPushed> {
+        op: OpLinked,
+    ) -> OpVertex<'g, DataIn, DataOut, DataOutLinked, DataRefIn, DataRefOut, DataRefOutLinked> {
         OpVertex::new(Box::new(self), Box::new(op))
     }
 }

@@ -43,6 +43,6 @@ impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpGraphBuilder<'g, DataIn, Matrix, DataRefIn, DataRefOut>
 {
     pub fn tanh(self) -> OpGraphBuilder<'g, DataIn, Matrix, DataRefIn, DataRefOut> {
-        self.push_and_pack(TanhBuilder)
+        self.link_and_pack(TanhBuilder)
     }
 }

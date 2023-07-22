@@ -183,7 +183,7 @@ macro_rules! plug_builder_on_op_node_builder_data_out {
             pub fn $plug_name(
                 self,
             ) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, DataRefOut> {
-                self.push_and_pack($builder)
+                self.link_and_pack($builder)
             }
         }
     };
@@ -197,7 +197,7 @@ macro_rules! plug_builder_on_op_node_builder_reference_out {
             OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $plug_type>
         {
             pub fn $plug_name(self) -> OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, $out_type> {
-                self.push_and_pack($builder)
+                self.link_and_pack($builder)
             }
         }
     };
@@ -211,7 +211,7 @@ macro_rules! plug_builder_on_op_node_builder_total_out {
             OpGraphBuilder<'g, DataIn, $plug_type, DataRefIn, $plug_type>
         {
             pub fn $plug_name(self) -> OpGraphBuilder<'g, DataIn, $out_type, DataRefIn, $out_type> {
-                self.push_and_pack($builder)
+                self.link_and_pack($builder)
             }
         }
     };
@@ -307,31 +307,31 @@ pub trait CombinatoryOpBuilder<
     DataRefOut: Data<'g>,
 >
 {
-    fn push_and_link<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpNodeBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpBuilderLinked: OpNodeBuilder<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpBuilderPushed,
+        op: OpBuilderLinked,
     ) -> OpNodeBuilderChain<
         'g,
         DataIn,
         DataOut,
-        DataOutPushed,
+        DataOutLinked,
         DataRefIn,
         DataRefOut,
-        DataRefOutPushed,
+        DataRefOutLinked,
     >;
 
-    fn push_and_pack<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpNodeBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link_and_pack<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpBuilderLinked: OpNodeBuilder<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpBuilderPushed,
-    ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed>;
+        op: OpBuilderLinked,
+    ) -> OpGraphBuilder<'g, DataIn, DataOutLinked, DataRefIn, DataRefOutLinked>;
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>, OpB>
@@ -339,33 +339,33 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 where
     OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
 {
-    fn push_and_link<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpNodeBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpBuilderLinked: OpNodeBuilder<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpBuilderPushed,
+        op: OpBuilderLinked,
     ) -> OpNodeBuilderChain<
         'g,
         DataIn,
         DataOut,
-        DataOutPushed,
+        DataOutLinked,
         DataRefIn,
         DataRefOut,
-        DataRefOutPushed,
+        DataRefOutLinked,
     > {
         OpNodeBuilderChain::new(Box::new(self), Box::new(op))
     }
 
-    fn push_and_pack<
-        DataOutPushed: Data<'g>,
-        DataRefOutPushed: Data<'g>,
-        OpBuilderPushed: OpNodeBuilder<'g, DataOut, DataOutPushed, DataRefOut, DataRefOutPushed> + 'g,
+    fn link_and_pack<
+        DataOutLinked: Data<'g>,
+        DataRefOutLinked: Data<'g>,
+        OpBuilderLinked: OpNodeBuilder<'g, DataOut, DataOutLinked, DataRefOut, DataRefOutLinked> + 'g,
     >(
         self,
-        op: OpBuilderPushed,
-    ) -> OpGraphBuilder<'g, DataIn, DataOutPushed, DataRefIn, DataRefOutPushed> {
-        OpGraphBuilder::from_op_builder(self.push_and_link(op))
+        op: OpBuilderLinked,
+    ) -> OpGraphBuilder<'g, DataIn, DataOutLinked, DataRefIn, DataRefOutLinked> {
+        OpGraphBuilder::from_op_builder(self.link(op))
     }
 }

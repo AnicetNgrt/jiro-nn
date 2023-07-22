@@ -92,6 +92,6 @@ impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
         activation_prime: fn(&Matrix) -> Matrix,
     ) -> OpGraphBuilder<'g, DataIn, Matrix, DataRefIn, DataRefOut> {
         let builder = BatchedColumnsActivationBuilder::new(activation, activation_prime);
-        self.push_and_pack(builder)
+        self.link_and_pack(builder)
     }
 }

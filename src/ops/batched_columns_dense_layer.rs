@@ -214,7 +214,7 @@ impl<'g, DataIn: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
         BatchedColumnsDenseLayerBuilder::new(
             output_neurons,
             Some(Box::new(move |builder| {
-                let builder = self.push_and_pack(builder);
+                let builder = self.link_and_pack(builder);
                 builder
             })),
         )
