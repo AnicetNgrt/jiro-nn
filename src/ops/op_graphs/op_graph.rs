@@ -3,7 +3,7 @@ use crate::ops::{model::Model, Data};
 
 use super::op_node::OpNodeTrait;
 
-pub struct OpNode<
+pub struct OpSubgraph<
     'g,
     DataIn: Data<'g>,
     DataOut: Data<'g>,
@@ -12,7 +12,7 @@ pub struct OpNode<
 >(pub Box<dyn OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>);
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
-    OpNode<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     pub fn new(op: Box<dyn OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>) -> Self {
         Self(op)
@@ -20,7 +20,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>> Model
-    for OpNode<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     fn get_learnable_params_count(&self) -> usize {
         self.0.get_learnable_params_count()
@@ -37,7 +37,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpNode<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
     fn forward_or_transform_inference(&mut self, input: DataIn) -> DataOut {
         self.0.forward_or_transform_inference(input)
@@ -60,7 +60,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
     }
 }
 
-pub type OpGraph<'g, DataOut, DataRefOut> = OpNode<'g, (), DataOut, (), DataRefOut>;
+pub type OpGraph<'g, DataOut, DataRefOut> = OpSubgraph<'g, (), DataOut, (), DataRefOut>;
 
 impl<'g, DataOut: Data<'g>, DataRefOut: Data<'g>> OpGraph<'g, DataOut, DataRefOut> {
     pub fn run_inference(&mut self) -> DataOut {

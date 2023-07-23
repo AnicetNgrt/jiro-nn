@@ -2,8 +2,11 @@ use crate::linalg::{Matrix, MatrixTrait};
 
 use super::{
     batched_columns_activation::BatchedColumnsActivation,
-    op_graph_builder::{LinkableOpBuilder, OpGraphBuilder, OpNodeBuilder},
     op_graphs::op_node::OpNodeTrait,
+    op_graphs_builders::{
+        linkable_op_builder::LinkableOpBuilder, op_graph_builder::OpGraphBuilder,
+        op_node_builder::OpNodeBuilder,
+    },
     Data,
 };
 

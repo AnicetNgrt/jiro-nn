@@ -10,13 +10,16 @@ use super::{
         },
         total_mapping::{impl_op_builder_from_total_transformation_closures, TotalMappingOp},
     },
-    op_graph_builder::{
-        plug_builder_on_op_node_builder_data_out, plug_builder_on_op_node_builder_reference_out,
-        plug_builder_on_op_node_builder_total_out, OpGraphBuilder,
-        OpNodeBuilder,
-        LinkableOpBuilder
-    },
     op_graphs::op_node::OpNodeTrait,
+    op_graphs_builders::{
+        linkable_op_builder::LinkableOpBuilder,
+        op_graph_builder::{
+            plug_builder_on_op_node_builder_data_out,
+            plug_builder_on_op_node_builder_reference_out,
+            plug_builder_on_op_node_builder_total_out, OpGraphBuilder,
+        },
+        op_node_builder::OpNodeBuilder,
+    },
     Data,
 };
 

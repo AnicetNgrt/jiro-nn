@@ -5,8 +5,11 @@ use super::{
     matrix_learnable_momentum::MatrixLearnableMomentumBuilder,
     matrix_learnable_sgd::MatrixLearnableSGDBuilder,
     model::{impl_model_from_model_fields, Model},
-    op_graph_builder::{LinkableOpBuilder, OpGraphBuilder, OpNodeBuilder},
     op_graphs::op_node::{impl_op_node_for_learnable_op, LearnableOp, OpNodeTrait},
+    op_graphs_builders::{
+        linkable_op_builder::LinkableOpBuilder, op_graph_builder::OpGraphBuilder,
+        op_node_builder::OpNodeBuilder,
+    },
     optimizer::{Optimizer, OptimizerBuilder},
     Data,
 };

@@ -2,8 +2,11 @@ use crate::linalg::{Matrix, MatrixTrait, Scalar};
 
 use super::{
     model::{impl_model_no_params, Model},
-    op_graph_builder::{LinkableOpBuilder, OpGraphBuilder, OpNodeBuilder},
     op_graphs::op_node::{impl_op_node_for_learnable_op, LearnableOp, OpNodeTrait},
+    op_graphs_builders::{
+        linkable_op_builder::LinkableOpBuilder, op_graph_builder::OpGraphBuilder,
+        op_node_builder::OpNodeBuilder,
+    },
     Data,
 };
 
