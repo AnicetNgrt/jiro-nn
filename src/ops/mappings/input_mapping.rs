@@ -85,11 +85,11 @@ macro_rules! impl_op_builder_from_input_transformation_closures {
         {
             fn build(
                 &mut self,
-                meta_data: <$in_type as Data>::Meta,
+                meta_data: <$in_type as Data<'g>>::Meta,
                 meta_ref: DataRef::Meta,
             ) -> (
                 Box<dyn OpNodeTrait<'g, $in_type, $out_type, DataRef, DataRef> + 'g>,
-                (<$out_type as Data>::Meta, DataRef::Meta),
+                (<$out_type as Data<'g>>::Meta, DataRef::Meta),
             ) {
                 let op = InputMappingOp::new($transform, $revert, $meta);
                 let meta_data = op.map_meta(meta_data);

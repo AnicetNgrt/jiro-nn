@@ -127,13 +127,13 @@ impl<'g, Parent: 'g> MatrixLearnableAdamBuilder<'g, Parent> {
         let acceptor = self
             .parent_acceptor
             .take()
-            .expect("Can't .end() if there is no parent. .build() instead.");
+            .expect("Can't .end() if there is no parent. ._build() instead.");
         (acceptor)(self)
     }
 }
 
 impl<'g, Parent: 'g> OptimizerBuilder<'g, Matrix> for MatrixLearnableAdamBuilder<'g, Parent> {
-    fn build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
+    fn _build(&self, parameter: Matrix) -> Box<dyn Optimizer<'g, Matrix> + 'g> {
         Box::new(MatrixLearnableAdam::new(
             parameter,
             self.learning_rate.clone_box(),

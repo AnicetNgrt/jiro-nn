@@ -12,8 +12,9 @@ use super::{
     },
     op_graph_builder::{
         plug_builder_on_op_node_builder_data_out, plug_builder_on_op_node_builder_reference_out,
-        plug_builder_on_op_node_builder_total_out, LinkableOpBuilder, OpGraphBuilder,
+        plug_builder_on_op_node_builder_total_out, OpGraphBuilder,
         OpNodeBuilder,
+        LinkableOpBuilder
     },
     op_graphs::op_node::OpNodeTrait,
     Data,

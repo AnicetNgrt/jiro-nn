@@ -3,3 +3,5 @@ pub mod op_graph_shared;
 pub mod op_graph_thread_shared;
 pub mod op_node;
 pub mod op_vertex;
+pub mod linkable_op;
+pub mod origin_op;

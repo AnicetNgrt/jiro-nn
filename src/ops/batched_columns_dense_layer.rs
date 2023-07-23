@@ -188,10 +188,10 @@ impl<'g, Parent: 'g, DataRef: Data<'g>> OpNodeBuilder<'g, Matrix, Matrix, DataRe
         let input_neurons = input_dims.0;
         let weights_optimizer = self
             .weights_optimizer
-            .build(Matrix::zeros(self.output_neurons, input_neurons));
+            ._build(Matrix::zeros(self.output_neurons, input_neurons));
         let biases_optimizer = self
             .biases_optimizer
-            .build(Matrix::zeros(self.output_neurons, 1));
+            ._build(Matrix::zeros(self.output_neurons, 1));
         let layer = BatchedColumnsDenseLayer::new(weights_optimizer, biases_optimizer);
 
         (

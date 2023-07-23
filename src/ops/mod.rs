@@ -13,7 +13,6 @@ use crate::{
 pub mod batched_columns_activation;
 pub mod batched_columns_dense_layer;
 pub mod batched_columns_tanh;
-pub mod combinatory_op;
 pub mod learning_rate;
 pub mod loss;
 pub mod mappings;

@@ -1,43 +1,6 @@
-use crate::linalg::Scalar;
+use crate::ops::Data;
 
-use super::{
-    model::{impl_model_no_params, Model},
-    op_graphs::op_node::OpNodeTrait,
-    op_graphs::op_vertex::OpVertex,
-    Data,
-};
-
-pub struct OriginOp<'g, D: Data<'g>, DataRef: Data<'g>> {
-    _phantom: std::marker::PhantomData<&'g (D, DataRef)>,
-}
-
-impl<'g, D: Data<'g>, DataRef: Data<'g>> OriginOp<'g, D, DataRef> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-impl<'g, D: Data<'g>, DataRef: Data<'g>> Model for OriginOp<'g, D, DataRef> {
-    impl_model_no_params!();
-}
-
-impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
-    for OriginOp<'g, D, DataRef>
-{
-    fn forward_or_transform_inference(&mut self, input: D) -> D {
-        input
-    }
-
-    fn forward_or_transform(&mut self, input: D, reference: DataRef) -> (D, DataRef) {
-        (input, reference)
-    }
-
-    fn backward_or_revert(&mut self, output: D, reference: DataRef) -> (D, DataRef) {
-        (output, reference)
-    }
-}
+use super::{op_node::OpNodeTrait, op_vertex::OpVertex};
 
 pub trait LinkableOp<
     'g,

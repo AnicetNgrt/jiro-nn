@@ -85,10 +85,10 @@ macro_rules! impl_op_builder_from_reference_transformation_closures {
             fn build(
                 &mut self,
                 meta_data: D::Meta,
-                meta_ref: <$in_type as Data>::Meta,
+                meta_ref: <$in_type as Data<'g>>::Meta,
             ) -> (
                 Box<dyn OpNodeTrait<'g, D, D, $in_type, $out_type> + 'g>,
-                (D::Meta, <$out_type as Data>::Meta),
+                (D::Meta, <$out_type as Data<'g>>::Meta),
             ) {
                 let op = ReferenceMappingOp::new($transform, $revert, $meta);
                 let meta_ref = op.map_meta(meta_ref);

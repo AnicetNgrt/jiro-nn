@@ -83,11 +83,11 @@ macro_rules! impl_op_builder_from_total_transformation_closures {
         impl<'g> OpNodeBuilder<'g, $in_type, $out_type, $in_type, $out_type> for $t {
             fn build(
                 &mut self,
-                meta_data: <$in_type as Data>::Meta,
-                meta_ref: <$in_type as Data>::Meta,
+                meta_data: <$in_type as Data<'g>>::Meta,
+                meta_ref: <$in_type as Data<'g>>::Meta,
             ) -> (
                 Box<dyn OpNodeTrait<'g, $in_type, $out_type, $in_type, $out_type> + 'g>,
-                (<$out_type as Data>::Meta, <$out_type as Data>::Meta),
+                (<$out_type as Data<'g>>::Meta, <$out_type as Data<'g>>::Meta),
             ) {
                 let op = TotalMappingOp::new($transform, $revert, $meta);
                 let meta_data = op.map_meta(meta_data);
