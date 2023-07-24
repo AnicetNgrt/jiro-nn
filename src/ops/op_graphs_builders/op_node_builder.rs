@@ -1,7 +1,7 @@
 use crate::ops::{
     op_graphs::{
+        nothing_op::{op_node_from_data, op_node_with_ref},
         op_node::OpNodeTrait,
-        origin_op::{op_node_from_data, op_node_with_ref},
     },
     Data,
 };

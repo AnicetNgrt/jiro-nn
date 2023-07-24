@@ -57,6 +57,6 @@ where
         self,
         op: OpBuilderLinked,
     ) -> OpGraphBuilder<'g, DataIn, DataOutLinked, DataRefIn, DataRefOutLinked> {
-        OpGraphBuilder::from_op_node_builder(self.link(op))
+        OpGraphBuilder::start_from_op_node_builder(self.link(op))
     }
 }

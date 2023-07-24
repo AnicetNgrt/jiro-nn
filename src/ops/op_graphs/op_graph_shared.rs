@@ -5,7 +5,6 @@ use crate::ops::{model::Model, Data};
 
 use super::op_node::OpNodeTrait;
 
-#[derive(Clone)]
 pub struct OpNodeShared<
     'g,
     DataIn: Data<'g>,
@@ -19,6 +18,10 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 {
     pub fn new(op: Box<dyn OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>) -> Self {
         Self(Rc::new(RefCell::new(op)))
+    }
+
+    pub fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }
 

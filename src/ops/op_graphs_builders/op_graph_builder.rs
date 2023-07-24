@@ -1,5 +1,6 @@
 use crate::ops::{
     op_graphs::{
+        nothing_op::NothingOp,
         op_graph::{OpGraph, OpSubgraph},
         op_node::OpNodeTrait,
     },
@@ -18,10 +19,29 @@ pub struct OpGraphBuilder<
     builder: Option<Box<dyn OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>>,
 }
 
+pub type OpGraphBuilderRoot<'g, D, DataRef> = OpGraphBuilder<'g, (), D, (), DataRef>;
+pub type OpGraphBuilderAnchor<'g, D, DataRef> = OpGraphBuilder<'g, D, D, DataRef, DataRef>;
+
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    pub fn from_op_node_builder<
+    pub fn start() -> OpGraphBuilder<'g, DataIn, DataIn, DataRefIn, DataRefIn> {
+        let f = move |meta_data: DataIn::Meta,
+                      meta_ref: DataRefIn::Meta|
+              -> (
+            Box<dyn OpNodeTrait<'g, DataIn, DataIn, DataRefIn, DataRefIn> + 'g>,
+            (DataIn::Meta, DataRefIn::Meta),
+        ) {
+            let op = NothingOp::<DataIn, DataRefIn>::new();
+            (Box::new(op), (meta_data, meta_ref))
+        };
+
+        OpGraphBuilder {
+            builder: Some(Box::new(f)),
+        }
+    }
+
+    pub fn start_from_op_node_builder<
         OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
     >(
         builder: OpB,
@@ -41,7 +61,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 }
 
 impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone> OpGraphBuilder<'g, (), D, (), DataRef> {
-    pub fn from_data_and_ref(data: D, reference: DataRef) -> Self {
+    pub fn start_from_data(data: D, reference: DataRef) -> Self {
         Self {
             builder: Some(Box::new((data, reference))),
         }

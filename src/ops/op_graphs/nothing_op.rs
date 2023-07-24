@@ -9,11 +9,11 @@ use crate::ops::{
 
 use super::{op_node::OpNodeTrait, op_vertex::OpVertex};
 
-pub struct OriginOp<'g, D: Data<'g>, DataRef: Data<'g>> {
+pub struct NothingOp<'g, D: Data<'g>, DataRef: Data<'g>> {
     _phantom: std::marker::PhantomData<&'g (D, DataRef)>,
 }
 
-impl<'g, D: Data<'g>, DataRef: Data<'g>> OriginOp<'g, D, DataRef> {
+impl<'g, D: Data<'g>, DataRef: Data<'g>> NothingOp<'g, D, DataRef> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -21,12 +21,12 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> OriginOp<'g, D, DataRef> {
     }
 }
 
-impl<'g, D: Data<'g>, DataRef: Data<'g>> Model for OriginOp<'g, D, DataRef> {
+impl<'g, D: Data<'g>, DataRef: Data<'g>> Model for NothingOp<'g, D, DataRef> {
     impl_model_no_params!();
 }
 
 impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
-    for OriginOp<'g, D, DataRef>
+    for NothingOp<'g, D, DataRef>
 {
     fn forward_or_transform_inference(&mut self, input: D) -> D {
         input
@@ -44,7 +44,7 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
 pub fn op_node_from_data<'g, D: Data<'g> + Clone>(
     data: D,
 ) -> Box<dyn OpNodeTrait<'g, (), D, (), ()> + 'g> {
-    let origin_op = OriginOp::<(), ()>::new();
+    let origin_op = NothingOp::<(), ()>::new();
     let data1 = data.clone();
     let data2 = data.clone();
     let vertex_op = OpVertex::new(

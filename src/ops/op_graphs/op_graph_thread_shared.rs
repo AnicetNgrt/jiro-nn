@@ -7,7 +7,6 @@ use crate::{
 
 use super::op_node::OpNodeTrait;
 
-#[derive(Clone)]
 pub struct OpNodeThreadShared<
     'g,
     DataIn: Data<'g>,
@@ -21,6 +20,10 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 {
     pub fn new(op: Box<dyn OpNodeTrait<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g>) -> Self {
         Self(Arc::new(Mutex::new(op)))
+    }
+
+    pub fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }
 
