@@ -78,25 +78,3 @@ where
 {
     impl_op_node_for_reference_transformation_op!(D, D, DataRefIn, DataRefOut);
 }
-
-macro_rules! impl_op_builder_from_reference_transformation_closures {
-    ($t:ty, $in_type:ty, $out_type:ty, $transform:tt, $revert:tt, $meta:tt) => {
-        impl<'g, D: Data<'g>> OpNodeBuilder<'g, D, D, $in_type, $out_type> for $t {
-            fn build(
-                &mut self,
-                meta_data: D::Meta,
-                meta_ref: <$in_type as Data<'g>>::Meta,
-            ) -> (
-                Box<dyn OpNodeTrait<'g, D, D, $in_type, $out_type> + 'g>,
-                (D::Meta, <$out_type as Data<'g>>::Meta),
-            ) {
-                let op = ReferenceMappingOp::new($transform, $revert, $meta);
-                let meta_ref = op.map_meta(meta_ref);
-
-                (Box::new(op), (meta_data, meta_ref))
-            }
-        }
-    };
-}
-
-pub(crate) use impl_op_builder_from_reference_transformation_closures;

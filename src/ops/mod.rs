@@ -23,7 +23,6 @@ pub mod model;
 pub mod op_graphs;
 pub mod op_graphs_builders;
 pub mod optimizer;
-pub mod transformations;
 pub mod vec_to_matrix;
 
 pub trait Data<'g>: 'g {
