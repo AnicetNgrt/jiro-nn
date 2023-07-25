@@ -100,7 +100,7 @@ where
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    pub fn portal<PortalDataOut: Data<'g>, PortalDataRefOut: Data<'g>>(
+    pub fn portal_node<PortalDataOut: Data<'g>, PortalDataRefOut: Data<'g>>(
         self,
         portal: &OpPortalBuilder<'g, DataOut, PortalDataOut, DataRefOut, PortalDataRefOut>,
     ) -> OpGraphBuilder<'g, DataIn, PortalDataOut, DataRefIn, PortalDataRefOut>

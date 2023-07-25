@@ -7,7 +7,7 @@ use crate::ops::{
     Data,
 };
 
-use super::op_node_builder::OpNodeBuilder;
+use super::{linkable_op_builder::LinkableOpBuilder, op_node_builder::OpNodeBuilder};
 
 pub struct OpGraphBuilder<
     'g,
@@ -57,6 +57,17 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
         meta_ref: DataRefIn::Meta,
     ) -> OpSubgraph<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
         OpSubgraph::new(self.build(meta_data, meta_ref).0)
+    }
+
+    pub fn custom_node<
+        BuilderDataOut: Data<'g>,
+        BuilderDataRefOut: Data<'g>,
+        OpB: OpNodeBuilder<'g, DataOut, BuilderDataOut, DataRefOut, BuilderDataRefOut> + 'g,
+    >(
+        self,
+        builder: OpB,
+    ) -> OpGraphBuilder<'g, DataIn, BuilderDataOut, DataRefIn, BuilderDataRefOut> {
+        self.link_and_pack(builder)
     }
 }
 
