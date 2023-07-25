@@ -39,6 +39,10 @@ impl<'g, D: Data<'g>, DataRef: Data<'g>> OpNodeTrait<'g, D, D, DataRef, DataRef>
     fn backward_or_revert(&mut self, output: D, reference: DataRef) -> (D, DataRef) {
         (output, reference)
     }
+
+    fn revert_reference(&mut self, reference: DataRef) -> DataRef {
+        reference
+    }
 }
 
 pub fn op_node_from_data<'g, D: Data<'g> + Clone>(

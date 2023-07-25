@@ -56,6 +56,10 @@ impl<'g, D: MeanableData<'g>> OpNodeTrait<'g, D, D, D, D> for Loss<'g, D> {
         let grad = (self.grad)(input, &reference);
         (grad, reference)
     }
+
+    fn revert_reference(&mut self, reference: D) -> D {
+        reference
+    }
 }
 
 impl<'g> MeanableData<'g> for Scalar {

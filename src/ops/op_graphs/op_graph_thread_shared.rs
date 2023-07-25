@@ -90,6 +90,14 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
             .expect("Failed to lock mutex around thread safe Op Graph");
         op.backward_or_revert(incoming_grad, reference)
     }
+
+    fn revert_reference(&mut self, reference: DataRefOut) -> DataRefIn {
+        let mut op = self
+            .0
+            .try_lock()
+            .expect("Failed to lock mutex around thread safe Op Graph");
+        op.revert_reference(reference)
+    }
 }
 
 pub type OpGraphThreadShared<'g, DataOut, DataRefOut> =

@@ -19,6 +19,7 @@ pub trait OpNodeTrait<
         incoming_grad: DataOut,
         reference: DataRefOut,
     ) -> (DataIn, DataRefIn);
+    fn revert_reference(&mut self, reference: DataRefOut) -> DataRefIn;
 }
 
 pub trait LearnableOp<'g, D: Data<'g>>: Model {
@@ -55,6 +56,10 @@ macro_rules! impl_op_node_for_learnable_op {
         fn backward_or_revert(&mut self, output: $d, reference: $dref) -> ($d, $dref) {
             (self.backward(output), reference)
         }
+
+        fn revert_reference(&mut self, reference: $dref) -> $dref {
+            reference
+        }
     };
 }
 
@@ -72,6 +77,10 @@ macro_rules! impl_op_node_for_input_transformation_op {
 
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (self.revert(output), reference)
+        }
+
+        fn revert_reference(&mut self, reference: $drefout) -> $dref {
+            reference
         }
     };
 }
@@ -91,6 +100,10 @@ macro_rules! impl_op_node_for_reference_transformation_op {
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (output, self.revert(reference))
         }
+
+        fn revert_reference(&mut self, reference: $drefout) -> $dref {
+            self.revert(reference)
+        }
     };
 }
 
@@ -108,6 +121,10 @@ macro_rules! impl_op_node_for_total_transformation_op {
 
         fn backward_or_revert(&mut self, output: $dout, reference: $drefout) -> ($din, $dref) {
             (self.revert(output), self.revert(reference))
+        }
+
+        fn revert_reference(&mut self, reference: $drefout) -> $dref {
+            self.revert(reference)
         }
     };
 }

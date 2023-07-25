@@ -66,6 +66,10 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
             .borrow_mut()
             .backward_or_revert(incoming_grad, reference)
     }
+
+    fn revert_reference(&mut self, reference: DataRefOut) -> DataRefIn {
+        self.0.borrow_mut().revert_reference(reference)
+    }
 }
 
 pub type OpGraphShared<'g, DataOut, DataRefOut> = OpNodeShared<'g, (), DataOut, (), DataRefOut>;

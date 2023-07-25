@@ -58,6 +58,10 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
     ) -> (DataIn, DataRefIn) {
         self.0.backward_or_revert(incoming_grad, reference)
     }
+
+    fn revert_reference(&mut self, reference: DataRefOut) -> DataRefIn {
+        self.0.revert_reference(reference)
+    }
 }
 
 pub type OpGraph<'g, DataOut, DataRefOut> = OpSubgraph<'g, (), DataOut, (), DataRefOut>;

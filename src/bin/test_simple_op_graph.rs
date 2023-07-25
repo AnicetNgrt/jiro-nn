@@ -30,13 +30,13 @@ fn main() {
     .tanh();
 
     let mut op = op_build.build_graph();
-    let pred = op.run_inference();
+    let predictions = op.run_inference();
 
-    println!("pred: {:?}", pred);
+    println!("pred: {:?}", predictions);
 
-    let pred = preprocessing
+    let predictions = preprocessing
         .get_portal_to_op()
-        .backward_or_revert(Matrix::zeros(1, 1), pred);
+        .revert_reference(predictions);
 
-    println!("pred: {:?}", pred);
+    println!("pred: {:?}", predictions);
 }

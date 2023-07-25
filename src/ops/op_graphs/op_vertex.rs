@@ -65,6 +65,11 @@ impl<
         let (mid, reference) = self.second_op.backward_or_revert(output, reference);
         self.first_op.backward_or_revert(mid, reference)
     }
+
+    fn revert_reference(&mut self, reference: DataRefOut) -> DataRefIn {
+        self.first_op
+            .revert_reference(self.second_op.revert_reference(reference))
+    }
 }
 
 impl<
