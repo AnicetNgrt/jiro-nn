@@ -7,7 +7,7 @@ use crate::ops::{
 
 use super::{op_graph_builder::OpGraphBuilder, op_node_builder::OpNodeBuilder, linkable_op_builder::LinkableOpBuilder};
 
-pub struct OpPortalBuilder<
+pub struct OpPointerBuilder<
     'g,
     DataIn: Data<'g>,
     DataOut: Data<'g>,
@@ -24,7 +24,7 @@ pub struct OpPortalBuilder<
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
-    OpPortalBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    OpPointerBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 where
     DataOut::Meta: Clone,
     DataRefOut::Meta: Clone,
@@ -49,14 +49,14 @@ where
         }
     }
 
-    pub fn get_portal_to_op(&self) -> OpNodeShared<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
+    pub fn get_pointer_to_op(&self) -> OpNodeShared<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
         self.shared_op.borrow().as_ref().unwrap().clone()
     }
 }
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
-    for OpPortalBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+    for OpPointerBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 where
     DataOut::Meta: Clone,
     DataRefOut::Meta: Clone,
@@ -100,14 +100,25 @@ where
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    pub fn portal_node<PortalDataOut: Data<'g>, PortalDataRefOut: Data<'g>>(
+    pub fn pointer<PointerDataOut: Data<'g>, PointerDataRefOut: Data<'g>>(
         self,
-        portal: &OpPortalBuilder<'g, DataOut, PortalDataOut, DataRefOut, PortalDataRefOut>,
-    ) -> OpGraphBuilder<'g, DataIn, PortalDataOut, DataRefIn, PortalDataRefOut>
+        pointer: &OpPointerBuilder<'g, DataOut, PointerDataOut, DataRefOut, PointerDataRefOut>,
+    ) -> OpGraphBuilder<'g, DataIn, PointerDataOut, DataRefIn, PointerDataRefOut>
     where
-        PortalDataOut::Meta: Clone,
-        PortalDataRefOut::Meta: Clone,
+        PointerDataOut::Meta: Clone,
+        PointerDataRefOut::Meta: Clone,
     {
-        self.link_and_pack(portal.clone())
+        self.link_and_pack(pointer.clone())
+    }
+}
+
+impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
+    OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
+where
+    DataOut::Meta: Clone,
+    DataRefOut::Meta: Clone,
+{
+    pub fn make_pointer(self) -> OpPointerBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
+        OpPointerBuilder::new(self)
     }
 }
