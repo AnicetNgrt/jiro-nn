@@ -1,12 +1,14 @@
 use jiro_nn::ops::{
     op_graphs::op_node::OpNodeTrait,
-    op_graphs_builders::op_graph_builder::{OpGraphBuilder, OpGraphBuilderAnchor},
+    op_graphs_builders::op_graph_builder::{graph, graph_root},
 };
 
 fn main() {
-    let preprocessing = OpGraphBuilderAnchor::start().vec2_to_matrix().make_pointer();
+    let preprocessing = graph()
+        .vec2_to_matrix()
+        .make_pointer();
 
-    let op_build = OpGraphBuilder::start_from_data(
+    let op_build = graph_root(
         vec![
             vec![0.0, 0.0],
             vec![0.0, 1.0],
@@ -16,6 +18,12 @@ fn main() {
         vec![vec![0.0], vec![1.0], vec![1.0], vec![0.0]],
     )
     .pointer(&preprocessing)
+    .custom_node(
+        graph()
+            .dense(3)
+            .end()
+            .tanh()
+    )
     // .dense(10)
     // .everything_adam_optimized()
     // .end()
@@ -27,8 +35,7 @@ fn main() {
 
     println!("pred: {:?}", predictions);
 
-    let predictions = preprocessing
-        .get_pointer_to_op()
+    let predictions = preprocessing.get_op()
         .revert_reference(predictions);
 
     println!("pred: {:?}", predictions);

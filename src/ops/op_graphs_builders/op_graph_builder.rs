@@ -20,12 +20,20 @@ pub struct OpGraphBuilder<
 }
 
 pub type OpGraphBuilderRoot<'g, D, DataRef> = OpGraphBuilder<'g, (), D, (), DataRef>;
-pub type OpGraphBuilderAnchor<'g, D, DataRef> = OpGraphBuilder<'g, D, D, DataRef, DataRef>;
+pub type OpGraphBuilderEntry<'g, D, DataRef> = OpGraphBuilder<'g, D, D, DataRef, DataRef>;
+
+pub fn graph_root<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone>(data: D, reference: DataRef) -> OpGraphBuilderRoot<'g, D, DataRef> {
+    OpGraphBuilderRoot::from_data(data, reference)
+}
+
+pub fn graph<'g, D: Data<'g>, DataRef: Data<'g>>() -> OpGraphBuilderEntry<'g, D, DataRef> {
+    OpGraphBuilderEntry::new()
+}
 
 impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: Data<'g>>
     OpGraphBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut>
 {
-    pub fn start() -> OpGraphBuilder<'g, DataIn, DataIn, DataRefIn, DataRefIn> {
+    pub fn new() -> OpGraphBuilder<'g, DataIn, DataIn, DataRefIn, DataRefIn> {
         let f = move |meta_data: DataIn::Meta,
                       meta_ref: DataRefIn::Meta|
               -> (
@@ -41,7 +49,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
         }
     }
 
-    pub fn start_from_op_node_builder<
+    pub fn from_builder<
         OpB: OpNodeBuilder<'g, DataIn, DataOut, DataRefIn, DataRefOut> + 'g,
     >(
         builder: OpB,
@@ -72,7 +80,7 @@ impl<'g, DataIn: Data<'g>, DataOut: Data<'g>, DataRefIn: Data<'g>, DataRefOut: D
 }
 
 impl<'g, D: Data<'g> + Clone, DataRef: Data<'g> + Clone> OpGraphBuilder<'g, (), D, (), DataRef> {
-    pub fn start_from_data(data: D, reference: DataRef) -> Self {
+    pub fn from_data(data: D, reference: DataRef) -> Self {
         Self {
             builder: Some(Box::new((data, reference))),
         }

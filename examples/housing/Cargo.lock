@@ -267,6 +267,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "const-arith-macros-178"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa53f4d7955022c67ba4f06c9d7bb47e47681acc54f7301ef237151fa2566f95"
+dependencies = [
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "const-arithmetic"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e884b47e952833dd47289bb10fc27a26aabea4eb815e99ffbfae79f3b106082f"
+dependencies = [
+ "const-arith-macros-178",
+]
+
+[[package]]
 name = "convolutions-rs"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -795,6 +813,7 @@ dependencies = [
  "arrayfire",
  "assert_float_eq",
  "bincode",
+ "const-arithmetic",
  "convolutions-rs",
  "flate2",
  "lazy_static",

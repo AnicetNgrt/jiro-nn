@@ -49,7 +49,7 @@ where
         }
     }
 
-    pub fn get_pointer_to_op(&self) -> OpNodeShared<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
+    pub fn get_op(&self) -> OpNodeShared<'g, DataIn, DataOut, DataRefIn, DataRefOut> {
         self.shared_op.borrow().as_ref().unwrap().clone()
     }
 }
