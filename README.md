@@ -2,6 +2,7 @@
 
 <p align="center" style="padding-bottom: 10px">Low-friction high-detail Deep Learning framework in Rust</p>
 
+**Disclaimer:** This project was mainly a learning project, is not production-ready and is now on hold. Please use [candle](https://github.com/huggingface/candle) or others if you want a production-ready framework. Thanks for checking out my code :)
 
 - [Usage](#usage)
   - [Installation \& cargo features](#installation--cargo-features)
